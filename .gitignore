@@ -1,0 +1,17 @@
+# general ignores
+node_modules
+.DS_Store
+.env
+.env.*
+*.lock
+.package-lock.json
+
+# sveltekit
+.svelte-kit
+build
+
+# Temporary files
+tmp/
+
+# Optional: VS Code files
+.vscode/
