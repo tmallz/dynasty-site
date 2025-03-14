@@ -12,16 +12,18 @@ import type { DraftDetail } from '../dtos/DraftDtos/DraftDetail';
 import type { DraftPick } from '../dtos/LeagueDtos/DraftPick';
 import type { Player } from '../dtos/PlayerDtos/Player';
 import type { TrendingPlayer } from '../dtos/PlayerDtos/TrendingPlayer';
+import { TransactionStatus } from '../Enums/TransactionStatus';
+import { TransactionType } from '../Enums/TransactionType';
 
 export class SleeperClient {
-	private static BASE_URL = 'https://api.sleeper.app/v1';
+	private static BASE_URL = import.meta.env.VITE_SLEEPER_API_URL;
 
 	/**
 	 * Retrieves the sleeper user for the given username
 	 * @param username
 	 * @returns a user
 	 */
-	static async GetUser(username: string): Promise<User> {
+	public static async GetUser(username: string): Promise<User> {
 		const response = await fetch(`${this.BASE_URL}/user/${username}`);
 		if (!response.ok) throw new Error('Failed to fetch user');
 		return response.json();
@@ -34,7 +36,11 @@ export class SleeperClient {
 	 * @param season
 	 * @returns a list of leagues
 	 */
-	static async GetUserLeagues(userId: string, sport: string, season: string): Promise<League[]> {
+	public static async GetUserLeagues(
+		userId: string,
+		sport: string,
+		season: string
+	): Promise<League[]> {
 		const response = await fetch(`${this.BASE_URL}/user/${userId}/leagues/${sport}/${season}`);
 		if (!response.ok) throw new Error('Failed to fetch leagues');
 		return response.json();
@@ -45,7 +51,7 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a league
 	 */
-	static async GetLeague(leagueId: string): Promise<League> {
+	public static async GetLeague(leagueId: string): Promise<League> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}`);
 		if (!response.ok) throw new Error('Failed to fetch league');
 		return response.json();
@@ -56,7 +62,7 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a list of rosters
 	 */
-	static async GetRosters(leagueId: string): Promise<Roster[]> {
+	public static async GetRosters(leagueId: string): Promise<Roster[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/rosters`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch rosters: ${response.statusText}`);
@@ -70,7 +76,7 @@ export class SleeperClient {
 	 * @param week
 	 * @returns a list of matchups
 	 */
-	static async GetMatchups(leagueId: string, week: number): Promise<Matchup[]> {
+	public static async GetMatchups(leagueId: string, week: number): Promise<Matchup[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/matchups/${week}`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch matchups: ${response.statusText}`);
@@ -83,7 +89,7 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a list of league users
 	 */
-	static async GetLeagueUsers(leagueId: string): Promise<LeagueUser[]> {
+	public static async GetLeagueUsers(leagueId: string): Promise<LeagueUser[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/users`);
 		if (!response.ok) {
 			throw new Error('Failed to fetch league users');
@@ -96,7 +102,7 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a list of bracket matchups
 	 */
-	static async GetWinnersBracket(leagueId: string): Promise<BracketMatchup[]> {
+	public static async GetWinnersBracket(leagueId: string): Promise<BracketMatchup[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/winners_bracket`);
 		if (!response.ok) {
 			throw new Error('Failed to fetch winners bracket');
@@ -109,7 +115,7 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a list of bracket matchups
 	 */
-	static async GetLosersBracket(leagueId: string): Promise<BracketMatchup[]> {
+	public static async GetLosersBracket(leagueId: string): Promise<BracketMatchup[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/losers_bracket`);
 		if (!response.ok) {
 			throw new Error('Failed to fetch losers bracket');
@@ -122,12 +128,19 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a list of transactions
 	 */
-	static async GetTransactions(leagueId: string, round: number): Promise<Transaction[]> {
+	public static async GetTransactions(leagueId: string, round: number): Promise<Transaction[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/transactions/${round}`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch transactions: ${response.statusText}`);
 		}
-		return response.json();
+		let transactions = await response.json();
+
+		// Map the transaction status to the enum
+		return transactions.map((transaction: any) => ({
+			...transaction,
+			status: TransactionStatus[transaction.status.toUpperCase() as keyof typeof TransactionStatus],
+			type: TransactionType[transaction.type.toUpperCase() as keyof typeof TransactionType]
+		}));
 	}
 
 	/**
@@ -135,7 +148,7 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a list of traded picks
 	 */
-	static async GetTradedPicks(leagueId: string): Promise<TradedPick[]> {
+	public static async GetTradedPicks(leagueId: string): Promise<TradedPick[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/traded_picks`);
 		if (!response.ok) {
 			throw new Error('Failed to fetch traded picks');
@@ -148,7 +161,7 @@ export class SleeperClient {
 	 * @param sport
 	 * @returns a state object
 	 */
-	static async GetSportState(sport: string): Promise<SleeperState> {
+	public static async GetSportState(sport: string): Promise<SleeperState> {
 		const response = await fetch(`${this.BASE_URL}/state/${sport}`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch state for ${sport}`);
@@ -161,7 +174,7 @@ export class SleeperClient {
 	 * @param leagueId
 	 * @returns a list of drafts
 	 */
-	static async GetUserDrafts(
+	public static async GetUserDrafts(
 		user_id: string,
 		sport: string = 'nfl',
 		season: string
@@ -176,9 +189,9 @@ export class SleeperClient {
 	/**
 	 * Retrieves the drafts for the given leagueId
 	 * @param leagueId
-	 * @returns a list of drafts for the given legue
+	 * @returns a list of drafts for the given league
 	 */
-	static async GetLeagueDrafts(leagueId: string): Promise<Draft[]> {
+	public static async GetLeagueDrafts(leagueId: string): Promise<Draft[]> {
 		const response = await fetch(`${this.BASE_URL}/league/${leagueId}/drafts`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch drafts for league ${leagueId}`);
@@ -191,7 +204,7 @@ export class SleeperClient {
 	 * @param draftId
 	 * @returns a draft
 	 */
-	static async GetDraft(draftId: string): Promise<DraftDetail> {
+	public static async GetDraft(draftId: string): Promise<DraftDetail> {
 		const response = await fetch(`${this.BASE_URL}/draft/${draftId}`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch draft with ID ${draftId}`);
@@ -204,7 +217,7 @@ export class SleeperClient {
 	 * @param draftId
 	 * @returns
 	 */
-	static async GetDraftPicks(draftId: string): Promise<DraftPick[]> {
+	public static async GetDraftPicks(draftId: string): Promise<DraftPick[]> {
 		const response = await fetch(`${this.BASE_URL}/draft/${draftId}/picks`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch picks for draft ${draftId}`);
@@ -217,7 +230,7 @@ export class SleeperClient {
 	 * @param draftId
 	 * @returns
 	 */
-	static async GetDraftTradedPicks(draftId: string): Promise<TradedPick[]> {
+	public static async GetDraftTradedPicks(draftId: string): Promise<TradedPick[]> {
 		const response = await fetch(`${this.BASE_URL}/draft/${draftId}/traded_picks`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch traded picks for draft ${draftId}`);
@@ -229,7 +242,7 @@ export class SleeperClient {
 	 * Retrieves all players for the NFL
 	 * @returns a list of players
 	 */
-	static async GetAllPlayers(): Promise<Record<string, Player>> {
+	public static async GetAllPlayers(): Promise<Record<string, Player>> {
 		const response = await fetch(`${this.BASE_URL}/players/nfl`);
 		if (!response.ok) {
 			throw new Error('Failed to fetch Sleeper player data');
@@ -245,7 +258,7 @@ export class SleeperClient {
 	 * @param limits
 	 * @returns a player
 	 */
-	static async GetTrendingPlayers(
+	public static async GetTrendingPlayers(
 		sport: string,
 		type: 'add' | 'drop',
 		lookbackHours?: number,

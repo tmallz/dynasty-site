@@ -1,11 +1,13 @@
+import type { TransactionStatus } from '$lib/api/Enums/TransactionStatus';
+import type { TransactionType } from '$lib/api/Enums/TransactionType';
 import type { DraftPick } from './DraftPick';
 import type { WaiverBudget } from './WaiverBudget';
 
 export interface Transaction {
-	type: 'trade' | 'waiver' | 'free_agent';
+	type: TransactionType;
 	transaction_id: string;
 	status_updated: number;
-	status: 'complete' | 'pending' | 'failed';
+	status: TransactionStatus;
 	settings?: { waiver_bid?: number } | null;
 	roster_ids: number[];
 	metadata?: Record<string, unknown> | null;

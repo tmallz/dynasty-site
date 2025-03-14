@@ -92,14 +92,14 @@
 		}
 	};
 
-	let leagueId = 'YOUR_LEAGUE_ID'; // Replace or make dynamic
-	let round = 1; // Replace with user input if needed
+	let leagueId = 'YOUR_LEAGUE_ID';
+	let round = 1;
 	let transactions: Transaction[] = [];
 
 	const LoadTransactions = async (leagueId: string, round: number) => {
 		try {
 			transactions = await SleeperClient.GetTransactions(leagueId, round);
-			console.log(transactions);
+			console.log('transactions', transactions);
 		} catch (err) {
 			console.error(err);
 		}
@@ -236,7 +236,7 @@
 	});
 </script>
 
-<h1>{user?.user_id}</h1>
+<h1>user ID:{user?.user_id}</h1>
 <h1>{user?.display_name}</h1>
 <h1>{user?.username}</h1>
 
@@ -274,7 +274,7 @@
 		<ul>
 			{#each rosters as roster}
 				<li>
-					<h3>{roster.owner_id}</h3>
+					<h3>Onwer ID: {roster.owner_id}</h3>
 					<p>League ID: {roster.league_id}</p>
 					<p>Starters: {roster.starters}</p>
 					<p>Players: {roster.players}</p>
