@@ -9,6 +9,12 @@ const config = {
 
 	kit: {
 		adapter: adapter()
+	},
+
+	compilerOptions: {
+		compatibility: {
+			componentApi: 5 // Explicitly disable legacy component API compatibility
+		}
 	}
 };
 

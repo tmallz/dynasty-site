@@ -208,7 +208,11 @@
 
 	const LoadTrendingPlayers = async () => {
 		try {
-			trendingPlayers = await SleeperClient.GetTrendingPlayers('nfl', 'add', 72);
+			trendingPlayers = await SleeperClient.GetTrendingPlayers(
+				'nfl',
+				'add',
+				72
+			);
 			console.log(trendingPlayers);
 		} catch (err) {
 			error8 = err instanceof Error ? err.message : 'Unknown error';
@@ -339,8 +343,16 @@
 		{#each winnersBracket as match}
 			<li>
 				<p>Round {match.r} - Match {match.m}</p>
-				<p>Team 1: {match.t1_from?.w ? `Winner of Match ${match.t1_from.w}` : match.t1}</p>
-				<p>Team 2: {match.t2_from?.l ? `Loser of Match ${match.t2_from.l}` : match.t2}</p>
+				<p>
+					Team 1: {match.t1_from?.w
+						? `Winner of Match ${match.t1_from.w}`
+						: match.t1}
+				</p>
+				<p>
+					Team 2: {match.t2_from?.l
+						? `Loser of Match ${match.t2_from.l}`
+						: match.t2}
+				</p>
 				<p>Winner: {match.w ?? 'TBD'}</p>
 				<p>Loser: {match.l ?? 'TBD'}</p>
 			</li>
@@ -356,8 +368,16 @@
 		{#each losersBracket as match}
 			<li>
 				<p>Round {match.r} - Match {match.m}</p>
-				<p>Team 1: {match.t1_from?.w ? `Winner of Match ${match.t1_from.w}` : match.t1}</p>
-				<p>Team 2: {match.t2_from?.l ? `Loser of Match ${match.t2_from.l}` : match.t2}</p>
+				<p>
+					Team 1: {match.t1_from?.w
+						? `Winner of Match ${match.t1_from.w}`
+						: match.t1}
+				</p>
+				<p>
+					Team 2: {match.t2_from?.l
+						? `Loser of Match ${match.t2_from.l}`
+						: match.t2}
+				</p>
 				<p>Winner: {match.w ?? 'TBD'}</p>
 				<p>Loser: {match.l ?? 'TBD'}</p>
 			</li>
@@ -396,14 +416,18 @@
 						{#if txn.adds}
 							<p>
 								Adds: {Object.entries(txn.adds)
-									.map(([player, roster]) => `Player ${player} -> Roster ${roster}`)
+									.map(
+										([player, roster]) => `Player ${player} -> Roster ${roster}`
+									)
 									.join(', ')}
 							</p>
 						{/if}
 						{#if txn.drops}
 							<p>
 								Drops: {Object.entries(txn.drops)
-									.map(([player, roster]) => `Player ${player} -> Roster ${roster}`)
+									.map(
+										([player, roster]) => `Player ${player} -> Roster ${roster}`
+									)
 									.join(', ')}
 							</p>
 						{/if}
@@ -440,7 +464,9 @@
 					<td class="border border-gray-400 px-4 py-2">{pick.season}</td>
 					<td class="border border-gray-400 px-4 py-2">{pick.round}</td>
 					<td class="border border-gray-400 px-4 py-2">{pick.roster_id}</td>
-					<td class="border border-gray-400 px-4 py-2">{pick.previous_owner_id}</td>
+					<td class="border border-gray-400 px-4 py-2"
+						>{pick.previous_owner_id}</td
+					>
 					<td class="border border-gray-400 px-4 py-2">{pick.owner_id}</td>
 				</tr>
 			{/each}
@@ -481,7 +507,9 @@
 						<li>Rounds: {draft.settings.rounds}</li>
 						<li>Teams: {draft.settings.teams}</li>
 						<li>Scoring: {draft.metadata.scoring_type}</li>
-						<li>Start Time: {new Date(draft.start_time).toLocaleDateString()}</li>
+						<li>
+							Start Time: {new Date(draft.start_time).toLocaleDateString()}
+						</li>
 					</ul>
 				</li>
 			{/each}
@@ -505,7 +533,9 @@
 						<li>Round Count: {draft.settings.rounds}</li>
 						<li>Teams: {draft.settings.teams}</li>
 						<li>Scoring Type: {draft.metadata.scoring_type}</li>
-						<li>Start Date: {new Date(draft.start_time).toLocaleDateString()}</li>
+						<li>
+							Start Date: {new Date(draft.start_time).toLocaleDateString()}
+						</li>
 					</ul>
 				</li>
 			{/each}
@@ -527,7 +557,10 @@
 			<li><strong>Teams:</strong> {draft.settings.teams}</li>
 			<li><strong>Rounds:</strong> {draft.settings.rounds}</li>
 			<li><strong>Scoring Type:</strong> {draft.metadata.scoring_type}</li>
-			<li><strong>Start Date:</strong> {new Date(draft.start_time).toLocaleDateString()}</li>
+			<li>
+				<strong>Start Date:</strong>
+				{new Date(draft.start_time).toLocaleDateString()}
+			</li>
 		</ul>
 
 		<h3 class="mt-4 text-lg font-semibold">Draft Order</h3>
@@ -564,11 +597,21 @@
 		<tbody>
 			{#each tradedPicks1 as pick}
 				<tr class="border border-gray-400">
-					<td class="border border-gray-400 px-4 py-2 text-center">{pick.season}</td>
-					<td class="border border-gray-400 px-4 py-2 text-center">{pick.round}</td>
-					<td class="border border-gray-400 px-4 py-2 text-center">{pick.roster_id}</td>
-					<td class="border border-gray-400 px-4 py-2 text-center">{pick.previous_owner_id}</td>
-					<td class="border border-gray-400 px-4 py-2 text-center">{pick.owner_id}</td>
+					<td class="border border-gray-400 px-4 py-2 text-center"
+						>{pick.season}</td
+					>
+					<td class="border border-gray-400 px-4 py-2 text-center"
+						>{pick.round}</td
+					>
+					<td class="border border-gray-400 px-4 py-2 text-center"
+						>{pick.roster_id}</td
+					>
+					<td class="border border-gray-400 px-4 py-2 text-center"
+						>{pick.previous_owner_id}</td
+					>
+					<td class="border border-gray-400 px-4 py-2 text-center"
+						>{pick.owner_id}</td
+					>
 				</tr>
 			{/each}
 		</tbody>
