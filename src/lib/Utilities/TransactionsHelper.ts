@@ -4,6 +4,8 @@ import type { LeagueUser } from '../api/dtos/LeagueDtos/LeagueUser';
 import type { Player } from '../api/dtos/PlayerDtos/Player';
 import type { TransactionsPageDto } from './Dtos/TransactionsPageDto';
 import { TransactionStatus } from '$lib/api/Enums/TransactionStatus';
+import { PlayersStore } from '$lib/Stores/PlayerStores';
+import { get } from 'svelte/store';
 
 export class TransactionsHelper {
 	public static async GetAllTransactions(): Promise<TransactionsPageDto[]> {
@@ -13,7 +15,7 @@ export class TransactionsHelper {
 		// Load all transactions, league users, and player data for the league for 2024
 		let transactions: Transaction[] = (await SleeperClient.GetTransactions(LeagueId, 12)) ?? [];
 		let users: LeagueUser[] = (await SleeperClient.GetLeagueUsers(LeagueId)) ?? [];
-		let players: Record<string, Player> = (await SleeperClient.GetAllPlayers()) ?? {};
+		let players: Record<string, Player> = get(PlayersStore) ?? {};
 
 		console.log('Transactions:', transactions);
 		console.log('Users:', users);

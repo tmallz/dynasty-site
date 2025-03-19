@@ -15,6 +15,8 @@
 	import type { DraftPick } from '$lib/api/dtos/LeagueDtos/DraftPick';
 	import type { Player } from '$lib/api/dtos/PlayerDtos/Player';
 	import type { TrendingPlayer } from '$lib/api/dtos/PlayerDtos/TrendingPlayer';
+	import { PlayersStore } from '$lib/Stores/PlayerStores';
+	import { get } from 'svelte/store';
 
 	let user: User | null = null;
 	let error: string | null = null;
@@ -190,7 +192,7 @@
 		}
 	};
 
-	let players: Record<string, Player> = {};
+	let players: Record<string, Player> = get(PlayersStore);
 	let error7: string | null = null;
 
 	const LoadPlayers = async () => {
@@ -231,7 +233,6 @@
 		await LoadDraft(draftId);
 		await LoadDraftPicks(draftId);
 		await LoadDraftTradedPicks('1065403289526775808');
-		await LoadPlayers();
 		await LoadTrendingPlayers();
 	});
 </script>

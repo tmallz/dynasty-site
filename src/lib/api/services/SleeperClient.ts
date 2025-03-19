@@ -161,7 +161,8 @@ export class SleeperClient {
 	 * @param sport
 	 * @returns a state object
 	 */
-	public static async GetSportState(sport: string): Promise<SleeperState> {
+	public static async GetSportState(sport?: string): Promise<SleeperState> {
+		if (!sport) sport = 'nfl';
 		const response = await fetch(`${this.BASE_URL}/state/${sport}`);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch state for ${sport}`);

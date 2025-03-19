@@ -19,5 +19,10 @@
 				<li>{player.first_name} {player.last_name} - {player.position}</li>
 			{/each}
 		</ul>
+		<ul>
+			{#each Object.entries(roster.Bench) as [playerId, player]}
+				<li>{player.first_name} {player.last_name} - {player.position}</li>
+			{/each}
+		</ul>
 	{/each}
 </main>

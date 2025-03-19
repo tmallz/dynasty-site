@@ -2,6 +2,8 @@ import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
 import type { Player } from '$lib/api/dtos/PlayerDtos/Player';
 import { SleeperClient } from '$lib/api/services/SleeperClient';
+import { IsPlayersLoaded, LoadPlayers, PlayersStore } from '$lib/Stores/PlayerStores';
+import { get } from 'svelte/store';
 import type { RosterPageDto } from './Dtos/RosterPageDto';
 
 export class RostersHelper {
@@ -9,8 +11,14 @@ export class RostersHelper {
 		let LeagueId: string = import.meta.env.VITE_LEAGUE_ID;
 
 		let rosters: Roster[] = await SleeperClient.GetRosters(LeagueId);
-		let players = await SleeperClient.GetAllPlayers();
+		let players: Record<string, Player> | null = null;
 		let users = await SleeperClient.GetLeagueUsers(LeagueId);
+
+		if (!IsPlayersLoaded()) {
+			await LoadPlayers();
+		}
+
+		players = get(PlayersStore) ?? {};
 
 		let pageRosters: RosterPageDto[] = [];
 
@@ -39,17 +47,21 @@ export class RostersHelper {
 		return pageRoster;
 	}
 
-	private static MapPlayerName(
-		allPLayers: Record<string, Player>,
+	public static MapPlayerName(
+		allPlayers: Record<string, Player>,
 		rosterPlayers: string[]
 	): Record<string, Player> {
-		let players: Record<string, Player> = {};
-		rosterPlayers.forEach((p) => {
-			let player = allPLayers[p];
-			let name: string = player.first_name + ' ' + player.last_name;
-			players[name] = player;
+		let mappedPlayers: Record<string, Player> = {};
+
+		rosterPlayers.forEach((playerId) => {
+			const player = allPlayers[playerId];
+			if (player) {
+				mappedPlayers[playerId] = player;
+			} else {
+				console.warn(`Player with ID ${playerId} not found in allPlayers.`);
+			}
 		});
 
-		return players;
+		return mappedPlayers;
 	}
 }
