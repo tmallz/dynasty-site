@@ -2,7 +2,7 @@
 @plugin "daisyui" {
 	themes:
 		light --default,
-		nord,
+		autumn,
 		dark --prefersdark,
 		synthwave;
 }

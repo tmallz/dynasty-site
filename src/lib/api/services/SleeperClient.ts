@@ -9,7 +9,7 @@ import type { TradedPick } from '../dtos/LeagueDtos/TradedPick';
 import type { SleeperState } from '../dtos/LeagueDtos/SleeperState';
 import type { Draft } from '../dtos/DraftDtos/Draft';
 import type { DraftDetail } from '../dtos/DraftDtos/DraftDetail';
-import type { DraftPick } from '../dtos/LeagueDtos/DraftPick';
+import type { DraftPick } from '../dtos/DraftDtos/DraftPick';
 import type { Player } from '../dtos/PlayerDtos/Player';
 import type { TrendingPlayer } from '../dtos/PlayerDtos/TrendingPlayer';
 import { TransactionStatus } from '../Enums/TransactionStatus';

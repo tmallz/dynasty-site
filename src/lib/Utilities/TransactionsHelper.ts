@@ -10,11 +10,11 @@ import { get } from 'svelte/store';
 export class TransactionsHelper {
 	public static async GetAllTransactions(): Promise<TransactionsPageDto[]> {
 		let BASE_URL: string = import.meta.env.VITE_SLEEPER_API_URL;
-		let LeagueId: string = import.meta.env.VITE_LEAGUE_ID;
+		let leagueId: string = import.meta.env.VITE_LEAGUE_ID;
 
 		// Load all transactions, league users, and player data for the league for 2024
-		let transactions: Transaction[] = (await SleeperClient.GetTransactions(LeagueId, 12)) ?? [];
-		let users: LeagueUser[] = (await SleeperClient.GetLeagueUsers(LeagueId)) ?? [];
+		let transactions: Transaction[] = (await SleeperClient.GetTransactions(leagueId, 12)) ?? [];
+		let users: LeagueUser[] = (await SleeperClient.GetLeagueUsers(leagueId)) ?? [];
 		let players: Record<string, Player> = get(PlayersStore) ?? {};
 
 		console.log('Transactions:', transactions);

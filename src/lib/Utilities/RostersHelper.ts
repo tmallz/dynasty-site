@@ -8,11 +8,11 @@ import type { RosterPageDto } from './Dtos/RosterPageDto';
 
 export class RostersHelper {
 	public static async GetAllRosters(): Promise<RosterPageDto[]> {
-		let LeagueId: string = import.meta.env.VITE_LEAGUE_ID;
+		let leagueId: string = import.meta.env.VITE_LEAGUE_ID;
 
-		let rosters: Roster[] = await SleeperClient.GetRosters(LeagueId);
+		let rosters: Roster[] = await SleeperClient.GetRosters(leagueId);
 		let players: Record<string, Player> | null = null;
-		let users = await SleeperClient.GetLeagueUsers(LeagueId);
+		let users = await SleeperClient.GetLeagueUsers(leagueId);
 
 		if (!IsPlayersLoaded()) {
 			await LoadPlayers();
