@@ -4,7 +4,7 @@ import type { LeagueUser } from '../api/dtos/LeagueDtos/LeagueUser';
 import type { Player } from '../api/dtos/PlayerDtos/Player';
 import type { TransactionsPageDto } from './Dtos/TransactionsPageDto';
 import { TransactionStatus } from '$lib/api/Enums/TransactionStatus';
-import { PlayersStore } from '$lib/Stores/PlayerStores';
+import { PlayersStore } from '$lib/Stores/PlayerStore';
 import { get } from 'svelte/store';
 
 export class TransactionsHelper {

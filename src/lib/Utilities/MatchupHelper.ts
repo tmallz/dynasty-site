@@ -3,19 +3,22 @@ import type { Matchup } from '$lib/api/dtos/LeagueDtos/Matchup';
 import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
 import type { Player } from '$lib/api/dtos/PlayerDtos/Player';
 import { SleeperClient } from '$lib/api/services/SleeperClient';
-import { IsPlayersLoaded, LoadPlayers, PlayersStore } from '$lib/Stores/PlayerStores';
+import { IsPlayersLoaded, LoadPlayers, PlayersStore } from '$lib/Stores/PlayerStore';
 import { get } from 'svelte/store';
 import type { MatchupPageDto } from './Dtos/MatchupPageDto';
 import { RostersHelper } from './RostersHelper';
+import { IsRostersLoaded, LoadRosters, RostersStore } from '$lib/Stores/RosterStore';
+import { IsUsersLoaded, LoadUsers, UsersStore } from '$lib/Stores/UserStores';
+import { StoresHelper } from './StoresHelper';
 
 export class MatchupHelper {
 	public static async GetPageMatchups(): Promise<MatchupPageDto[]> {
 		let leagueId = import.meta.env.VITE_LEAGUE_ID;
 		let week: number = 1;
 		let matchups: Matchup[] = [];
-		let rosters: Roster[] = await SleeperClient.GetRosters(leagueId);
+		let rosters: Roster[] = [];
 		let players: Record<string, Player> | null = null;
-		let users = await SleeperClient.GetLeagueUsers(leagueId);
+		let users: LeagueUser[] = [];
 
 		let nflState = await SleeperClient.GetSportState();
 		if (nflState.season_type == 'regular') {
@@ -24,11 +27,11 @@ export class MatchupHelper {
 			week = 18;
 		}
 
-		if (!IsPlayersLoaded()) {
-			await LoadPlayers();
-		}
-
+		// Ensure stores are loaded before accessing them
+		await StoresHelper.EnsureStoresLoaded();
 		players = get(PlayersStore) ?? {};
+		rosters = get(RostersStore) ?? [];
+		users = get(UsersStore) ?? [];
 
 		matchups = await SleeperClient.GetMatchups(leagueId, week);
 

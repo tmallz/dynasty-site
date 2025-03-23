@@ -12,10 +12,10 @@
 	import type { SleeperState } from '$lib/api/dtos/LeagueDtos/SleeperState';
 	import type { Draft } from '$lib/api/dtos/DraftDtos/Draft';
 	import type { DraftDetail } from '$lib/api/dtos/DraftDtos/DraftDetail';
-	import type { DraftPick } from '$lib/api/dtos/LeagueDtos/DraftPick';
+	import type { DraftPick } from '$lib/api/dtos/DraftDtos/DraftPick';
 	import type { Player } from '$lib/api/dtos/PlayerDtos/Player';
 	import type { TrendingPlayer } from '$lib/api/dtos/PlayerDtos/TrendingPlayer';
-	import { PlayersStore } from '$lib/Stores/PlayerStores';
+	import { PlayersStore } from '$lib/Stores/PlayerStore';
 	import { get } from 'svelte/store';
 
 	let user: User | null = null;
@@ -208,11 +208,7 @@
 
 	const LoadTrendingPlayers = async () => {
 		try {
-			trendingPlayers = await SleeperClient.GetTrendingPlayers(
-				'nfl',
-				'add',
-				72
-			);
+			trendingPlayers = await SleeperClient.GetTrendingPlayers('nfl', 'add', 72);
 			console.log(trendingPlayers);
 		} catch (err) {
 			error8 = err instanceof Error ? err.message : 'Unknown error';
@@ -344,14 +340,10 @@
 			<li>
 				<p>Round {match.r} - Match {match.m}</p>
 				<p>
-					Team 1: {match.t1_from?.w
-						? `Winner of Match ${match.t1_from.w}`
-						: match.t1}
+					Team 1: {match.t1_from?.w ? `Winner of Match ${match.t1_from.w}` : match.t1}
 				</p>
 				<p>
-					Team 2: {match.t2_from?.l
-						? `Loser of Match ${match.t2_from.l}`
-						: match.t2}
+					Team 2: {match.t2_from?.l ? `Loser of Match ${match.t2_from.l}` : match.t2}
 				</p>
 				<p>Winner: {match.w ?? 'TBD'}</p>
 				<p>Loser: {match.l ?? 'TBD'}</p>
@@ -369,14 +361,10 @@
 			<li>
 				<p>Round {match.r} - Match {match.m}</p>
 				<p>
-					Team 1: {match.t1_from?.w
-						? `Winner of Match ${match.t1_from.w}`
-						: match.t1}
+					Team 1: {match.t1_from?.w ? `Winner of Match ${match.t1_from.w}` : match.t1}
 				</p>
 				<p>
-					Team 2: {match.t2_from?.l
-						? `Loser of Match ${match.t2_from.l}`
-						: match.t2}
+					Team 2: {match.t2_from?.l ? `Loser of Match ${match.t2_from.l}` : match.t2}
 				</p>
 				<p>Winner: {match.w ?? 'TBD'}</p>
 				<p>Loser: {match.l ?? 'TBD'}</p>
@@ -416,18 +404,14 @@
 						{#if txn.adds}
 							<p>
 								Adds: {Object.entries(txn.adds)
-									.map(
-										([player, roster]) => `Player ${player} -> Roster ${roster}`
-									)
+									.map(([player, roster]) => `Player ${player} -> Roster ${roster}`)
 									.join(', ')}
 							</p>
 						{/if}
 						{#if txn.drops}
 							<p>
 								Drops: {Object.entries(txn.drops)
-									.map(
-										([player, roster]) => `Player ${player} -> Roster ${roster}`
-									)
+									.map(([player, roster]) => `Player ${player} -> Roster ${roster}`)
 									.join(', ')}
 							</p>
 						{/if}
@@ -464,9 +448,7 @@
 					<td class="border border-gray-400 px-4 py-2">{pick.season}</td>
 					<td class="border border-gray-400 px-4 py-2">{pick.round}</td>
 					<td class="border border-gray-400 px-4 py-2">{pick.roster_id}</td>
-					<td class="border border-gray-400 px-4 py-2"
-						>{pick.previous_owner_id}</td
-					>
+					<td class="border border-gray-400 px-4 py-2">{pick.previous_owner_id}</td>
 					<td class="border border-gray-400 px-4 py-2">{pick.owner_id}</td>
 				</tr>
 			{/each}
@@ -597,21 +579,11 @@
 		<tbody>
 			{#each tradedPicks1 as pick}
 				<tr class="border border-gray-400">
-					<td class="border border-gray-400 px-4 py-2 text-center"
-						>{pick.season}</td
-					>
-					<td class="border border-gray-400 px-4 py-2 text-center"
-						>{pick.round}</td
-					>
-					<td class="border border-gray-400 px-4 py-2 text-center"
-						>{pick.roster_id}</td
-					>
-					<td class="border border-gray-400 px-4 py-2 text-center"
-						>{pick.previous_owner_id}</td
-					>
-					<td class="border border-gray-400 px-4 py-2 text-center"
-						>{pick.owner_id}</td
-					>
+					<td class="border border-gray-400 px-4 py-2 text-center">{pick.season}</td>
+					<td class="border border-gray-400 px-4 py-2 text-center">{pick.round}</td>
+					<td class="border border-gray-400 px-4 py-2 text-center">{pick.roster_id}</td>
+					<td class="border border-gray-400 px-4 py-2 text-center">{pick.previous_owner_id}</td>
+					<td class="border border-gray-400 px-4 py-2 text-center">{pick.owner_id}</td>
 				</tr>
 			{/each}
 		</tbody>
