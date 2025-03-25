@@ -1,16 +1,10 @@
+import type { TransactionType } from '$lib/api/Enums/TransactionType';
+
 export interface TransactionsPageDto {
-	TransactionType: string;
-	UserName: string;
+	TransactionType?: TransactionType;
+	UserName?: string;
 	PlayerName?: string;
-	TransactionDate: string;
-	Adds: Record<string, number>;
-	Drops: Record<string, number>;
+	TransactionDate?: string;
+	Adds?: string; //player name
+	Drops?: string; //player name
 }
-
-interface WaiverTransaction {
-	TransactionId: string; // for mapping
-	Adds: Record<string, number>; // player_id -> roster_id
-	Drops: Record<string, number>; // player_id -> roster_id
-}
-
-interface TradeTransaction {}

@@ -42,8 +42,8 @@ export class RostersHelper {
 		let pageRoster: RosterPageDto = {} as RosterPageDto;
 		pageRoster.OwnerId = roster.owner_id;
 		pageRoster.TeamName = users.find((u) => u.user_id === roster.owner_id)?.display_name ?? '';
-		pageRoster.Starters = RostersHelper.MapPlayerName(players, roster.starters);
-		pageRoster.Bench = RostersHelper.MapPlayerName(
+		pageRoster.Starters = RostersHelper.MapPlayerNames(players, roster.starters);
+		pageRoster.Bench = RostersHelper.MapPlayerNames(
 			players,
 			roster.players.filter((p) => !roster.starters.includes(p))
 		); //filter out starters
@@ -51,21 +51,40 @@ export class RostersHelper {
 		return pageRoster;
 	}
 
-	public static MapPlayerName(
+	public static MapPlayerNames(
 		allPlayers: Record<string, Player>,
 		rosterPlayers: string[]
-	): Record<string, Player> {
-		let mappedPlayers: Record<string, Player> = {};
+	): Record<string, Player>;
+	public static MapPlayerNames(
+		allPlayers: Record<string, Player>,
+		rosterPlayer: string
+	): Player | null;
 
-		rosterPlayers.forEach((playerId) => {
-			const player = allPlayers[playerId];
-			if (player) {
-				mappedPlayers[playerId] = player;
-			} else {
-				console.warn(`Player with ID ${playerId} not found in allPlayers.`);
+	// Implementation
+	public static MapPlayerNames(
+		allPlayers: Record<string, Player>,
+		rosterPlayersOrPlayer: string[] | string
+	): Record<string, Player> | Player | null {
+		if (Array.isArray(rosterPlayersOrPlayer)) {
+			// Handle the array case by looping over the array and calling the single-player version
+			let mappedPlayers: Record<string, Player> = {};
+
+			rosterPlayersOrPlayer.forEach((playerId) => {
+				const player = RostersHelper.MapPlayerNames(allPlayers, playerId) as Player;
+				if (player) {
+					mappedPlayers[playerId] = player;
+				}
+			});
+
+			return mappedPlayers;
+		} else {
+			// Handle the single-player case
+			const player = allPlayers[rosterPlayersOrPlayer];
+			if (!player) {
+				console.warn(`Player with ID ${rosterPlayersOrPlayer} not found in allPlayers.`);
+				return null;
 			}
-		});
-
-		return mappedPlayers;
+			return player;
+		}
 	}
 }

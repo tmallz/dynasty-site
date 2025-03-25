@@ -55,7 +55,7 @@ export class MatchupHelper {
 		let pageMatchup: MatchupPageDto = {};
 		pageMatchup.MatchupId = matchup.matchup_id;
 		pageMatchup.TeamName = users.find((u) => u.user_id === roster.owner_id)?.display_name ?? '';
-		pageMatchup.Starters = RostersHelper.MapPlayerName(players, roster.starters);
+		pageMatchup.Starters = RostersHelper.MapPlayerNames(players, roster.starters);
 		pageMatchup.Score = matchup.points;
 		return pageMatchup;
 	}

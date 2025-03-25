@@ -20,9 +20,17 @@
 <main>
 	{#if transactions.length > 0}
 		{#each transactions as transaction}
-			<p>{transaction.TransactionType}</p>
-			<p>{transaction.UserName}</p>
-			<p>{transaction.TransactionDate}</p>
+			<div class="transaction-card mb-4 rounded-lg border p-4 shadow">
+				<p><strong>Type:</strong> {transaction.TransactionType}</p>
+				<p><strong>User:</strong> {transaction.UserName}</p>
+				<p><strong>Date:</strong> {transaction.TransactionDate}</p>
+				{#if transaction.Adds}
+					<p><strong>Adds:</strong> {transaction.Adds}</p>
+				{/if}
+				{#if transaction.Drops}
+					<p><strong>Drops:</strong> {transaction.Drops}</p>
+				{/if}
+			</div>
 		{/each}
 	{:else}
 		<p>No transactions found</p>
