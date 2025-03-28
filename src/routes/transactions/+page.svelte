@@ -8,6 +8,7 @@
 	let LoadTransactions = async () => {
 		try {
 			transactions = await TransactionsHelper.GetAllTransactions();
+			console.log('transactions on page:', transactions);
 		} catch (error) {
 			console.error(error);
 		}
@@ -24,20 +25,20 @@
 			{#if transaction.TransactionType === TransactionType.TRADE}
 				<div class="transaction-card mb-4 rounded-lg border p-4 shadow">
 					<p><strong>Type:</strong> {transaction.TransactionType}</p>
-					<p><strong>Initiator:</strong> {transaction.Trade?.initiatorName}</p>
-					<p><strong>Receiver:</strong> {transaction.Trade?.recieverName}</p>
+					<p><strong>Initiator:</strong> {transaction.Trade?.InitiatorName}</p>
+					<p><strong>Receiver:</strong> {transaction.Trade?.RecieverName}</p>
 					<p><strong>Date:</strong> {transaction.TransactionDate}</p>
-					{#if transaction.Trade?.intiatorPlayersRecieved}
-						<p><strong>Player1:</strong> {transaction.Trade?.intiatorPlayersRecieved}</p>
+					{#if transaction.Trade?.InitiatorPlayersRecieved}
+						<p><strong>Player1:</strong> {transaction.Trade?.InitiatorPlayersRecieved}</p>
 					{/if}
-					{#if transaction.Trade?.intiatorPlayersRecieved}
-						<p><strong>Player2:</strong> {transaction.Trade?.recieverPlayersRecieved}</p>
+					{#if transaction.Trade?.InitiatorPlayersRecieved}
+						<p><strong>Player2:</strong> {transaction.Trade?.RecieverPlayersRecieved}</p>
 					{/if}
-					{#if transaction.Trade?.initiatorDraftPicks}
-						<p><strong>Player1:</strong> {transaction.Trade?.initiatorDraftPicks}</p>
+					{#if transaction.Trade?.InitiatorDraftPicks}
+						<p><strong>Player1:</strong> {transaction.Trade?.InitiatorDraftPicks}</p>
 					{/if}
-					{#if transaction.Trade?.recieverDraftPicks}
-						<p><strong>Player2:</strong> {transaction.Trade?.recieverDraftPicks}</p>
+					{#if transaction.Trade?.RecieverDraftPicks}
+						<p><strong>Player2:</strong> {transaction.Trade?.RecieverDraftPicks}</p>
 					{/if}
 				</div>
 			{/if}

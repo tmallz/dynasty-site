@@ -14,10 +14,10 @@ interface WaiverFreeAgentDto {
 }
 
 interface tradeDto {
-	initiatorName?: string;
-	recieverName?: string;
-	intiatorPlayersRecieved?: string[];
-	recieverPlayersRecieved?: string[];
-	initiatorDraftPicks?: number[]; //round number
-	recieverDraftPicks?: number[]; //round number
+	InitiatorName?: string;
+	RecieverName?: string;
+	InitiatorPlayersRecieved?: string[];
+	RecieverPlayersRecieved?: string[];
+	InitiatorDraftPicks?: number[]; //round number
+	RecieverDraftPicks?: number[]; //round number
 }

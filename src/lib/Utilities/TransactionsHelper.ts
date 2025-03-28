@@ -12,23 +12,19 @@ import { UsersStore } from '$lib/Stores/UserStores';
 import { StoresHelper } from './StoresHelper';
 import { RostersStore } from '$lib/Stores/RosterStore';
 import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
+import type { League } from '$lib/api/dtos/LeagueDtos/League';
+import { TransactionsStore } from '$lib/Stores/TransactionStore';
 
 export class TransactionsHelper {
 	public static async GetAllTransactions(): Promise<TransactionsPageDto[]> {
-		let leagueId: string = import.meta.env.VITE_LEAGUE_ID;
-
 		// Ensure all stores are loaded
 		await StoresHelper.EnsureStoresLoaded();
 
-		// Load all transactions, league users, and player data for the league for 2024
-		let transactions: Transaction[] = (await SleeperClient.GetTransactions(leagueId, 1)) ?? [];
+		// Load all transactions, league users, and player data for the league for 2025
+		let transactions: Transaction[] = get(TransactionsStore); //(await SleeperClient.GetTransactions(leagueId, 1)) ?? [];
 		let users: LeagueUser[] = get(UsersStore) ?? [];
 		let players: Record<string, Player> = get(PlayersStore) ?? {};
 		let rosters: Roster[] = get(RostersStore) ?? {};
-
-		//console.log('Transactions:', transactions);
-		//console.log('Users:', users);
-		//console.log('Players:', players);
 
 		// Filter out transactions with a status of failed
 		transactions = transactions.filter((t) => t.status === TransactionStatus.COMPLETE);
@@ -44,117 +40,80 @@ export class TransactionsHelper {
 		players: Record<string, Player>,
 		rosters: Roster[]
 	): TransactionsPageDto[] {
-		let pageTransactions: TransactionsPageDto[] = [];
-		transactions.forEach((t) => {
-			let transaction: TransactionsPageDto = {};
-			let initiatorUser = users.find((u) => u.user_id === t.creator);
-			if (t.type === TransactionType.WAIVER || t.type === TransactionType.FREE_AGENT) {
-				transaction.TransactionType = t.type;
-				transaction.WaiverFreeAgent = {};
-				transaction.WaiverFreeAgent.UserName = initiatorUser?.display_name ?? '';
-				transaction.TransactionDate = new Date(t.created).toLocaleDateString();
-
-				if (t.adds) {
-					transaction.WaiverFreeAgent.Adds = [];
-					Object.keys(t.adds).forEach((add) => {
-						if (transaction.WaiverFreeAgent) {
-							const playerName = TransactionsHelper.GetPlayerName(add, players);
-							(transaction.WaiverFreeAgent.Adds ??= []).push(playerName);
-						}
-					});
-				}
-
-				if (t.drops) {
-					transaction.WaiverFreeAgent.Drops = [];
-					Object.keys(t.drops).forEach((add) => {
-						if (transaction.WaiverFreeAgent) {
-							const playerName = TransactionsHelper.GetPlayerName(add, players);
-							(transaction.WaiverFreeAgent.Drops ??= []).push(playerName);
-						}
-					});
-				}
+		return transactions.map((t) => {
+			switch (t.type) {
+				case TransactionType.WAIVER:
+				case TransactionType.FREE_AGENT:
+					return this.MapWaiverOrFreeAgentTransaction(t, users, players);
+				case TransactionType.TRADE:
+					return this.MapTradeTransaction(t, users, players, rosters);
+				default:
+					console.warn(`Unknown transaction type: ${t.type}`);
+					return {} as TransactionsPageDto;
 			}
-
-			if (t.type === TransactionType.TRADE) {
-				// Add logic for trade transactions
-				transaction.TransactionType = t.type;
-				transaction.Trade = {};
-				transaction.Trade.initiatorName = initiatorUser?.display_name ?? '';
-				transaction.TransactionDate = new Date(t.created).toLocaleDateString();
-
-				let userId = initiatorUser?.user_id ?? '';
-				let initiatorRosterId = rosters.find((r) => r.owner_id === userId)?.roster_id ?? 0;
-				let receiverRosterId = t.roster_ids.find((r) => r !== initiatorRosterId) ?? 0;
-				transaction.Trade.recieverName =
-					TransactionsHelper.GetUserNameFromRosterId(receiverRosterId, rosters, users) ?? '';
-
-				let initiatorAdds: Record<string, number> = {};
-				if (t.adds) {
-					// Filter adds where the value matches initiatorRosterId
-					initiatorAdds = Object.fromEntries(
-						Object.entries(t.adds).filter(([playerId, rosterId]) => rosterId === initiatorRosterId)
-					);
-
-					console.log('Initiator Adds:', initiatorAdds);
-				}
-
-				let receiverAdds: Record<string, number> = {};
-				if (t.adds) {
-					// Filter adds where the value matches initiatorRosterId
-					receiverAdds = Object.fromEntries(
-						Object.entries(t.adds).filter(([playerId, rosterId]) => rosterId === receiverRosterId)
-					);
-
-					console.log('reciever Adds:', receiverAdds);
-				}
-
-				if (initiatorAdds) {
-					transaction.Trade.intiatorPlayersRecieved = [];
-					Object.keys(initiatorAdds).forEach((add) => {
-						if (transaction.Trade) {
-							const playerName = TransactionsHelper.GetPlayerName(add, players);
-							(transaction.Trade.intiatorPlayersRecieved ??= []).push(playerName);
-						}
-					});
-				}
-
-				if (receiverAdds) {
-					transaction.Trade.recieverPlayersRecieved = [];
-					Object.keys(receiverAdds).forEach((add) => {
-						if (transaction.Trade) {
-							const playerName = TransactionsHelper.GetPlayerName(add, players);
-							(transaction.Trade.recieverPlayersRecieved ??= []).push(playerName);
-						}
-					});
-				}
-
-				console.log('Draft Picks:', t.draft_picks);
-				console.log('Initiator Roster ID:', initiatorRosterId);
-				console.log('Receiver Roster ID:', receiverRosterId);
-
-				let initiatorPicksRecieved = t.draft_picks.filter((p) => p.owner_id === initiatorRosterId);
-				let receiverPicksRecieved = t.draft_picks.filter((p) => p.owner_id === receiverRosterId);
-				console.log('Initiator Picks:', initiatorPicksRecieved);
-				console.log('Receiver Picks:', receiverPicksRecieved);
-
-				if (initiatorPicksRecieved) {
-					transaction.Trade.initiatorDraftPicks = [];
-					initiatorPicksRecieved.forEach((p) => {
-						(transaction.Trade.initiatorDraftPicks ??= []).push(p.round);
-					});
-				}
-
-				if (receiverPicksRecieved) {
-					transaction.Trade.recieverDraftPicks = [];
-					receiverPicksRecieved.forEach((p) => {
-						(transaction.Trade.recieverDraftPicks ??= []).push(p.round);
-					});
-				}
-			}
-
-			pageTransactions.push(transaction);
 		});
-		return pageTransactions;
+	}
+
+	private static MapWaiverOrFreeAgentTransaction(
+		t: Transaction,
+		users: LeagueUser[],
+		players: Record<string, Player>
+	): TransactionsPageDto {
+		const transaction: TransactionsPageDto = {
+			TransactionType: t.type,
+			TransactionDate: new Date(t.created).toLocaleDateString(),
+			WaiverFreeAgent: {
+				UserName: users.find((u) => u.user_id === t.creator)?.display_name ?? '',
+				Adds: t.adds ? Object.keys(t.adds).map((add) => this.GetPlayerName(add, players)) : [],
+				Drops: t.drops ? Object.keys(t.drops).map((drop) => this.GetPlayerName(drop, players)) : []
+			}
+		};
+		return transaction;
+	}
+
+	private static MapTradeTransaction(
+		t: Transaction,
+		users: LeagueUser[],
+		players: Record<string, Player>,
+		rosters: Roster[]
+	): TransactionsPageDto {
+		const transaction: TransactionsPageDto = {
+			TransactionType: t.type,
+			TransactionDate: new Date(t.created).toLocaleDateString(),
+			Trade: {
+				InitiatorName: users.find((u) => u.user_id === t.creator)?.display_name ?? '',
+				RecieverName: this.GetUserNameFromRosterId(
+					t.roster_ids.find(
+						(r) => r !== rosters.find((r) => r.owner_id === t.creator)?.roster_id
+					) ?? 0,
+					rosters,
+					users
+				),
+				InitiatorDraftPicks: t.draft_picks
+					.filter(
+						(p) => p.previous_owner_id === rosters.find((r) => r.owner_id === t.creator)?.roster_id
+					)
+					.map((p) => p.round),
+				RecieverDraftPicks: t.draft_picks
+					.filter(
+						(p) => p.previous_owner_id !== rosters.find((r) => r.owner_id === t.creator)?.roster_id
+					)
+					.map((p) => p.round),
+				InitiatorPlayersRecieved: Object.keys(t.adds || {})
+					.filter(
+						(playerId) =>
+							(t.adds?.[playerId] ?? 0) === rosters.find((r) => r.owner_id === t.creator)?.roster_id
+					)
+					.map((playerId) => this.GetPlayerName(playerId, players)),
+				RecieverPlayersRecieved: Object.keys(t.adds || {})
+					.filter(
+						(playerId) =>
+							(t.adds ?? {})[playerId] !== rosters.find((r) => r.owner_id === t.creator)?.roster_id
+					)
+					.map((playerId) => this.GetPlayerName(playerId, players))
+			}
+		};
+		return transaction;
 	}
 
 	private static GetPlayerName(playerId: string, players: Record<string, Player>): string {
