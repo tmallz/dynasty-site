@@ -3,6 +3,7 @@ node_modules
 package-lock.json
 notes.json
 .idea
+tocstructure.md
 
 # Output
 .output
