@@ -23,4 +23,6 @@ export interface Player {
 	rotoworld_id: number | null;
 	espn_id: string | null;
 	yahoo_id: string | null;
+	playerAvatarUrl?: string; // Optional property for avatar URL
+	playerTeamAvatarUrl?: string; // Optional property for team avatar URL
 }

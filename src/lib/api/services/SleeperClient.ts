@@ -47,6 +47,17 @@ export class SleeperClient {
 	}
 
 	/**
+	 * Retrieves the leagues for the given userId and sport/season
+	 * @param avatarId
+	 * @returns an avatar URL
+	 */
+	public static async GetThumbnailAvatar(avatarId: string): Promise<any> {
+		const response = await fetch(`https://sleepercdn.com/avatars/thumbs/${avatarId}`);
+		if (!response.ok) throw new Error('Failed to fetch avatar');
+		return response.url;
+	}
+
+	/**
 	 * Retrieves the league for the given leagueId
 	 * @param leagueId
 	 * @returns a league
@@ -126,6 +137,7 @@ export class SleeperClient {
 	/**
 	 * Retrieves the transactions for the given leagueId and round
 	 * @param leagueId
+	 * @param round
 	 * @returns a list of transactions
 	 */
 	public static async GetTransactions(leagueId: string, round: number): Promise<Transaction[]> {

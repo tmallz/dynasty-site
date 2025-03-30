@@ -40,8 +40,12 @@ export class RostersHelper {
 		users: LeagueUser[]
 	): RosterPageDto {
 		let pageRoster: RosterPageDto = {} as RosterPageDto;
+		let avatarId = users.find((u) => u.user_id === roster.owner_id)?.avatar || '';
 		pageRoster.OwnerId = roster.owner_id;
-		pageRoster.TeamName = users.find((u) => u.user_id === roster.owner_id)?.display_name ?? '';
+		pageRoster.AvatarUrl = avatarId
+			? `https://sleepercdn.com/avatars/${avatarId}`
+			: 'https://via.placeholder.com/50';
+		pageRoster.TeamName = RostersHelper.GetTeamName(roster, users);
 		pageRoster.Starters = RostersHelper.MapPlayerNames(players, roster.starters);
 		pageRoster.Bench = RostersHelper.MapPlayerNames(
 			players,
@@ -72,6 +76,8 @@ export class RostersHelper {
 			rosterPlayersOrPlayer.forEach((playerId) => {
 				const player = RostersHelper.MapPlayerNames(allPlayers, playerId) as Player;
 				if (player) {
+					player.playerAvatarUrl = `https://sleepercdn.com/content/nfl/players/${playerId}.jpg`;
+					player.playerTeamAvatarUrl = `https://sleepercdn.com/images/team_logos/nfl/${player.team?.toLowerCase()}.png`;
 					mappedPlayers[playerId] = player;
 				}
 			});
@@ -81,10 +87,20 @@ export class RostersHelper {
 			// Handle the single-player case
 			const player = allPlayers[rosterPlayersOrPlayer];
 			if (!player) {
-				console.warn(`Player with ID ${rosterPlayersOrPlayer} not found in allPlayers.`);
+				//console.warn(`Player with ID ${rosterPlayersOrPlayer} not found in allPlayers.`);
 				return null;
 			}
 			return player;
 		}
+	}
+
+	private static GetTeamName(roster: Roster, users: LeagueUser[]): string {
+		let teamName = users.find((u) => u.user_id === roster.owner_id)?.metadata?.team_name;
+
+		if (teamName === undefined || teamName === null || teamName === '') {
+			teamName = 'Team ' + users.find((u) => u.user_id === roster.owner_id)?.display_name;
+		}
+
+		return teamName;
 	}
 }
