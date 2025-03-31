@@ -9,8 +9,14 @@
 
 <li class="flex items-center justify-between">
 	<!-- Position Badge -->
-	<span class={`badge ${badgeClass}`} style="width: 50px; text-align: center;">
-		{position}
+	<span class={`badge ${badgeClass}`}>
+		{#if position === 'WRT'}
+			<span>W</span><span>R</span><span>T</span>
+		{:else if position === 'WRTQ'}
+			<span>W</span><span>R</span><span>T</span><span>Q</span>
+		{:else}
+			{position}
+		{/if}
 	</span>
 
 	<!-- Player Details -->
@@ -30,49 +36,72 @@
 </li>
 
 <style>
+	.badge {
+		width: 60px; /* Fixed width */
+		height: 20px; /* Fixed height */
+		display: grid;
+		align-items: center;
+		justify-items: center;
+		border-radius: 4px;
+		overflow: hidden;
+		font-size: 10px;
+		flex-shrink: 0;
+		padding: 0;
+		margin: 0;
+		box-sizing: border-box;
+	}
+
+	/* For standard positions */
 	.bg-qb {
-		background-color: #ff2a6d; /* QB background color */
-		color: white; /* Optional: text color for contrast */
+		background-color: #ff2a6d;
+		color: white;
 	}
-
 	.bg-rb {
-		background-color: #00ceb8; /* RB background color */
-		color: white; /* Optional: text color for contrast */
+		background-color: #00ceb8;
+		color: white;
 	}
-
 	.bg-wr {
-		background-color: #58a7ff; /* WR background color */
-		color: white; /* Optional: text color for contrast */
+		background-color: #58a7ff;
+		color: white;
 	}
-
 	.bg-te {
-		background-color: #ffae58; /* TE background color */
-		color: white; /* Optional: text color for contrast */
+		background-color: #ffae58;
+		color: white;
 	}
 
+	/* For FLEX (WRT) with 3 fixed 20px columns */
 	.bg-wrt {
-		background: linear-gradient(
-			90deg,
-			#58a7ff 33%,
-			#00ceb8 33%,
-			#00ceb8 66%,
-			#ffae58 66%
-		); /* FLEX (WRT) gradient */
-		color: white; /* Optional: text color for contrast */
+		display: grid;
+		grid-template-columns: 20px 20px 20px;
+		gap: 0;
+		width: 60px;
+		height: 20px;
+		background: linear-gradient(90deg, #58a7ff 33%, #00ceb8 33% 66%, #ffae58 66%);
+		background-size: 60px 20px;
+		color: white;
 	}
 
+	/* For SUPER-FLEX (WRTQ) with 4 fixed 15px columns */
 	.bg-wrtq {
-		background: repeating-linear-gradient(
-			90deg,
-			#58a7ff 0%,
-			#58a7ff 25%,
-			#00ceb8 25%,
-			#00ceb8 50%,
-			#ffae58 50%,
-			#ffae58 75%,
-			#ff2a6d 75%,
-			#ff2a6d 100% /* Solid pink for QB */
-		);
-		color: white; /* Optional: text color for contrast */
+		display: grid;
+		grid-template-columns: 15px 15px 15px 15px;
+		gap: 0;
+		width: 60px;
+		height: 20px;
+		background: linear-gradient(90deg, #58a7ff 25%, #00ceb8 25% 50%, #ffae58 50% 75%, #ff2a6d 75%);
+		background-size: 60px 20px;
+		color: white;
+	}
+
+	/* Remove forced sizing on each inner span and set line-height */
+	.badge > span {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		/* Remove width/height so that each grid cell defines its size */
+		margin: 0;
+		padding: 0;
+		font-size: 10px;
+		line-height: 20px; /* Match cell height for vertical centering */
 	}
 </style>
