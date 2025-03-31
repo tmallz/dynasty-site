@@ -5,4 +5,5 @@ export interface MatchupPageDto {
 	TeamName?: string;
 	Starters?: Record<string, Player>;
 	Score?: number;
+	AvatarUrl?: string;
 }

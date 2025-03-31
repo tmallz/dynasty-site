@@ -53,10 +53,14 @@ export class MatchupHelper {
 		users: LeagueUser[]
 	): MatchupPageDto {
 		let pageMatchup: MatchupPageDto = {};
+		let avatarId = users.find((u) => u.user_id === roster.owner_id)?.avatar || '';
 		pageMatchup.MatchupId = matchup.matchup_id;
 		pageMatchup.TeamName = users.find((u) => u.user_id === roster.owner_id)?.display_name ?? '';
 		pageMatchup.Starters = RostersHelper.MapPlayerNames(players, roster.starters);
 		pageMatchup.Score = matchup.points;
+		pageMatchup.AvatarUrl = avatarId
+			? `https://sleepercdn.com/avatars/${avatarId}`
+			: 'https://via.placeholder.com/50';
 		return pageMatchup;
 	}
 }
