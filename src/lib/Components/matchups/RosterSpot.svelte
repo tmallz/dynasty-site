@@ -37,21 +37,25 @@
 
 <style>
 	.badge {
-		width: 60px; /* Fixed width */
-		height: 20px; /* Fixed height */
+		width: 60px;
+		height: 30px;
 		display: grid;
 		align-items: center;
 		justify-items: center;
 		border-radius: 4px;
 		overflow: hidden;
-		font-size: 10px;
+		font-size: 15px;
 		flex-shrink: 0;
 		padding: 0;
 		margin: 0;
 		box-sizing: border-box;
 	}
 
-	/* For standard positions */
+	/* Position Badges match sleeper colors */
+	.bg-wr {
+		background-color: #58a7ff;
+		color: white;
+	}
 	.bg-qb {
 		background-color: #ff2a6d;
 		color: white;
@@ -69,39 +73,35 @@
 		color: white;
 	}
 
-	/* For FLEX (WRT) with 3 fixed 20px columns */
 	.bg-wrt {
 		display: grid;
 		grid-template-columns: 20px 20px 20px;
 		gap: 0;
 		width: 60px;
-		height: 20px;
+		height: 30px;
 		background: linear-gradient(90deg, #58a7ff 33%, #00ceb8 33% 66%, #ffae58 66%);
-		background-size: 60px 20px;
+		background-size: 60px 30px;
 		color: white;
 	}
 
-	/* For SUPER-FLEX (WRTQ) with 4 fixed 15px columns */
 	.bg-wrtq {
 		display: grid;
 		grid-template-columns: 15px 15px 15px 15px;
 		gap: 0;
 		width: 60px;
-		height: 20px;
+		height: 30px;
 		background: linear-gradient(90deg, #58a7ff 25%, #00ceb8 25% 50%, #ffae58 50% 75%, #ff2a6d 75%);
-		background-size: 60px 20px;
+		background-size: 60px 30px;
 		color: white;
 	}
 
-	/* Remove forced sizing on each inner span and set line-height */
 	.badge > span {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		/* Remove width/height so that each grid cell defines its size */
 		margin: 0;
 		padding: 0;
-		font-size: 10px;
-		line-height: 20px; /* Match cell height for vertical centering */
+		font-size: 12px;
+		line-height: 30px;
 	}
 </style>
