@@ -22,7 +22,7 @@
 <main>
 	{#if transactions.length > 0}
 		{#each transactions as transaction}
-			{#if transaction.TransactionType === TransactionType.TRADE}
+			{#if transaction.TransactionType === TransactionType.Trade}
 				<div class="transaction-card mb-4 rounded-lg border p-4 shadow">
 					<p><strong>Type:</strong> {transaction.TransactionType}</p>
 					<p><strong>Initiator:</strong> {transaction.Trade?.InitiatorName}</p>
@@ -49,7 +49,7 @@
 
 	{#if transactions.length > 0}
 		{#each transactions as transaction}
-			{#if transaction.TransactionType === TransactionType.WAIVER}
+			{#if transaction.TransactionType === TransactionType.Waiver}
 				<div class="transaction-card mb-4 rounded-lg border p-4 shadow">
 					<p><strong>Type:</strong> {transaction.TransactionType}</p>
 					<p><strong>User:</strong> {transaction.WaiverFreeAgent?.UserName}</p>

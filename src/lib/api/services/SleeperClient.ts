@@ -14,6 +14,8 @@ import type { Player } from '../dtos/PlayerDtos/Player';
 import type { TrendingPlayer } from '../dtos/PlayerDtos/TrendingPlayer';
 import { TransactionStatus } from '../Enums/TransactionStatus';
 import { TransactionType } from '../Enums/TransactionType';
+import { DraftType } from '../Enums/DraftType';
+import { DraftStatus } from '../Enums/DraftStatus';
 
 export class SleeperClient {
 	private static BASE_URL = import.meta.env.VITE_SLEEPER_API_URL;
@@ -150,8 +152,8 @@ export class SleeperClient {
 		// Map the transaction status to the enum
 		return transactions.map((transaction: any) => ({
 			...transaction,
-			status: TransactionStatus[transaction.status.toUpperCase() as keyof typeof TransactionStatus],
-			type: TransactionType[transaction.type.toUpperCase() as keyof typeof TransactionType]
+			status: transaction.status as TransactionStatus,
+			type: transaction.type as TransactionType
 		}));
 	}
 
@@ -222,7 +224,11 @@ export class SleeperClient {
 		if (!response.ok) {
 			throw new Error(`Failed to fetch draft with ID ${draftId}`);
 		}
-		return response.json();
+		let draft = await response.json();
+
+		draft.type = draft.type as DraftType;
+		draft.status = draft.status as DraftStatus;
+		return draft;
 	}
 
 	/**

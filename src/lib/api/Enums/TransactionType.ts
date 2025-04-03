@@ -1,5 +1,6 @@
 export enum TransactionType {
-	TRADE = 'trade',
-	WAIVER = 'waiver',
-	FREE_AGENT = 'free_agent'
+	Trade = 'trade',
+	Waiver = 'waiver',
+	FreeAgent = 'free_agent',
+	Commissioner = 'commissioner'
 }

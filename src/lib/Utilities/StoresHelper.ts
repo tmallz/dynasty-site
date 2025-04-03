@@ -1,3 +1,4 @@
+import { AreDraftsLoaded, LoadDrafts } from '$lib/Stores/DraftStore';
 import { IsPlayersLoaded, LoadPlayers } from '$lib/Stores/PlayerStore';
 import { IsRostersLoaded, LoadRosters } from '$lib/Stores/RosterStore';
 import { IsTransactionsLoaded, LoadTransactions } from '$lib/Stores/TransactionStore';
@@ -8,7 +9,11 @@ export class StoresHelper {
 		let leagueId = import.meta.env.VITE_LEAGUE_ID;
 
 		if (!IsTransactionsLoaded()) {
-			await LoadTransactions(leagueId);
+			await LoadTransactions();
+		}
+
+		if (!AreDraftsLoaded()) {
+			await LoadDrafts();
 		}
 
 		if (!IsPlayersLoaded()) {
@@ -23,4 +28,7 @@ export class StoresHelper {
 			await LoadUsers(leagueId);
 		}
 	}
+}
+function IsDraftsLoaded() {
+	throw new Error('Function not implemented.');
 }

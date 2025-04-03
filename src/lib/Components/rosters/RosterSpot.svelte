@@ -22,10 +22,10 @@
 	<!-- Player Details -->
 	<div class="ml-4 flex w-full items-center space-x-2">
 		<!-- Player Image -->
-		<img src={playerImage} alt={playerName} class="h-10 w-10 rounded-full" />
+		<img src={playerImage} alt={playerName} class="h-10 w-10 rounded-md object-cover" />
 
 		<!-- Team Logo -->
-		<img src={PlayerTeamLogo} alt={playerTeam} class="h-6 w-6 rounded-full" />
+		<img src={PlayerTeamLogo} alt={playerTeam} class="h-6 w-6 rounded-md object-cover" />
 
 		<!-- Player Info -->
 		<div>

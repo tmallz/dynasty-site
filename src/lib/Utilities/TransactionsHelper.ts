@@ -27,7 +27,7 @@ export class TransactionsHelper {
 		let rosters: Roster[] = get(RostersStore) ?? {};
 
 		// Filter out transactions with a status of failed
-		transactions = transactions.filter((t) => t.status === TransactionStatus.COMPLETE);
+		transactions = transactions.filter((t) => t.status === TransactionStatus.Complete);
 
 		// Method to map transactions to new dto, add player name, and username
 		// You can call the private method here if needed
@@ -42,10 +42,10 @@ export class TransactionsHelper {
 	): TransactionsPageDto[] {
 		return transactions.map((t) => {
 			switch (t.type) {
-				case TransactionType.WAIVER:
-				case TransactionType.FREE_AGENT:
+				case TransactionType.Waiver:
+				case TransactionType.FreeAgent:
 					return this.MapWaiverOrFreeAgentTransaction(t, users, players);
-				case TransactionType.TRADE:
+				case TransactionType.Trade:
 					return this.MapTradeTransaction(t, users, players, rosters);
 				default:
 					console.warn(`Unknown transaction type: ${t.type}`);

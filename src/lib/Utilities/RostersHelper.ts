@@ -1,7 +1,6 @@
 import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
 import type { Player } from '$lib/api/dtos/PlayerDtos/Player';
-import { SleeperClient } from '$lib/api/services/SleeperClient';
 import { IsPlayersLoaded, LoadPlayers, PlayersStore } from '$lib/Stores/PlayerStore';
 import { get } from 'svelte/store';
 import type { RosterPageDto } from './Dtos/RosterPageDto';
