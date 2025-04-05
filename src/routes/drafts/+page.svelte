@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { DraftsHelper } from '$lib/Utilities/DraftsHelper';
-	import type { DraftPageDto, DraftPagePicks } from '$lib/Utilities/Dtos/DraftPageDto';
+	import type {
+		DraftPageDto,
+		DraftPagePicks,
+		DraftPageTradedPicks
+	} from '$lib/Utilities/Dtos/DraftPageDto';
 	import DraftTeamHeader from '$lib/Components/drafts/DraftTeamHeader.svelte';
 	import DraftCell from '$lib/Components/drafts/DraftCell.svelte';
 	import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
@@ -66,6 +70,8 @@
 			const draftOrder = draft.DraftOrder ?? {};
 			const numTeams = Object.keys(draftOrder).length;
 			let picks: DraftPagePicks[] = [];
+			let tradedPicks = draft.TradedPicks ?? [];
+			let draftToSlotOrder = draft.SlotToRosterMap;
 			// Sort the teams by their draft order value.
 			let orderedTeams = Object.entries(draftOrder).sort(([, a], [, b]) => a - b);
 
@@ -85,8 +91,14 @@
 							PlayerPosition: '',
 							PlayerTeam: ''
 						};
+						pickPlaceholder.isOriginalOwner = isTradedPick(
+							tradedPicks,
+							pickPlaceholder,
+							draftToSlotOrder ?? {}
+						);
 						picks.push(pickPlaceholder);
 					}
+					console.log('Draft picks:', picks);
 				}
 			} else {
 				// Linear draft: keep the same order every round.
@@ -103,14 +115,32 @@
 							PlayerPosition: '',
 							PlayerTeam: ''
 						};
+						pickPlaceholder.isOriginalOwner = isTradedPick(
+							tradedPicks,
+							pickPlaceholder,
+							draftToSlotOrder ?? {}
+						);
 						picks.push(pickPlaceholder);
 					}
 				}
 			}
+			console.log('Draft picks:', picks);
 			return picks;
 		}
 
 		return [];
+	};
+
+	let isTradedPick = (
+		picks: DraftPageTradedPicks[],
+		draftPick: DraftPagePicks,
+		SlotToRosterMap: Record<string, number>
+	): boolean => {
+		let originalDraftSlot = Object.keys(SlotToRosterMap).find(
+			(slot) => String(SlotToRosterMap[slot]) === draftPick.rosterId
+		);
+		console.log('Draft pick:', draftPick, 'Original draft slot:', originalDraftSlot);
+		return Number(originalDraftSlot) !== draftPick.draft_slot;
 	};
 
 	onMount(async () => {

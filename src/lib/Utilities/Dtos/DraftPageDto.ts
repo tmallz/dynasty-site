@@ -1,3 +1,4 @@
+import type { TradedPick } from '$lib/api/dtos/LeagueDtos/TradedPick';
 import type { DraftStatus } from '$lib/api/Enums/DraftStatus';
 
 export interface DraftPageDto {
@@ -9,6 +10,7 @@ export interface DraftPageDto {
 	DraftDate?: string;
 	SlotToRosterMap?: Record<string, number>;
 	DraftPagePicks?: DraftPagePicks[];
+	TradedPicks?: DraftPageTradedPicks[];
 }
 
 export interface DraftPagePicks {
@@ -23,4 +25,11 @@ export interface DraftPagePicks {
 	pickNumber?: number;
 	rosterId?: string;
 	isOriginalOwner?: boolean; // Indicates if the pick is from the original owner
+}
+
+export interface DraftPageTradedPicks {
+	round?: number;
+	currentOwner?: string;
+	previousOwner?: string;
+	rosterId?: number;
 }

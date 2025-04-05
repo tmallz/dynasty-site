@@ -2,12 +2,17 @@ import type { DraftPick } from '$lib/api/dtos/DraftDtos/DraftPick';
 import { SleeperClient } from '$lib/api/services/SleeperClient';
 import { UsersStore } from '$lib/Stores/UserStores';
 import { get } from 'svelte/store';
-import type { DraftPageDto, DraftPagePicks } from './Dtos/DraftPageDto';
+import type { DraftPageDto, DraftPagePicks, DraftPageTradedPicks } from './Dtos/DraftPageDto';
 import { StoresHelper } from './StoresHelper';
 import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 import type { DraftAndDetail } from './Dtos/DraftAndDetail';
 import { DraftsStore } from '$lib/Stores/DraftStore';
 import { DraftStatus } from '$lib/api/Enums/DraftStatus';
+import type { TradedPick } from '$lib/api/dtos/LeagueDtos/TradedPick';
+import type { DraftDetail } from '$lib/api/dtos/DraftDtos/DraftDetail';
+import type { Draft } from '$lib/api/dtos/DraftDtos/Draft';
+import { RostersStore } from '$lib/Stores/RosterStore';
+import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
 
 export class DraftsHelper {
 	/**
@@ -19,16 +24,18 @@ export class DraftsHelper {
 		let PageDrafts: DraftPageDto[] = [];
 		let draftPicks: DraftPick[] = [];
 		let users: LeagueUser[] = [];
+		let rosters: Roster[] = [];
 		let draftsAndDetails: DraftAndDetail[] = [];
-		let leagueId = import.meta.env.VITE_LEAGUE_ID;
 
 		await StoresHelper.EnsureStoresLoaded();
 		users = get(UsersStore) ?? [];
+		rosters = get(RostersStore) ?? [];
 		draftsAndDetails = get(DraftsStore) ?? [];
 
 		for (const item of draftsAndDetails) {
 			let picks: DraftPagePicks[] = [];
 			let PageDraft: DraftPageDto = {};
+			let draftTradedPicks: DraftPageTradedPicks[] = [];
 			let draft = item.draft;
 			let draftDetail = item.detail;
 
@@ -43,7 +50,33 @@ export class DraftsHelper {
 			draftPicks = await SleeperClient.GetDraftPicks(draft.draft_id ?? '');
 			if (draftPicks.length === 0) {
 				//TODO: Handle pre-draft state where we display the draft with who owns the picks
-				PageDraft.DraftPagePicks = []; // Set to empty array if no picks found
+				PageDraft.DraftPagePicks = [];
+				let tradedPicks: TradedPick[] = await this.GetTradedPicksForDraft(
+					draft,
+					await this.GetTradedpicks()
+				);
+				console.log('tradedPicks', tradedPicks);
+				for (let i = 0; i < tradedPicks.length; i++) {
+					let pick = tradedPicks[i];
+					let tradedPickDto: DraftPageTradedPicks = {
+						round: pick.round,
+						rosterId: pick.roster_id,
+						currentOwner:
+							users.find(
+								(user) =>
+									rosters.find((roster) => pick.owner_id === roster.roster_id)?.owner_id ===
+									user.user_id
+							)?.display_name ?? 'Unknown',
+						previousOwner:
+							users.find(
+								(user) =>
+									rosters.find((roster) => pick.owner_id === roster.roster_id)?.owner_id ===
+									user.user_id
+							)?.display_name ?? 'Unknown'
+					};
+					draftTradedPicks.push(tradedPickDto);
+				}
+				PageDraft.TradedPicks = draftTradedPicks;
 				PageDrafts.push(PageDraft);
 				draftPicks = []; // Reset draftPicks for the next iteration
 				continue; // Skip this draft if no picks are found
@@ -83,6 +116,7 @@ export class DraftsHelper {
 			draftPicks = []; // Reset draftPicks for the next iteration
 			PageDraft.DraftPagePicks = picks;
 			PageDrafts.push(PageDraft);
+			console.log('PageDrafts', PageDrafts);
 		}
 
 		// Sort the drafts by date
@@ -117,5 +151,19 @@ export class DraftsHelper {
 		//get the roster Id from the slotToRosterMap for corresponding draft slot
 		let rosterId = slotToRosterMap[draftSlot.toString()];
 		return rosterId === Number(rosterNumber);
+	}
+
+	private static async GetTradedpicks(): Promise<TradedPick[]> {
+		let leagueId = import.meta.env.VITE_LEAGUE_ID;
+		let tradedPicks: TradedPick[] = await SleeperClient.GetTradedPicks(leagueId);
+		console.log('tradedPicks', tradedPicks);
+		return tradedPicks;
+	}
+
+	private static GetTradedPicksForDraft(draft: Draft, tradedPicks: TradedPick[]): TradedPick[] {
+		let tradedPicksForDraft = tradedPicks.filter(
+			(pick) => pick.season === draft.season && draft.status === DraftStatus.PRE_DRAFT
+		);
+		return tradedPicksForDraft;
 	}
 }
