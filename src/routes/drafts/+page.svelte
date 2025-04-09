@@ -188,7 +188,7 @@
 							<div
 								class="mb-6 grid gap-4"
 								style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
-									.length}, minmax(150px, 1fr))"
+									.length}, minmax(125px, 1fr))"
 							>
 								{#each Object.keys(draft.DraftOrder ?? {}) as team}
 									<DraftTeamHeader
@@ -202,7 +202,7 @@
 							<div
 								class="grid gap-4"
 								style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
-									.length}, minmax(150px, 1fr))"
+									.length}, minmax(125px, 1fr))"
 							>
 								{#each getOrderedPicks(draft) as pick, index}
 									<DraftCell
@@ -239,7 +239,7 @@
 						<div
 							class="mb-6 grid gap-4"
 							style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
-								.length}, minmax(150px, 1fr))"
+								.length}, minmax(125px, 1fr))"
 						>
 							{#each Object.keys(draft.DraftOrder ?? {}) as team}
 								<DraftTeamHeader
@@ -253,7 +253,7 @@
 						<div
 							class="grid gap-4"
 							style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
-								.length}, minmax(150px, 1fr))"
+								.length}, minmax(125px, 1fr))"
 						>
 							{#each getOrderedPicks(draft) as pick, index}
 								<DraftCell

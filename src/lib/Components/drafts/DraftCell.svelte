@@ -40,17 +40,22 @@
 			: 'bg-base'
 		: getPositionColor(pick.PlayerPosition ?? '')} {preDraft ? 'pre-draft' : ''}"
 >
-	<!-- Top-left container for pick number and (if present) owner name inline -->
-	<div class="absolute top-2 left-2 flex items-center space-x-1">
-		<div class="rounded-full px-2 py-1 text-xs">
+	<!-- Top-left container for pick number and (if present) owner name -->
+	<div
+		class="absolute top-2 left-2 flex flex-col items-start space-y-1 md:flex-row md:items-center md:space-y-0 md:space-x-1"
+	>
+		<!-- Pick number -->
+		<div class="rounded-full px-2 py-1 text-xs md:px-1 md:text-sm">
 			{#if preDraft}
 				{pick.round}-{pickNumberForRound}
 			{:else}
 				{pick.round}-{pick.pickNumber}
 			{/if}
 		</div>
+
+		<!-- Owner name (only for traded picks and not pre-draft) -->
 		{#if !pick.isOriginalOwner && !preDraft}
-			<div class="text-xs">
+			<div class="overflow-hidden text-xs text-ellipsis whitespace-nowrap md:text-sm">
 				{ownerName}
 			</div>
 		{/if}
@@ -59,15 +64,19 @@
 	{#if preDraft}
 		{#if !pick.isOriginalOwner}
 			<!-- Pre-draft state with a placeholder draft pick -->
-			<div class="mt-8 text-gray-500">{pick.owner}</div>
+			<div
+				class="mt-8 overflow-hidden text-xs text-ellipsis whitespace-nowrap text-gray-500 sm:text-sm"
+			>
+				{pick.owner}
+			</div>
 		{/if}
 	{:else}
 		<!-- Post-draft state -->
-		<div class="mt-4 flex flex-col items-center">
+		<div class="mt-10 flex flex-col items-center md:mt-6">
 			<!-- Player picture above the player name -->
 			<img src={playerImage} alt={pick.PlayerName} class="mb-2 h-12 w-12 rounded-md object-cover" />
-			<div class="text-xs font-bold">{pick.PlayerName}</div>
-			<div class="text-xs">{pick.PlayerPosition} – {pick.PlayerTeam}</div>
+			<div class="text-xs font-bold sm:text-sm">{pick.PlayerName}</div>
+			<div class="text-xs sm:text-sm">{pick.PlayerPosition} – {pick.PlayerTeam}</div>
 		</div>
 	{/if}
 </div>
