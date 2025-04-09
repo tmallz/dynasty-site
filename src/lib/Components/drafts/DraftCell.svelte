@@ -35,8 +35,10 @@
 
 <div
 	class="relative rounded-lg border p-4 text-center {preDraft
-		? 'pre-draft'
-		: getPositionColor(pick.PlayerPosition ?? '')}"
+		? !pick.isOriginalOwner
+			? 'bg-base-300'
+			: 'bg-base'
+		: getPositionColor(pick.PlayerPosition ?? '')} {preDraft ? 'pre-draft' : ''}"
 >
 	<!-- Top-left container for pick number and (if present) owner name inline -->
 	<div class="absolute top-2 left-2 flex items-center space-x-1">
@@ -54,9 +56,11 @@
 		{/if}
 	</div>
 
-	{#if preDraft && !pick.isOriginalOwner}
-		<!-- Pre-draft state with a placeholder draft pick -->
-		<div class="mt-8 text-gray-500">{pick.owner}</div>
+	{#if preDraft}
+		{#if !pick.isOriginalOwner}
+			<!-- Pre-draft state with a placeholder draft pick -->
+			<div class="mt-8 text-gray-500">{pick.owner}</div>
+		{/if}
 	{:else}
 		<!-- Post-draft state -->
 		<div class="mt-4 flex flex-col items-center">

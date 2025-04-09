@@ -64,7 +64,6 @@
 		}
 
 		// If there are no picks, generate placeholder picks (pre_draft state).
-		// You can adjust numRounds and other logic as needed.
 		if (draft.DraftStatus === 'pre_draft') {
 			const numRounds = 5;
 			const draftOrder = draft.DraftOrder ?? {};
@@ -72,81 +71,100 @@
 			let picks: DraftPagePicks[] = [];
 			let tradedPicks = draft.TradedPicks ?? [];
 			let draftToSlotOrder = draft.SlotToRosterMap;
+
 			// Sort the teams by their draft order value.
 			let orderedTeams = Object.entries(draftOrder).sort(([, a], [, b]) => a - b);
 
+			// should almost never have a snake rookie draft but yolo
 			if (draft.DraftType === 'snake') {
 				// For snake drafts, reverse the team order on even rounds.
 				for (let round = 1; round <= numRounds; round++) {
 					let roundOrder = round % 2 === 0 ? orderedTeams.slice().reverse() : orderedTeams;
 					for (let i = 0; i < roundOrder.length; i++) {
 						let teamId = roundOrder[i][0];
+						let draftSlot = i + 1;
+
+						// Get the roster ID for the current draft slot
+						let currentPickRosterId = draftToSlotOrder?.[draftSlot] ?? null;
+						let currentOwner = getUsernameFromUserId(teamId);
+
+						// Find the traded pick
+						let tradedPick = tradedPicks.find(
+							(pick) =>
+								pick.round === round &&
+								pick.origionalOwnerRosterId === currentPickRosterId &&
+								pick.currentOwner !== getUsernameFromUserId(teamId)
+						);
+
+						// Determine the owner and other details based on whether the pick is traded
+						let ownerId = tradedPick ? tradedPick.currentOwner : teamId;
+						let ownerName = tradedPick ? tradedPick.currentOwner : getUsernameFromUserId(teamId);
+						let isOriginalOwner =
+							!tradedPick || tradedPick.originalOwner === getUsernameFromUserId(teamId);
+
+						// Create the placeholder pick
 						let pickPlaceholder: DraftPagePicks = {
 							round: round,
-							draft_slot: i + 1,
-							ownerId: teamId,
-							owner: getUsernameFromUserId(teamId),
-							PlayerName:
-								getUsernameFromUserId(teamId) + ` ${round}.${(i + 1).toString().padStart(2, '0')}`,
+							draft_slot: draftSlot,
+							ownerId: ownerId,
+							owner: ownerName ?? '',
+							PlayerName: `${ownerName} ${round}.${draftSlot.toString().padStart(2, '0')}`,
 							PlayerPosition: '',
-							PlayerTeam: ''
+							PlayerTeam: '',
+							isOriginalOwner: isOriginalOwner
 						};
-						pickPlaceholder.isOriginalOwner = isTradedPick(
-							tradedPicks,
-							pickPlaceholder,
-							draftToSlotOrder ?? {}
-						);
+
 						picks.push(pickPlaceholder);
 					}
-					console.log('Draft picks:', picks);
 				}
 			} else {
 				// Linear draft: keep the same order every round.
 				for (let round = 1; round <= numRounds; round++) {
 					for (let i = 0; i < orderedTeams.length; i++) {
 						let teamId = orderedTeams[i][0];
+						let draftSlot = i + 1;
+
+						// Get the roster ID for the current draft slot
+						let currentPickRosterId = draftToSlotOrder?.[draftSlot] ?? null;
+						// Find the traded pick
+						let tradedPick = tradedPicks.find(
+							(pick) =>
+								pick.round === round &&
+								pick.origionalOwnerRosterId === currentPickRosterId &&
+								pick.currentOwner !== getUsernameFromUserId(teamId)
+						);
+
+						// Determine the owner and other details based on whether the pick is traded
+						let ownerId = tradedPick ? tradedPick.currentOwner : teamId;
+						let ownerName = tradedPick ? tradedPick.currentOwner : getUsernameFromUserId(teamId);
+						let isOriginalOwner =
+							!tradedPick || tradedPick.currentOwner === getUsernameFromUserId(teamId);
+
+						// Create the placeholder picks for upcoming draft
 						let pickPlaceholder: DraftPagePicks = {
 							round: round,
-							draft_slot: i + 1,
-							owner: getUsernameFromUserId(teamId),
-							ownerId: teamId,
-							PlayerName:
-								getUsernameFromUserId(teamId) + ` ${round}.${(i + 1).toString().padStart(2, '0')}`,
+							draft_slot: draftSlot,
+							ownerId: ownerId,
+							owner: ownerName ?? '',
+							PlayerName: `${ownerName} ${round}.${draftSlot.toString().padStart(2, '0')}`,
 							PlayerPosition: '',
-							PlayerTeam: ''
+							PlayerTeam: '',
+							isOriginalOwner: isOriginalOwner
 						};
-						pickPlaceholder.isOriginalOwner = isTradedPick(
-							tradedPicks,
-							pickPlaceholder,
-							draftToSlotOrder ?? {}
-						);
+
 						picks.push(pickPlaceholder);
 					}
 				}
 			}
-			console.log('Draft picks:', picks);
 			return picks;
 		}
 
 		return [];
 	};
 
-	let isTradedPick = (
-		picks: DraftPageTradedPicks[],
-		draftPick: DraftPagePicks,
-		SlotToRosterMap: Record<string, number>
-	): boolean => {
-		let originalDraftSlot = Object.keys(SlotToRosterMap).find(
-			(slot) => String(SlotToRosterMap[slot]) === draftPick.rosterId
-		);
-		console.log('Draft pick:', draftPick, 'Original draft slot:', originalDraftSlot);
-		return Number(originalDraftSlot) !== draftPick.draft_slot;
-	};
-
 	onMount(async () => {
 		pageDrafts = await DraftsHelper.GetAllDrafts();
 		await StoresHelper.EnsureStoresLoaded();
-		console.log('Drafts loaded:', pageDrafts);
 	});
 </script>
 
@@ -158,7 +176,7 @@
 			<section class="mb-8">
 				<!-- Draft Header -->
 				<h1 class="mb-6 text-4xl font-bold">
-					Draft: {draft.DraftId} - Season {draft.Season}
+					{draft.Season} Draft
 				</h1>
 
 				<!-- Team header row: number of columns based on amount of teams -->

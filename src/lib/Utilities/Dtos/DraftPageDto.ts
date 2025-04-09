@@ -31,5 +31,7 @@ export interface DraftPageTradedPicks {
 	round?: number;
 	currentOwner?: string;
 	previousOwner?: string;
+	originalOwner?: string;
 	rosterId?: number;
+	origionalOwnerRosterId?: number;
 }

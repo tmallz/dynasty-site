@@ -55,12 +55,12 @@ export class DraftsHelper {
 					draft,
 					await this.GetTradedpicks()
 				);
-				console.log('tradedPicks', tradedPicks);
 				for (let i = 0; i < tradedPicks.length; i++) {
 					let pick = tradedPicks[i];
 					let tradedPickDto: DraftPageTradedPicks = {
 						round: pick.round,
-						rosterId: pick.roster_id,
+						rosterId: pick.owner_id,
+						origionalOwnerRosterId: pick.roster_id,
 						currentOwner:
 							users.find(
 								(user) =>
@@ -70,7 +70,13 @@ export class DraftsHelper {
 						previousOwner:
 							users.find(
 								(user) =>
-									rosters.find((roster) => pick.owner_id === roster.roster_id)?.owner_id ===
+									rosters.find((roster) => pick.previous_owner_id === roster.roster_id)
+										?.owner_id === user.user_id
+							)?.display_name ?? 'Unknown',
+						originalOwner:
+							users.find(
+								(user) =>
+									rosters.find((roster) => pick.roster_id === roster.roster_id)?.owner_id ===
 									user.user_id
 							)?.display_name ?? 'Unknown'
 					};
@@ -116,7 +122,6 @@ export class DraftsHelper {
 			draftPicks = []; // Reset draftPicks for the next iteration
 			PageDraft.DraftPagePicks = picks;
 			PageDrafts.push(PageDraft);
-			console.log('PageDrafts', PageDrafts);
 		}
 
 		// Sort the drafts by date
@@ -156,7 +161,6 @@ export class DraftsHelper {
 	private static async GetTradedpicks(): Promise<TradedPick[]> {
 		let leagueId = import.meta.env.VITE_LEAGUE_ID;
 		let tradedPicks: TradedPick[] = await SleeperClient.GetTradedPicks(leagueId);
-		console.log('tradedPicks', tradedPicks);
 		return tradedPicks;
 	}
 
