@@ -172,46 +172,103 @@
 	{#if !pageDrafts}
 		<p>Loading...</p>
 	{:else}
-		{#each pageDrafts as draft}
-			<section class="mb-8">
-				<!-- Draft Header -->
-				<h1 class="mb-6 text-4xl font-bold">
-					{draft.Season} Draft
-				</h1>
+		<!-- Upcoming Draft -->
+		{#if pageDrafts.find((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT)}
+			<section class="mb-12">
+				{#each pageDrafts.filter((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT) as draft}
+					<section class="mb-8">
+						<!-- Draft Header -->
+						<h1 class="mb-6 text-center text-4xl font-bold">
+							Upcoming {draft.Season} Draft
+						</h1>
 
-				<!-- Team header row: number of columns based on amount of teams -->
-				<div
-					class="mb-6 grid gap-4"
-					style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
-						.length}, minmax(0, 1fr))"
-				>
-					{#each Object.keys(draft.DraftOrder ?? {}) as team}
-						<DraftTeamHeader
-							teamName={getUsernameFromUserId(team)}
-							teamLogo={`https://sleepercdn.com/avatars/${getAvatarFromUserId(team)}`}
-						/>
-					{/each}
-				</div>
+						<!-- Scrollable container for team headers and draft board -->
+						<div class="overflow-x-auto">
+							<!-- Team header row -->
+							<div
+								class="mb-6 grid gap-4"
+								style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
+									.length}, minmax(150px, 1fr))"
+							>
+								{#each Object.keys(draft.DraftOrder ?? {}) as team}
+									<DraftTeamHeader
+										teamName={getUsernameFromUserId(team)}
+										teamLogo={`https://sleepercdn.com/avatars/${getAvatarFromUserId(team)}`}
+									/>
+								{/each}
+							</div>
 
-				<!-- Draft board: Each cell gets one team column -->
-				<div
-					class="grid gap-4"
-					style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
-						.length}, minmax(0, 1fr))"
-				>
-					{#each getOrderedPicks(draft) as pick, index}
-						<!-- Toggle preDraft or postDraft by changing the preDraft flag -->
-						<DraftCell
-							{pick}
-							preDraft={draft.DraftStatus === DraftStatus.PRE_DRAFT}
-							playerImage={`https://sleepercdn.com/content/nfl/players/${pick.playerId}.jpg`}
-							pickNumber={index + 1}
-							teamsCount={Object.keys(draft.DraftOrder ?? {}).length}
-							ownerName={getUsernameFromUserId(pick.ownerId ?? '')}
-						/>
-					{/each}
-				</div>
+							<!-- Draft board -->
+							<div
+								class="grid gap-4"
+								style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
+									.length}, minmax(150px, 1fr))"
+							>
+								{#each getOrderedPicks(draft) as pick, index}
+									<DraftCell
+										{pick}
+										preDraft={draft.DraftStatus === DraftStatus.PRE_DRAFT}
+										playerImage={`https://sleepercdn.com/content/nfl/players/${pick.playerId}.jpg`}
+										pickNumber={index + 1}
+										teamsCount={Object.keys(draft.DraftOrder ?? {}).length}
+										ownerName={getUsernameFromUserId(pick.ownerId ?? '')}
+									/>
+								{/each}
+							</div>
+						</div>
+					</section>
+				{/each}
 			</section>
-		{/each}
+		{/if}
+
+		<div class="divider my-8"></div>
+
+		<!-- Previous Drafts -->
+		<section>
+			<h2 class="mb-4 text-center text-4xl font-bold">Previous Drafts</h2>
+			{#each pageDrafts.filter((draft) => draft.DraftStatus !== DraftStatus.PRE_DRAFT) as draft}
+				<section class="mb-8">
+					<!-- Draft Header -->
+					<h1 class="mb-6 text-center text-2xl font-bold">
+						{draft.Season} Draft
+					</h1>
+
+					<!-- Scrollable container for team headers and draft board -->
+					<div class="overflow-x-auto">
+						<!-- Team header row -->
+						<div
+							class="mb-6 grid gap-4"
+							style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
+								.length}, minmax(150px, 1fr))"
+						>
+							{#each Object.keys(draft.DraftOrder ?? {}) as team}
+								<DraftTeamHeader
+									teamName={getUsernameFromUserId(team)}
+									teamLogo={`https://sleepercdn.com/avatars/${getAvatarFromUserId(team)}`}
+								/>
+							{/each}
+						</div>
+
+						<!-- Draft board -->
+						<div
+							class="grid gap-4"
+							style="grid-template-columns: repeat({Object.keys(draft.DraftOrder ?? {})
+								.length}, minmax(150px, 1fr))"
+						>
+							{#each getOrderedPicks(draft) as pick, index}
+								<DraftCell
+									{pick}
+									preDraft={draft.DraftStatus === DraftStatus.PRE_DRAFT}
+									playerImage={`https://sleepercdn.com/content/nfl/players/${pick.playerId}.jpg`}
+									pickNumber={index + 1}
+									teamsCount={Object.keys(draft.DraftOrder ?? {}).length}
+									ownerName={getUsernameFromUserId(pick.ownerId ?? '')}
+								/>
+							{/each}
+						</div>
+					</div>
+				</section>
+			{/each}
+		</section>
 	{/if}
 </main>
