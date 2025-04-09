@@ -4,6 +4,6 @@
 </script>
 
 <div class="flex items-center gap-2">
-	<img src={teamLogo} alt={teamName} class="h-8 w-8 rounded-full" />
-	<span class="font-bold">{teamName}</span>
+	<img src={teamLogo} alt={teamName} class="h-6 w-6 rounded-full md:h-8 md:w-8" />
+	<span class="text-xs font-bold md:text-sm xl:text-[1rem]">{teamName}</span>
 </div>
