@@ -39,6 +39,7 @@
 			? 'bg-base-300'
 			: 'bg-base'
 		: getPositionColor(pick.PlayerPosition ?? '')} {preDraft ? 'pre-draft' : ''}"
+	style="min-height: 150px;"
 >
 	<!-- Top-left container for pick number and (if present) owner name -->
 	<div
