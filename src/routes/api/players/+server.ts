@@ -3,8 +3,10 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { SleeperClient } from '$lib/api/services/SleeperClient';
 
-const DATA_FILE_PATH = path.join(process.cwd(), 'static', 'players.json'); // Correct path to the JSON file
-
+const DATA_FILE_PATH =
+	process.env.NODE_ENV === 'production'
+		? path.join('/tmp', 'players.json') // Writable directory in serverless environments
+		: path.join(process.cwd(), 'static', 'players.json'); // Local directory for development
 export async function GET() {
 	try {
 		console.log('In server...');
