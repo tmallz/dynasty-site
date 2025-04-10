@@ -27,7 +27,7 @@
 			{#if transaction.TransactionType === TransactionType.Trade}
 				<TradeTransaction {transaction} />
 			{/if}
-			{#if transaction.TransactionType === TransactionType.Waiver}
+			{#if transaction.TransactionType === TransactionType.Waiver || transaction.TransactionType === TransactionType.FreeAgent}
 				<WaiverTransaction {transaction} />
 			{/if}
 		{/each}
