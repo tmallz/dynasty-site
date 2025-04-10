@@ -13,6 +13,7 @@
 	import { get } from 'svelte/store';
 	import { StoresHelper } from '$lib/Utilities/StoresHelper';
 	import { DraftStatus } from '$lib/api/Enums/DraftStatus';
+	import { DraftType } from '$lib/api/Enums/DraftType';
 	let pageDrafts: DraftPageDto[] | null = null;
 	let users: LeagueUser[] = get(UsersStore);
 
@@ -76,7 +77,8 @@
 			let orderedTeams = Object.entries(draftOrder).sort(([, a], [, b]) => a - b);
 
 			// should almost never have a snake rookie draft but yolo
-			if (draft.DraftType === 'snake') {
+
+			if (draft.DraftType === DraftType.Snake) {
 				// For snake drafts, reverse the team order on even rounds.
 				for (let round = 1; round <= numRounds; round++) {
 					let roundOrder = round % 2 === 0 ? orderedTeams.slice().reverse() : orderedTeams;
@@ -212,6 +214,7 @@
 										pickNumber={index + 1}
 										teamsCount={Object.keys(draft.DraftOrder ?? {}).length}
 										ownerName={getUsernameFromUserId(pick.ownerId ?? '')}
+										draftType={draft.DraftType ?? DraftType.Linear}
 									/>
 								{/each}
 							</div>
@@ -263,6 +266,7 @@
 									pickNumber={index + 1}
 									teamsCount={Object.keys(draft.DraftOrder ?? {}).length}
 									ownerName={getUsernameFromUserId(pick.ownerId ?? '')}
+									draftType={draft.DraftType ?? DraftType.Linear}
 								/>
 							{/each}
 						</div>

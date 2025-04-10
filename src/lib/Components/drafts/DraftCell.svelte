@@ -12,9 +12,21 @@
 	export let ownerName: string = '';
 	export let pickNumber: number;
 	export let teamsCount: number;
+	export let draftType: string;
 
 	// Reactive statement to calculate the pick number for the round
-	$: pickNumberForRound = pickNumber % teamsCount === 0 ? teamsCount : pickNumber % teamsCount;
+	$: pickNumberForRound = (() => {
+		if (draftType === 'snake') {
+			const round = Math.ceil(pickNumber / teamsCount); // Determine the current round
+			const positionInRound = pickNumber % teamsCount === 0 ? teamsCount : pickNumber % teamsCount;
+
+			// Reverse the order for even rounds
+			return round % 2 === 0 ? teamsCount - positionInRound + 1 : positionInRound;
+		} else {
+			// Linear draft logic
+			return pickNumber % teamsCount === 0 ? teamsCount : pickNumber % teamsCount;
+		}
+	})();
 
 	// Function to determine the background color based on the player's position
 	function getPositionColor(position: string): string {

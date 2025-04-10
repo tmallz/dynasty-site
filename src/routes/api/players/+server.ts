@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { SleeperClient } from '$lib/api/services/SleeperClient';
 
-const DATA_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'players.json'); // Correct path to the JSON file
+const DATA_FILE_PATH = path.join(process.cwd(), 'static', 'players.json'); // Correct path to the JSON file
 
 export async function GET() {
 	try {
