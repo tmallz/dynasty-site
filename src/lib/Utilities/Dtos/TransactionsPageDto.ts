@@ -9,15 +9,30 @@ export interface TransactionsPageDto {
 
 interface WaiverFreeAgentDto {
 	UserName?: string;
-	Adds?: string[]; //player name
-	Drops?: string[]; //player name
+	Adds?: TradedPlayerDto[]; //player name
+	Drops?: TradedPlayerDto[]; //player name
+	InitiatorAvatarUrl?: string;
 }
 
 interface tradeDto {
 	InitiatorName?: string;
 	RecieverName?: string;
-	InitiatorPlayersRecieved?: string[];
-	RecieverPlayersRecieved?: string[];
-	InitiatorDraftPicks?: number[]; //round number
-	RecieverDraftPicks?: number[]; //round number
+	InitiatorPlayersRecieved?: TradedPlayerDto[];
+	RecieverPlayersRecieved?: TradedPlayerDto[];
+	InitiatorDraftPicks?: TradedPickDto[];
+	RecieverDraftPicks?: TradedPickDto[];
+	InitiatorAvatarUrl?: string;
+	RecieverAvatarUrl?: string;
+}
+
+export interface TradedPlayerDto {
+	PlayerName?: string;
+	PlayerId?: string;
+	PlayerPosition?: string;
+	PlayerTeam?: string;
+}
+
+export interface TradedPickDto {
+	Year?: number; //year of the pick
+	Round?: number; //round of the pick
 }
