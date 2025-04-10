@@ -18,7 +18,7 @@ import { DraftType } from '../Enums/DraftType';
 import { DraftStatus } from '../Enums/DraftStatus';
 
 export class SleeperClient {
-	private static BASE_URL = import.meta.env.VITE_SLEEPER_API_URL;
+	private static BASE_URL = import.meta.env.VITE_SLEEPER_API_URL || 'https://api.sleeper.app/v1';
 
 	/**
 	 * Retrieves the sleeper user for the given username
