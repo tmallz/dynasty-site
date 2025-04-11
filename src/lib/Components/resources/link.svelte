@@ -2,6 +2,7 @@
 	export let href: string;
 	export let icon: string = ''; // Optional icon class
 	export let text: string;
+	export let paywall: boolean; // Flag for paywall
 </script>
 
 <a
@@ -13,5 +14,7 @@
 	{#if icon}
 		<i class={icon}></i>
 	{/if}
-	<span class="">{text}</span>
+	<span class="text-gray-200">
+		{text}{paywall ? '*' : ''}
+	</span>
 </a>
