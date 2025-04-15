@@ -49,11 +49,10 @@ export class DraftsHelper {
 
 			draftPicks = await SleeperClient.GetDraftPicks(draft.draft_id ?? '');
 			if (draftPicks.length === 0) {
-				//TODO: Handle pre-draft state where we display the draft with who owns the picks
 				PageDraft.DraftPagePicks = [];
 				let tradedPicks: TradedPick[] = await this.GetTradedPicksForDraft(
 					draft,
-					await this.GetTradedpicks()
+					await DraftsHelper.GetTradedpicks()
 				);
 				for (let i = 0; i < tradedPicks.length; i++) {
 					let pick = tradedPicks[i];

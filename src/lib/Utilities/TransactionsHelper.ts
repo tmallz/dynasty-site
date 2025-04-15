@@ -22,36 +22,23 @@ import { AddDropType } from '$lib/api/Enums/AddDropType';
 
 export class TransactionsHelper {
 	public static async GetAllTransactions(): Promise<TransactionsPageDto[]> {
-		// Ensure all stores are loaded
 		await StoresHelper.EnsureStoresLoaded();
 
-		// Load all transactions, league users, and player data for the league for 2025
-		let transactions: Transaction[] = get(TransactionsStore); //(await SleeperClient.GetTransactions(leagueId, 1)) ?? [];
-		let users: LeagueUser[] = get(UsersStore) ?? [];
-		let players: Record<string, Player> = get(PlayersStore) ?? {};
-		let rosters: Roster[] = get(RostersStore) ?? {};
+		let transactions: Transaction[] = get(TransactionsStore);
 
-		// Filter out transactions with a status of failed
 		transactions = transactions.filter((t) => t.status === TransactionStatus.Complete);
 
-		// Method to map transactions to new dto, add player name, and username
-		// You can call the private method here if needed
-		return TransactionsHelper.MapTransaction(transactions, users, players, rosters);
+		return TransactionsHelper.MapTransaction(transactions);
 	}
 
-	private static MapTransaction(
-		transactions: Transaction[],
-		users: LeagueUser[],
-		players: Record<string, Player>,
-		rosters: Roster[]
-	): TransactionsPageDto[] {
+	private static MapTransaction(transactions: Transaction[]): TransactionsPageDto[] {
 		return transactions.map((t) => {
 			switch (t.type) {
 				case TransactionType.Waiver:
 				case TransactionType.FreeAgent:
-					return this.MapWaiverOrFreeAgentTransaction(t, users, rosters, players);
+					return TransactionsHelper.MapWaiverOrFreeAgentTransaction(t);
 				case TransactionType.Trade:
-					return this.MapTradeTransaction(t, users, players, rosters);
+					return TransactionsHelper.MapTradeTransaction(t);
 				default:
 					console.warn(`Unknown transaction type: ${t.type}`);
 					return {} as TransactionsPageDto;
@@ -59,61 +46,44 @@ export class TransactionsHelper {
 		});
 	}
 
-	private static MapWaiverOrFreeAgentTransaction(
-		t: Transaction,
-		users: LeagueUser[],
-		rosters: Roster[],
-		players: Record<string, Player>
-	): TransactionsPageDto {
+	private static MapWaiverOrFreeAgentTransaction(t: Transaction): TransactionsPageDto {
+		let users: LeagueUser[] = get(UsersStore) ?? [];
 		const transaction: TransactionsPageDto = {
 			TransactionType: t.type,
 			TransactionDate: new Date(t.created).toLocaleDateString(),
 			WaiverFreeAgent: {
 				InitiatorAvatarUrl: users.find((u) => u.user_id === t.creator)?.avatar ?? '',
 				UserName: users.find((u) => u.user_id === t.creator)?.display_name ?? '',
-				Adds: t.adds ? this.MapPlayerInfo(t, rosters, players, AddDropType.WaiverAdd) : [],
-				Drops: t.drops ? this.MapPlayerInfo(t, rosters, players, AddDropType.WaiverDrop) : []
+				Adds: t.adds ? TransactionsHelper.MapPlayerInfo(t, AddDropType.WaiverAdd) : [],
+				Drops: t.drops ? TransactionsHelper.MapPlayerInfo(t, AddDropType.WaiverDrop) : []
 			}
 		};
 		return transaction;
 	}
 
-	private static MapTradeTransaction(
-		t: Transaction,
-		users: LeagueUser[],
-		players: Record<string, Player>,
-		rosters: Roster[]
-	): TransactionsPageDto {
+	private static MapTradeTransaction(t: Transaction): TransactionsPageDto {
+		let users: LeagueUser[] = get(UsersStore) ?? [];
+		let rosters: Roster[] = get(RostersStore) ?? [];
 		const transaction: TransactionsPageDto = {
 			TransactionType: t.type,
 			TransactionDate: new Date(t.created).toLocaleDateString(),
 			Trade: {
 				InitiatorName: users.find((u) => u.user_id === t.creator)?.display_name ?? '',
 				RecieverName:
-					this.GetUserFromRosterId(
+					TransactionsHelper.GetUserFromRosterId(
 						t.roster_ids.find(
 							(r) => r !== rosters.find((r) => r.owner_id === t.creator)?.roster_id
 						) ?? 0,
 						rosters,
 						users
 					).display_name ?? '',
-				InitiatorDraftPicks: this.MapDraftPicks(t, rosters, true),
-				RecieverDraftPicks: this.MapDraftPicks(t, rosters, false),
-				InitiatorPlayersRecieved: TransactionsHelper.MapPlayerInfo(
-					t,
-					rosters,
-					players,
-					AddDropType.TradeInitiator
-				),
-				RecieverPlayersRecieved: TransactionsHelper.MapPlayerInfo(
-					t,
-					rosters,
-					players,
-					AddDropType.TradeReciver
-				),
+				InitiatorDraftPicks: TransactionsHelper.MapDraftPicks(t, true),
+				RecieverDraftPicks: TransactionsHelper.MapDraftPicks(t, false),
+				InitiatorPlayersRecieved: TransactionsHelper.MapPlayerInfo(t, AddDropType.TradeInitiator),
+				RecieverPlayersRecieved: TransactionsHelper.MapPlayerInfo(t, AddDropType.TradeReciver),
 				InitiatorAvatarUrl: users.find((u) => u.user_id === t.creator)?.avatar ?? '',
 				RecieverAvatarUrl:
-					this.GetUserFromRosterId(
+					TransactionsHelper.GetUserFromRosterId(
 						t.roster_ids.find(
 							(r) => r !== rosters.find((r) => r.owner_id === t.creator)?.roster_id
 						) ?? 0,
@@ -126,8 +96,8 @@ export class TransactionsHelper {
 		return transaction;
 	}
 
-	private static GetPlayerName(playerId: string, players: Record<string, Player>): string {
-		let mappedPlayers = RostersHelper.MapPlayerNames(players, [playerId]);
+	private static GetPlayerName(playerId: string): string {
+		let mappedPlayers = RostersHelper.MapPlayerNames([playerId]);
 
 		// Safeguard against missing players
 		if (!mappedPlayers[playerId]) {
@@ -162,10 +132,11 @@ export class TransactionsHelper {
 
 	private static MapPlayerInfo(
 		transaction: Transaction,
-		rosters: Roster[],
-		players: Record<string, Player>,
 		addDropType: AddDropType
 	): TradedPlayerDto[] {
+		let players: Record<string, Player> = get(PlayersStore) ?? {};
+		let rosters: Roster[] = get(RostersStore) ?? [];
+
 		let tradedPlayers: TradedPlayerDto[] = [] as TradedPlayerDto[];
 
 		let playerIds: string[] = Object.keys(transaction.adds ?? {});
@@ -193,7 +164,7 @@ export class TransactionsHelper {
 
 		filteredPlayerIds.forEach((playerId) => {
 			let tradedPlayer: TradedPlayerDto = {} as TradedPlayerDto;
-			tradedPlayer.PlayerName = this.GetPlayerName(playerId, players);
+			tradedPlayer.PlayerName = TransactionsHelper.GetPlayerName(playerId);
 			tradedPlayer.PlayerId = playerId;
 			tradedPlayer.PlayerPosition = players[playerId]?.position ?? '';
 			tradedPlayer.PlayerTeam = players[playerId]?.team ?? '';
@@ -203,12 +174,9 @@ export class TransactionsHelper {
 		return tradedPlayers;
 	}
 
-	private static MapDraftPicks(
-		transaction: Transaction,
-		rosters: Roster[],
-		isInitiator: boolean
-	): TradedPickDto[] {
+	private static MapDraftPicks(transaction: Transaction, isInitiator: boolean): TradedPickDto[] {
 		let tradedPicks: TradedPickDto[] = [] as TradedPickDto[];
+		let rosters: Roster[] = get(RostersStore) ?? [];
 
 		let filteredDraftPicks = transaction.draft_picks.filter((pick) => {
 			if (isInitiator) {

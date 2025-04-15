@@ -18,7 +18,7 @@ export async function LoadTransactions(): Promise<void> {
 		let week: number = 1;
 		let nflState = await SleeperClient.GetSportState();
 		if (nflState.season_type === 'regular') {
-			week = nflState.display_week;
+			week = nflState.display_week ?? 1;
 		} else if (nflState.season_type === 'post') {
 			week = 18;
 		}
@@ -79,6 +79,5 @@ export async function LoadTransactions(): Promise<void> {
 
 // Function to check if transactions are loaded
 export function IsTransactionsLoaded(): boolean {
-	console.log('IsTransactionsLoaded:', isLoaded);
 	return isLoaded;
 }

@@ -26,6 +26,5 @@ export async function LoadPlayers(): Promise<void> {
 
 // Function to check if players are loaded
 export function IsPlayersLoaded(): boolean {
-	console.log('IsPlayersLoaded:', isLoaded);
 	return isLoaded;
 }

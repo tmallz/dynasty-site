@@ -66,6 +66,5 @@ export async function LoadDrafts(): Promise<void> {
 
 // Function to check if transactions are loaded
 export function AreDraftsLoaded(): boolean {
-	console.log('AreDraftsLoaded:', isLoaded);
 	return isLoaded;
 }

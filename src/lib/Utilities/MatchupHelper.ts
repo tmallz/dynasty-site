@@ -10,6 +10,7 @@ import { RostersHelper } from './RostersHelper';
 import { IsRostersLoaded, LoadRosters, RostersStore } from '$lib/Stores/RosterStore';
 import { IsUsersLoaded, LoadUsers, UsersStore } from '$lib/Stores/UserStores';
 import { StoresHelper } from './StoresHelper';
+import { AvatarHelper } from './AvatarHelper';
 
 export class MatchupHelper {
 	public static async GetPageMatchups(): Promise<MatchupPageDto[]> {
@@ -18,11 +19,10 @@ export class MatchupHelper {
 		let matchups: Matchup[] = [];
 		let rosters: Roster[] = [];
 		let players: Record<string, Player> | null = null;
-		let users: LeagueUser[] = [];
 
 		let nflState = await SleeperClient.GetSportState();
 		if (nflState.season_type == 'regular') {
-			week = nflState.display_week;
+			week = nflState.display_week ?? 1;
 		} else if (nflState.season_type == 'post') {
 			week = 18;
 		}
@@ -31,36 +31,31 @@ export class MatchupHelper {
 		await StoresHelper.EnsureStoresLoaded();
 		players = get(PlayersStore) ?? {};
 		rosters = get(RostersStore) ?? [];
-		users = get(UsersStore) ?? [];
 
 		matchups = await SleeperClient.GetMatchups(leagueId, week);
 
 		let pageMatchups: MatchupPageDto[] = [];
 
-		matchups.forEach((m) => {
+		for (const m of matchups) {
 			let currentRoster = rosters.find((r) => r.roster_id === m.roster_id) ?? ({} as Roster);
-			let pageMatchup = MatchupHelper.MapMatchupToPageDto(m, currentRoster, players, users);
+			let pageMatchup = await MatchupHelper.MapMatchupToPageDto(m, currentRoster);
 			pageMatchups.push(pageMatchup);
-		});
+		}
 
 		return pageMatchups;
 	}
 
-	private static MapMatchupToPageDto(
+	private static async MapMatchupToPageDto(
 		matchup: Matchup,
-		roster: Roster,
-		players: Record<string, Player>,
-		users: LeagueUser[]
-	): MatchupPageDto {
+		roster: Roster
+	): Promise<MatchupPageDto> {
+		let users: LeagueUser[] = get(UsersStore) ?? [];
 		let pageMatchup: MatchupPageDto = {};
-		let avatarId = users.find((u) => u.user_id === roster.owner_id)?.avatar || '';
 		pageMatchup.MatchupId = matchup.matchup_id;
 		pageMatchup.TeamName = users.find((u) => u.user_id === roster.owner_id)?.display_name ?? '';
-		pageMatchup.Starters = RostersHelper.MapPlayerNames(players, roster.starters);
+		pageMatchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
 		pageMatchup.Score = matchup.points;
-		pageMatchup.AvatarUrl = avatarId
-			? `https://sleepercdn.com/avatars/${avatarId}`
-			: 'https://via.placeholder.com/50';
+		pageMatchup.AvatarUrl = await AvatarHelper.GetUserAvatarUrl(roster);
 		return pageMatchup;
 	}
 }

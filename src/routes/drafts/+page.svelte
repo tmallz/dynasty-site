@@ -88,8 +88,6 @@
 
 						// Get the roster ID for the current draft slot
 						let currentPickRosterId = draftToSlotOrder?.[draftSlot] ?? null;
-						let currentOwner = getUsernameFromUserId(teamId);
-
 						// Find the traded pick
 						let tradedPick = tradedPicks.find(
 							(pick) =>
@@ -102,9 +100,9 @@
 						let ownerId = tradedPick ? tradedPick.currentOwner : teamId;
 						let ownerName = tradedPick ? tradedPick.currentOwner : getUsernameFromUserId(teamId);
 						let isOriginalOwner =
-							!tradedPick || tradedPick.originalOwner === getUsernameFromUserId(teamId);
+							!tradedPick || tradedPick.currentOwner === getUsernameFromUserId(teamId);
 
-						// Create the placeholder pick
+						// Create the placeholder picks for upcoming draft
 						let pickPlaceholder: DraftPagePicks = {
 							round: round,
 							draft_slot: draftSlot,
@@ -158,6 +156,7 @@
 					}
 				}
 			}
+
 			return picks;
 		}
 

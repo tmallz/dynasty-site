@@ -7,8 +7,6 @@
 		const value = round % 100;
 		return round + (suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0]);
 	}
-
-	console.log('TradeTransaction:', transaction);
 </script>
 
 <!-- Container for avatars and names -->

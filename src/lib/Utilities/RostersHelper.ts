@@ -7,76 +7,56 @@ import type { RosterPageDto } from './Dtos/RosterPageDto';
 import { StoresHelper } from './StoresHelper';
 import { RostersStore } from '$lib/Stores/RosterStore';
 import { UsersStore } from '$lib/Stores/UserStores';
+import { AvatarHelper } from './AvatarHelper';
 
 export class RostersHelper {
 	public static async GetAllRosters(): Promise<RosterPageDto[]> {
 		let rosters: Roster[] = [];
-		let players: Record<string, Player> | null = null;
-		let users: LeagueUser[] = [];
-
-		if (!IsPlayersLoaded()) {
-			await LoadPlayers();
-		}
-
 		StoresHelper.EnsureStoresLoaded();
+
 		rosters = get(RostersStore) ?? [];
-		players = get(PlayersStore) ?? {};
-		users = get(UsersStore) ?? [];
 
 		let pageRosters: RosterPageDto[] = [];
 
-		rosters.forEach((r) => {
-			let pageRoster = RostersHelper.MapRoster(r, players, users);
+		for (const r of rosters) {
+			let pageRoster = await RostersHelper.MapRoster(r);
 			pageRosters.push(pageRoster);
-		});
+		}
 
 		return pageRosters;
 	}
 
-	private static MapRoster(
-		roster: Roster,
-		players: Record<string, Player>,
-		users: LeagueUser[]
-	): RosterPageDto {
+	private static async MapRoster(roster: Roster): Promise<RosterPageDto> {
 		let pageRoster: RosterPageDto = {} as RosterPageDto;
-		let avatarId = users.find((u) => u.user_id === roster.owner_id)?.avatar || '';
+		let users: LeagueUser[] = get(UsersStore) ?? [];
 		pageRoster.OwnerId = roster.owner_id;
-		pageRoster.AvatarUrl = avatarId
-			? `https://sleepercdn.com/avatars/${avatarId}`
-			: 'https://via.placeholder.com/50';
-		pageRoster.TeamName = RostersHelper.GetTeamName(roster, users);
-		pageRoster.Starters = RostersHelper.MapPlayerNames(players, roster.starters);
+		pageRoster.AvatarUrl = await AvatarHelper.GetUserAvatarUrl(roster);
+		pageRoster.TeamName = RostersHelper.GetUserFromRosterId(roster.roster_id).display_name;
+		pageRoster.Starters = RostersHelper.MapPlayerNames(roster.starters);
 		pageRoster.Bench = RostersHelper.MapPlayerNames(
-			players,
 			roster.players.filter((p) => !roster.starters.includes(p))
-		); //filter out starters
+		);
 
 		return pageRoster;
 	}
 
-	public static MapPlayerNames(
-		allPlayers: Record<string, Player>,
-		rosterPlayers: string[]
-	): Record<string, Player>;
-	public static MapPlayerNames(
-		allPlayers: Record<string, Player>,
-		rosterPlayer: string
-	): Player | null;
+	public static MapPlayerNames(rosterPlayers: string[]): Record<string, Player>;
+	public static MapPlayerNames(rosterPlayer: string): Player | null;
 
 	// Implementation
 	public static MapPlayerNames(
-		allPlayers: Record<string, Player>,
 		rosterPlayersOrPlayer: string[] | string
 	): Record<string, Player> | Player | null {
+		let allPlayers: Record<string, Player> = get(PlayersStore) ?? {};
 		if (Array.isArray(rosterPlayersOrPlayer)) {
 			// Handle the array case by looping over the array and calling the single-player version
 			let mappedPlayers: Record<string, Player> = {};
 
 			rosterPlayersOrPlayer.forEach((playerId) => {
-				const player = RostersHelper.MapPlayerNames(allPlayers, playerId) as Player;
+				const player = RostersHelper.MapPlayerNames(playerId) as Player;
 				if (player) {
-					player.playerAvatarUrl = `https://sleepercdn.com/content/nfl/players/${playerId}.jpg`;
-					player.playerTeamAvatarUrl = `https://sleepercdn.com/images/team_logos/nfl/${player.team?.toLowerCase()}.png`;
+					player.playerAvatarUrl = AvatarHelper.GetPlayerAvatarUrl(playerId);
+					player.playerTeamAvatarUrl = AvatarHelper.GetPlayerTeamAvatarUrl(player.team || '');
 					mappedPlayers[playerId] = player;
 				}
 			});
@@ -93,13 +73,28 @@ export class RostersHelper {
 		}
 	}
 
-	private static GetTeamName(roster: Roster, users: LeagueUser[]): string {
-		let teamName = users.find((u) => u.user_id === roster.owner_id)?.metadata?.team_name;
+	public static GetUserFromRosterId(rosterId: number): LeagueUser {
+		// Ensure the stores are loaded
+		StoresHelper.EnsureStoresLoaded();
 
-		if (teamName === undefined || teamName === null || teamName === '') {
-			teamName = 'Team ' + users.find((u) => u.user_id === roster.owner_id)?.display_name;
+		// Get the latest data from the stores
+		const rosters = get(RostersStore) ?? [];
+		const users = get(UsersStore) ?? [];
+
+		// Find the roster
+		let roster = rosters.find((r) => r.roster_id === rosterId);
+		if (!roster) {
+			console.warn(`Roster with ID ${rosterId} not found in rosters.`);
+			return {} as LeagueUser; // Return an empty object or handle as needed
 		}
 
-		return teamName;
+		// Find the user
+		let user = users.find((u) => u.user_id === roster.owner_id);
+		if (!user) {
+			console.warn(`User with ID ${roster.owner_id} not found in users.`);
+			return {} as LeagueUser; // Return an empty object or handle as needed
+		}
+
+		return user;
 	}
 }

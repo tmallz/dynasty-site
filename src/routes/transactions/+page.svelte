@@ -10,7 +10,6 @@
 	let LoadTransactions = async () => {
 		try {
 			transactions = await TransactionsHelper.GetAllTransactions();
-			console.log('transactions on page:', transactions);
 		} catch (error) {
 			console.error(error);
 		}
