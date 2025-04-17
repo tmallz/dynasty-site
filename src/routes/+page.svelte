@@ -83,36 +83,42 @@
 			another start up draft to prep for and draft in. The league consists of 10 friends and family
 			members, and trash talk is encouraged. The league is hosted on Sleeper.
 		</p>
-
-		<!-- Trending Players Section -->
-		<h2 class="mt-8 mb-4 text-xl font-bold">Trending Players: Powered by Sleeper</h2>
-		<div class="space-y-4">
-			{#each trendingUpPlayers as player}
-				<TrendingPlayer
-					playerName={player.playerName}
-					playerPosition={player.playerPosition}
-					playerTeam={player.playerTeam}
-					playerAvatar={AvatarHelper.GetPlayerAvatarUrl(player.playerId ?? '')}
-					teamAvatar={AvatarHelper.GetPlayerTeamAvatarUrl(player.playerTeam?.toLowerCase() ?? '')}
-					numWaivers={player.timesWaived}
-					upOrDown={true}
-				/>
-			{/each}
-		</div>
-		<div class="mt-4"></div>
-		<div class="space-y-4">
-			{#each trendingDownPlayers as player}
-				<TrendingPlayer
-					playerName={player.playerName}
-					playerPosition={player.playerPosition}
-					playerTeam={player.playerTeam}
-					playerAvatar={AvatarHelper.GetPlayerAvatarUrl(player.playerId ?? '')}
-					teamAvatar={AvatarHelper.GetPlayerTeamAvatarUrl(player.playerTeam?.toLowerCase() ?? '')}
-					numWaivers={player.timesWaived}
-					upOrDown={false}
-				/>
-			{/each}
-		</div>
+		{#if loading}
+			<!-- Loading Indicator -->
+			<div class="flex h-full items-center justify-center">
+				<span class="loading loading-bars loading-xs">Loading</span>
+			</div>
+		{:else}
+			<!-- Trending Players Section -->
+			<h2 class="mt-8 mb-4 text-xl font-bold">Trending Players: Powered by Sleeper</h2>
+			<div class="space-y-4">
+				{#each trendingUpPlayers as player}
+					<TrendingPlayer
+						playerName={player.playerName}
+						playerPosition={player.playerPosition}
+						playerTeam={player.playerTeam}
+						playerAvatar={AvatarHelper.GetPlayerAvatarUrl(player.playerId ?? '')}
+						teamAvatar={AvatarHelper.GetPlayerTeamAvatarUrl(player.playerTeam?.toLowerCase() ?? '')}
+						numWaivers={player.timesWaived}
+						upOrDown={true}
+					/>
+				{/each}
+			</div>
+			<div class="mt-4"></div>
+			<div class="space-y-4">
+				{#each trendingDownPlayers as player}
+					<TrendingPlayer
+						playerName={player.playerName}
+						playerPosition={player.playerPosition}
+						playerTeam={player.playerTeam}
+						playerAvatar={AvatarHelper.GetPlayerAvatarUrl(player.playerId ?? '')}
+						teamAvatar={AvatarHelper.GetPlayerTeamAvatarUrl(player.playerTeam?.toLowerCase() ?? '')}
+						numWaivers={player.timesWaived}
+						upOrDown={false}
+					/>
+				{/each}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Side Panel -->
