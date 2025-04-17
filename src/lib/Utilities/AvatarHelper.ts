@@ -3,6 +3,7 @@ import { UsersStore } from '$lib/Stores/UserStores';
 import { get } from 'svelte/store';
 import { StoresHelper } from './StoresHelper';
 import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
+import type { League } from '$lib/api/dtos/LeagueDtos/League';
 
 export class AvatarHelper {
 	public static async GetUserAvatarUrl(roster: Roster): Promise<string> {
@@ -18,5 +19,9 @@ export class AvatarHelper {
 
 	public static GetPlayerTeamAvatarUrl(team: string): string {
 		return `https://sleepercdn.com/images/team_logos/nfl/${team.toLowerCase()}.png`;
+	}
+
+	public static GetLeagueAvatarUrl(league: League): string {
+		return `https://sleepercdn.com/avatars/${league.avatar}`;
 	}
 }

@@ -23,7 +23,6 @@
 
 	onMount(async () => {
 		rosters = await RostersHelper.GetAllRosters();
-		console.log('Rosters:', rosters);
 
 		rosters.forEach((roster) => {
 			expandedBenches[roster.TeamName] = false; // Default to collapsed
