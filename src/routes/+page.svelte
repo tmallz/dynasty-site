@@ -86,7 +86,7 @@
 		</p>
 
 		<!-- Trending Players Section -->
-		<h2 class="mt-8 mb-4 text-xl font-bold">Trending Players Up</h2>
+		<h2 class="mt-8 mb-4 text-xl font-bold">Trending Players: Powered by Sleeper</h2>
 		<div class="space-y-4">
 			{#each trendingUpPlayers as player}
 				<TrendingPlayer
@@ -100,7 +100,6 @@
 				/>
 			{/each}
 		</div>
-		<h2 class="mt-8 mb-4 text-xl font-bold">Trending Players Down</h2>
 		<div class="space-y-4">
 			{#each trendingDownPlayers as player}
 				<TrendingPlayer
