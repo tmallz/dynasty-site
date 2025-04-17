@@ -99,6 +99,7 @@
 				/>
 			{/each}
 		</div>
+		<div class="mt-4"></div>
 		<div class="space-y-4">
 			{#each trendingDownPlayers as player}
 				<TrendingPlayer
