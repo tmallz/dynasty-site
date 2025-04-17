@@ -81,8 +81,7 @@
 			The League of Extraordinary Armchair GMs is a fantasy football league that was established in
 			2025 by Tim O'Malley who recently got addicted to dynasty fantasy football leagues and needed
 			another start up draft to prep for and draft in. The league consists of 10 friends and family
-			members, and trash talk is encouraged. To quote Peter in the startup draft, "I came here to
-			win, not make friends." That is the exact attitude we are looking for in this league.
+			members, and trash talk is encouraged. The league is hosted on Sleeper.
 		</p>
 
 		<!-- Trending Players Section -->
