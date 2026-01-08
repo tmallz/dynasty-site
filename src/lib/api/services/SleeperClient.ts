@@ -98,6 +98,46 @@ export class SleeperClient {
 	}
 
 	/**
+	 * Retrieves all matchups for a given league across weeks for a specified season.
+	 * This method is defensive: it attempts common endpoint shapes and aggregates non-empty results.
+	 * @param leagueId
+	 * @param season (e.g. "2024")
+	 * @returns a flattened list of Matchup objects for the season
+	 */
+	public static async GetLeagueMatchups(leagueId: string, season: string): Promise<Matchup[]> {
+		const allMatchups: Matchup[] = [];
+		// reasonable upper bound to include regular season + playoffs; adjust if needed
+		const MAX_WEEKS = 22;
+
+		for (let week = 1; week <= MAX_WEEKS; week++) {
+			try {
+				// Try typical path: /matchups/{week}/{season}
+				let response = await fetch(`${this.BASE_URL}/league/${leagueId}/matchups/${week}/${season}`);
+
+				// Fallback to query param if first shape not supported
+				if (!response.ok) {
+					response = await fetch(`${this.BASE_URL}/league/${leagueId}/matchups/${week}?season=${encodeURIComponent(season)}`);
+				}
+
+				if (!response.ok) {
+					// skip this week if not available; continue scanning other weeks
+					continue;
+				}
+
+				const weekMatchups = await response.json();
+				if (Array.isArray(weekMatchups) && weekMatchups.length > 0) {
+					allMatchups.push(...weekMatchups);
+				}
+			} catch {
+				// ignore network/parse errors for a specific week and continue
+				continue;
+			}
+		}
+
+		return allMatchups;
+	}
+
+	/**
 	 * Retrieves the users for the given leagueId
 	 * @param leagueId
 	 * @returns a list of league users
