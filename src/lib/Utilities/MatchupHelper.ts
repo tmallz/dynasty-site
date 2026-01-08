@@ -19,8 +19,10 @@ export interface ProcessedBracketMatchup {
 	matchId: number;
 	team1Name: string;
 	team1Score: number;
+	team1Avatar?: string;
 	team2Name: string;
 	team2Score: number;
+	team2Avatar?: string;
 	winnerName: string;
 }
 
@@ -243,8 +245,10 @@ export class MatchupHelper {
 						matchId: 100 + r2Match.matchId,
 						team1Name: r2Match.team1Name,
 						team1Score: 0,
+						team1Avatar: r2Match.team1Avatar,
 						team2Name: 'BYE',
 						team2Score: 0,
+						team2Avatar: undefined,
 						winnerName: r2Match.team1Name
 					});
 				}
@@ -259,8 +263,10 @@ export class MatchupHelper {
 						matchId: 101 + r2Match.matchId,
 						team1Name: r2Match.team2Name,
 						team1Score: 0,
+						team1Avatar: r2Match.team2Avatar,
 						team2Name: 'BYE',
 						team2Score: 0,
+						team2Avatar: undefined,
 						winnerName: r2Match.team2Name
 					});
 				}
@@ -318,6 +324,15 @@ export class MatchupHelper {
 		return user?.display_name ?? `Team ${rosterId}`;
 	}
 
+	private static GetTeamAvatar(rosterId: number | null, rosters: Roster[], users: LeagueUser[]): string | undefined {
+		if (!rosterId) return undefined;
+		const roster = rosters.find(r => r.roster_id === rosterId);
+		if (!roster) return undefined;
+		const user = users.find(u => u.user_id === roster.owner_id);
+		if (!user?.avatar) return undefined;
+		return `https://sleepercdn.com/avatars/${user.avatar}`;
+	}
+
 	private static GetMatchupScore(rosterId: number | null, allMatchups: Matchup[]): number {
 		if (!rosterId) return 0;
 		const matchup = allMatchups.find(m => m.roster_id === rosterId);
@@ -359,14 +374,18 @@ export class MatchupHelper {
 			const team1Score = MatchupHelper.GetMatchupScore(team1RosterId, weekMatchups);
 			const team2Score = isByeWeek ? 0 : MatchupHelper.GetMatchupScore(team2RosterId, weekMatchups);
 			const winnerName = isByeWeek ? team1Name : MatchupHelper.GetTeamName(bracket.w ?? null, rosters, users);
+			const team1Avatar = MatchupHelper.GetTeamAvatar(team1RosterId, rosters, users);
+			const team2Avatar = isByeWeek ? undefined : MatchupHelper.GetTeamAvatar(team2RosterId, rosters, users);
 
 			processed.push({
 				round: bracket.r,
 				matchId: bracket.m,
 				team1Name,
 				team1Score,
+				team1Avatar,
 				team2Name,
 				team2Score,
+				team2Avatar,
 				winnerName
 			});
 		}

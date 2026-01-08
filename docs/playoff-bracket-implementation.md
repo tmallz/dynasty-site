@@ -4,18 +4,105 @@
 Add playoff bracket display to the matchups page. When the league is in playoffs, display the bracket instead of regular matchups. Later, add a toggle to switch between views.
 
 ## Current State
-- Matchups page displays current week's matchups
-- Uses client-side data loading with `onMount`
-- No playoff detection or bracket display
+- ✅ Playoff detection logic implemented
+- ✅ Server-side data loading with +page.server.ts
+- ✅ Bracket data fetching and processing
+- ✅ Toggle between playoff brackets, losers bracket, and week 14 matchups
+- ✅ Basic bracket display (left-to-right flow, vertical centering)
+- ✅ Winners bracket: 4→2→1 structure with bye weeks
+- ✅ Consolation bracket: 2→1 structure (3rd/5th place)
+- ✅ Losers bracket: 2→1 structure with 9th place consolation
 
 ## Goals
-- **Phase 1**: Implement playoff bracket logic and basic display (no styling)
-- **Phase 2** (Future): Add toggle between bracket and matchups view
-- **Phase 3** (Future): Polish bracket styling
+- **Phase 1**: ✅ Implement playoff bracket logic and basic display
+- **Phase 2**: ✅ Add toggle between bracket, losers bracket, and matchups views
+- **Phase 3**: 🚧 Polish bracket styling (IN PROGRESS)
 
 ---
 
-## Phase 1: Playoff Bracket Logic Implementation
+## Phase 3: Bracket Styling Polish (Current Phase)
+
+### Step 1: Add Team Logos to Bracket Matchups
+**Objective**: Display team avatar/logo next to team name in each bracket matchup
+
+**Implementation**:
+- Pass roster and user data to bracket display components
+- Look up avatar URL for each team using roster ID
+- Add avatar image next to team name in matchup cards
+- Use similar styling to RosterSpot/TeamHeader components
+
+**Required changes**:
+- Update `ProcessedBracketMatchup` interface to include avatar URLs
+- Modify `ProcessBrackets()` to include avatar data
+- Update Svelte template to display avatars
+
+---
+
+### Step 2: Add Borders and Visual Hierarchy
+**Objective**: Improve visual distinction between teams and highlight winners
+
+**Styling changes**:
+- Add border around entire matchup card
+- Add divider/border between team1 and team2 within card
+- Highlight winning team's section with green border
+- Use consistent spacing and padding
+
+**CSS approach**:
+- Matchup card: `border-2 border-base-content/20`
+- Team sections: `border-b` between teams
+- Winner highlight: `border-l-4 border-success` on winning team row
+- Maintain responsive design with proper spacing
+
+---
+
+### Step 3: Improve Bracket Alignment
+**Objective**: Align matchups so center lines match gap midpoints in previous round
+
+**Visual goal**:
+```
+Round 1 (4)     Round 2 (2)     Round 3 (1)
+┌────┐
+│ M1 │────┐
+└────┘    │    ┌────┐
+          ├────│ M5 │────┐
+┌────┐    │    └────┘    │
+│ M2 │────┘              │    ┌────┐
+└────┘                   ├────│ M7 │
+                         │    └────┘
+┌────┐                   │
+│ M3 │────┐              │
+└────┘    │    ┌────┐    │
+          ├────│ M6 │────┘
+┌────┐    │    └────┘
+│ M4 │────┘
+└────┘
+```
+
+**Implementation strategy**:
+- Use flexbox with `items-center` for each column
+- Set custom gap values that create proper alignment
+- Round 1: `gap-8` between matchups
+- Round 2: `gap-16` between matchups (centers between Round 1 pairs)
+- Round 3: Single matchup, naturally centered
+- Apply to winners bracket, consolation bracket, and losers bracket
+
+---
+
+### Step 4: Consistency Across All Brackets
+**Objective**: Apply all styling improvements to winners, consolation, and losers brackets
+
+**Implementation**:
+- Apply team logo changes to all three bracket types
+- Apply border/highlight styling to all bracket displays
+- Ensure alignment works for different bracket structures:
+  - Winners: 4→2→1
+  - Consolation: 2→1 (5th/3rd place)
+  - Losers: 2→1 with separate 9th place game
+- Test responsive behavior on mobile devices
+
+---
+
+## Phase 1: Playoff Bracket Logic Implementation ✅
 
 ### Step 1: Detect Playoff vs Regular Season
 **Objective**: Determine if we're in playoffs or regular season

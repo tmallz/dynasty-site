@@ -121,21 +121,35 @@
 					<div class="flex flex-col justify-center gap-8">
 						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 1 (Week 15)</div>
 						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup}
-							<div class="rounded-lg bg-base-300 p-4 w-64">
-								<div class="space-y-2">
-									<div class="flex items-center justify-between">
-										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-											{matchup.team1Name}
-										</span>
-										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+								<!-- Team 1 -->
+								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex items-center gap-2 flex-1 min-w-0">
+											{#if matchup.team1Avatar}
+												<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+											{/if}
+											<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+												{matchup.team1Name}
+											</span>
+										</div>
+										<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 											{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 										</span>
 									</div>
-									<div class="flex items-center justify-between">
-										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : matchup.team2Name === 'BYE' ? 'text-gray-500 italic' : ''}>
-											{matchup.team2Name}
-										</span>
-										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+								</div>
+								<!-- Team 2 -->
+								<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex items-center gap-2 flex-1 min-w-0">
+											{#if matchup.team2Avatar}
+												<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+											{/if}
+											<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : matchup.team2Name === 'BYE' ? 'text-gray-500 italic' : ''}">
+												{matchup.team2Name}
+											</span>
+										</div>
+										<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 											{matchup.team2Name === 'BYE' || matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 										</span>
 									</div>
@@ -148,21 +162,35 @@
 					<div class="flex flex-col justify-center gap-16">
 						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 2 (Week 16)</div>
 						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup}
-							<div class="rounded-lg bg-base-300 p-4 w-64">
-								<div class="space-y-2">
-									<div class="flex items-center justify-between">
-										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-											{matchup.team1Name}
-										</span>
-										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+								<!-- Team 1 -->
+								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex items-center gap-2 flex-1 min-w-0">
+											{#if matchup.team1Avatar}
+												<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+											{/if}
+											<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+												{matchup.team1Name}
+											</span>
+										</div>
+										<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 											{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 										</span>
 									</div>
-									<div class="flex items-center justify-between">
-										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-											{matchup.team2Name}
-										</span>
-										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+								</div>
+								<!-- Team 2 -->
+								<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex items-center gap-2 flex-1 min-w-0">
+											{#if matchup.team2Avatar}
+												<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+											{/if}
+											<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+												{matchup.team2Name}
+											</span>
+										</div>
+										<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 											{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 										</span>
 									</div>
@@ -175,27 +203,41 @@
 					<div class="flex flex-col justify-center">
 						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Championship (Week 17)</div>
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
-							<div class="rounded-lg bg-base-300 p-4 w-64">
-								<div class="space-y-2">
-									<div class="flex items-center justify-between">
-										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-											{matchup.team1Name}
-										</span>
-										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+								<!-- Team 1 -->
+								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex items-center gap-2 flex-1 min-w-0">
+											{#if matchup.team1Avatar}
+												<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+											{/if}
+											<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+												{matchup.team1Name}
+											</span>
+										</div>
+										<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 											{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 										</span>
 									</div>
-									<div class="flex items-center justify-between">
-										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-											{matchup.team2Name}
-										</span>
-										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+								</div>
+								<!-- Team 2 -->
+								<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex items-center gap-2 flex-1 min-w-0">
+											{#if matchup.team2Avatar}
+												<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+											{/if}
+											<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+												{matchup.team2Name}
+											</span>
+										</div>
+										<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 											{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 										</span>
 									</div>
 								</div>
 								{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-									<div class="mt-3 border-t border-gray-600 pt-3 text-center">
+									<div class="border-t border-gray-600 p-3 text-center bg-base-200">
 										<div class="text-xs text-gray-400 mb-1">🏆 Champion</div>
 										<div class="font-bold text-success text-lg">{matchup.winnerName}</div>
 									</div>
@@ -217,21 +259,35 @@
 						<div class="flex flex-col justify-center">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">5th Place (Week 16)</div>
 							{#each (consolationBracket ?? []).filter(m => m.round === 2) as matchup}
-								<div class="rounded-lg bg-base-300 p-4 w-64">
-									<div class="space-y-2">
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-												{matchup.team1Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+									<!-- Team 1 -->
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team1Avatar}
+													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+													{matchup.team1Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-												{matchup.team2Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+									</div>
+									<!-- Team 2 -->
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team2Avatar}
+													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+													{matchup.team2Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
@@ -244,27 +300,41 @@
 						<div class="flex flex-col justify-center">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">3rd Place (Week 17)</div>
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
-								<div class="rounded-lg bg-base-300 p-4 w-64">
-									<div class="space-y-2">
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-												{matchup.team1Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+									<!-- Team 1 -->
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team1Avatar}
+													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+													{matchup.team1Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-												{matchup.team2Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+									</div>
+									<!-- Team 2 -->
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team2Avatar}
+													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+													{matchup.team2Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
 									</div>
 									{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-										<div class="mt-3 border-t border-gray-600 pt-3 text-center">
+										<div class="border-t border-gray-600 p-3 text-center bg-base-200">
 											<div class="text-xs text-gray-400 mb-1">🥉 3rd Place</div>
 											<div class="font-bold text-success">{matchup.winnerName}</div>
 										</div>
@@ -290,21 +360,35 @@
 						<div class="flex flex-col justify-center gap-8">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 1 (Week 15)</div>
 							{#each (losersBracket ?? []).filter(m => m.round === 1) as matchup}
-								<div class="rounded-lg bg-base-300 p-4 w-64">
-									<div class="space-y-2">
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-												{matchup.team1Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+									<!-- Team 1 -->
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team1Avatar}
+													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+													{matchup.team1Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-												{matchup.team2Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+									</div>
+									<!-- Team 2 -->
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team2Avatar}
+													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+													{matchup.team2Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
@@ -319,21 +403,35 @@
 						<div class="flex flex-col justify-center">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">7th Place (Week 16)</div>
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
-								<div class="rounded-lg bg-base-300 p-4 w-64">
-									<div class="space-y-2">
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-												{matchup.team1Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+									<!-- Team 1 -->
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team1Avatar}
+													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+													{matchup.team1Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-												{matchup.team2Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+									</div>
+									<!-- Team 2 -->
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team2Avatar}
+													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+													{matchup.team2Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
@@ -355,21 +453,35 @@
 						<div class="flex flex-col justify-center">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">9th Place (Week 16)</div>
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(1, 2) as matchup}
-								<div class="rounded-lg bg-base-300 p-4 w-64">
-									<div class="space-y-2">
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-												{matchup.team1Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+									<!-- Team 1 -->
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team1Avatar}
+													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+													{matchup.team1Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
-										<div class="flex items-center justify-between">
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-												{matchup.team2Name}
-											</span>
-											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+									</div>
+									<!-- Team 2 -->
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+										<div class="flex items-center justify-between gap-2">
+											<div class="flex items-center gap-2 flex-1 min-w-0">
+												{#if matchup.team2Avatar}
+													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
+												{/if}
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+													{matchup.team2Name}
+												</span>
+											</div>
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
