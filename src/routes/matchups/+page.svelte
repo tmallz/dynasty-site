@@ -398,14 +398,19 @@
 		<div class="space-y-12">
 			<div class="rounded-lg bg-base-200 p-6">
 				<h2 class="mb-6 text-center text-3xl font-bold">Losers Bracket</h2>
-				<p class="mb-6 text-center text-gray-400">Teams competing for 7th place</p>
+				
+			<!-- Week Labels Row -->
+			<div class="flex items-center justify-center mb-4 overflow-x-auto gap-8">
+				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Round 1 (Week 15)</div>
+				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">7th Place (Week 16)</div>
+				<div class="text-center text-sm font-semibold text-gray-400 w-80 flex-shrink-0 opacity-0">Placeholder</div>
+			</div>
 				
 				<!-- Bracket Flow: Left to Right -->
 				<div class="flex items-center justify-center gap-8">
 					<!-- Round 1 (Week 15) - 2 matchups -->
 					{#if (losersBracket ?? []).filter(m => m.round === 1).length > 0}
 						<div class="flex flex-col justify-center gap-8">
-							<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 1 (Week 15)</div>
 							{#each (losersBracket ?? []).filter(m => m.round === 1) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
@@ -448,7 +453,6 @@
 					<!-- Round 2 (Week 16) - 7th place game -->
 					{#if (losersBracket ?? []).filter(m => m.round === 2).length > 0}
 						<div class="flex flex-col justify-center">
-							<div class="text-center text-sm font-semibold text-gray-400 mb-2">7th Place (Week 16)</div>
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
@@ -487,6 +491,26 @@
 							{/each}
 						</div>
 					{/if}
+					
+					<!-- Toilet Bowl Champion Card -->
+					<div class="flex flex-col justify-center flex-shrink-0 w-80">
+						{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
+							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
+									<div class="text-6xl mb-4">💩</div>
+									<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Toilet Bowl Champion</div>
+									<div class="flex items-center justify-center gap-3 mb-2">
+										{#if matchup.team1Avatar && matchup.winnerName === matchup.team1Name}
+											<img src={matchup.team1Avatar} alt={matchup.winnerName} class="w-16 h-16 rounded-full" />
+										{:else if matchup.team2Avatar && matchup.winnerName === matchup.team2Name}
+											<img src={matchup.team2Avatar} alt={matchup.winnerName} class="w-16 h-16 rounded-full" />
+										{/if}
+									</div>
+									<div class="font-bold text-2xl">{matchup.winnerName}</div>
+								</div>
+							{/if}
+						{/each}
+					</div>
 				</div>
 			</div>
 
@@ -494,7 +518,6 @@
 			{#if (losersBracket ?? []).filter(m => m.round === 2).length > 1}
 				<div class="rounded-lg bg-base-200 p-6">
 					<h2 class="mb-6 text-center text-3xl font-bold">9th Place Game</h2>
-					<p class="mb-6 text-center text-gray-400">Losers of Round 1</p>
 					
 					<div class="flex items-center justify-center">
 						<div class="flex flex-col justify-center">
