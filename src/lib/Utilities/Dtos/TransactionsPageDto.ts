@@ -3,6 +3,7 @@ import type { TransactionType } from '$lib/api/Enums/TransactionType';
 export interface TransactionsPageDto {
 	TransactionType?: TransactionType;
 	TransactionDate?: string;
+	Season?: string;
 	WaiverFreeAgent?: WaiverFreeAgentDto;
 	Trade?: tradeDto;
 }

@@ -18,25 +18,7 @@ export class LeagueStatsHelper {
 		return 22;
 	}
 
-	private static async getLeagueChain(): Promise<League[]> {
-		const leagues: League[] = [];
-		let currentLeagueId = import.meta.env.VITE_LEAGUE_ID as string | undefined;
-
-		while (currentLeagueId) {
-			const league = await SleeperClient.GetLeague(currentLeagueId);
-			leagues.push(league);
-
-			const previousLeagueId = (league as any).previous_league_id as string | undefined;
-			if (!previousLeagueId || previousLeagueId === '0') {
-				break;
-			}
-
-			currentLeagueId = previousLeagueId;
-		}
-
-		// Oldest season first for nicer display
-		return leagues.reverse();
-	}
+import { LeagueHistoryHelper } from '$lib/Utilities/LeagueHistoryHelper';
 
 	private static getFinalWinnerRosterId(bracket: any[]): number {
 		return BracketHelper.getFinalWinnerRosterId(bracket);
@@ -388,7 +370,7 @@ export class LeagueStatsHelper {
 	}
 
 	public static async GetLeagueStats(): Promise<LeagueStatsPageDto> {
-		const leagues = await LeagueStatsHelper.getLeagueChain();
+		const leagues = await LeagueHistoryHelper.GetLeagueChainFromCurrent();
 		if (!leagues.length) {
 			return {};
 		}

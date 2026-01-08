@@ -141,9 +141,16 @@
 				{#if mostRecentWinner}
 					<h2 class="mb-4 text-xl font-bold">{mostRecentWinner}</h2>
 				{:else}
-					<a href="https://imgflip.com/i/9qrtql"
-						><img src="https://i.imgflip.com/9qrtql.jpg" title="made at imgflip.com" /></a
+					<a
+						href="https://imgflip.com/i/9qrtql"
+						title="Real Griddy meme on imgflip"
+						aria-label="Open Real Griddy meme on imgflip"
 					>
+						<img
+							src="https://i.imgflip.com/9qrtql.jpg"
+							alt="Real Griddy meme"
+						/>
+					</a>
 				{/if}
 			</div>
 

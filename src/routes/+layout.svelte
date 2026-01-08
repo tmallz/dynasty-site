@@ -7,13 +7,14 @@
 	import { TransactionsStore } from '$lib/Stores/TransactionStore';
 	import type { LayoutData } from './$types';
 
-	let { children, data } = $props<{ children: any; data: LayoutData }>();
+	const { children, data } = $props<{ children: any; data: LayoutData }>();
 
-	// Seed stores with server-loaded data
-	PlayersStore.set(data.players ?? {});
-	UsersStore.set(data.users ?? []);
-	RostersStore.set(data.rosters ?? []);
-	TransactionsStore.set(data.transactions ?? []);
+	$effect(() => {
+		PlayersStore.set(data.players ?? {});
+		UsersStore.set(data.users ?? []);
+		RostersStore.set(data.rosters ?? []);
+		TransactionsStore.set(data.transactions ?? []);
+	});
 </script>
 
 <Navbar />
