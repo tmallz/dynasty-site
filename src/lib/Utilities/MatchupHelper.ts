@@ -30,6 +30,7 @@ export interface MatchupPageData {
 	matchups: MatchupPageDto[];
 	winnersBracket?: ProcessedBracketMatchup[];
 	losersBracket?: ProcessedBracketMatchup[];
+	consolationBracket?: ProcessedBracketMatchup[];
 }
 
 export class MatchupHelper {
@@ -214,8 +215,12 @@ export class MatchupHelper {
 			const users = get(UsersStore);
 
 			// Fetch bracket data
-			const winnersBracket = await SleeperClient.GetWinnersBracket(leagueId);
-			const losersBracket = await SleeperClient.GetLosersBracket(leagueId);
+			const allBrackets = await SleeperClient.GetWinnersBracket(leagueId);
+			const actualLosersBracket = await SleeperClient.GetLosersBracket(leagueId);
+			
+			// Separate winners bracket (no p field or p === 1) from consolation bracket (p > 1)
+			const winnersBracket = allBrackets.filter(b => !b.p || b.p === 1);
+			const consolationBracket = allBrackets.filter(b => b.p && b.p > 1);
 
 			// Process brackets
 			const processedWinnersBracket = await MatchupHelper.ProcessBrackets(
@@ -224,8 +229,52 @@ export class MatchupHelper {
 				rosters,
 				users
 			);
+			
+			// Add bye matchups for top 2 seeds in round 2 that didn't play in round 1
+			const round2Matchups = processedWinnersBracket.filter(m => m.round === 2);
+			round2Matchups.forEach(r2Match => {
+				// Check if team1 didn't play in round 1 (they had a bye)
+				const team1InRound1 = processedWinnersBracket.some(r1 => 
+					r1.round === 1 && (r1.winnerName === r2Match.team1Name)
+				);
+				if (!team1InRound1 && r2Match.team1Name !== 'TBD') {
+					processedWinnersBracket.push({
+						round: 1,
+						matchId: 100 + r2Match.matchId,
+						team1Name: r2Match.team1Name,
+						team1Score: 0,
+						team2Name: 'BYE',
+						team2Score: 0,
+						winnerName: r2Match.team1Name
+					});
+				}
+				
+				// Check if team2 didn't play in round 1 (they had a bye)
+				const team2InRound1 = processedWinnersBracket.some(r1 => 
+					r1.round === 1 && (r1.winnerName === r2Match.team2Name)
+				);
+				if (!team2InRound1 && r2Match.team2Name !== 'TBD') {
+					processedWinnersBracket.push({
+						round: 1,
+						matchId: 101 + r2Match.matchId,
+						team1Name: r2Match.team2Name,
+						team1Score: 0,
+						team2Name: 'BYE',
+						team2Score: 0,
+						winnerName: r2Match.team2Name
+					});
+				}
+			});
+			
+			const processedConsolationBracket = await MatchupHelper.ProcessBrackets(
+				consolationBracket,
+				leagueId,
+				rosters,
+				users
+			);
+			
 			const processedLosersBracket = await MatchupHelper.ProcessBrackets(
-				losersBracket,
+				actualLosersBracket,
 				leagueId,
 				rosters,
 				users
@@ -240,7 +289,8 @@ export class MatchupHelper {
 				isPlayoffs: true,
 				matchups,
 				winnersBracket: processedWinnersBracket,
-				losersBracket: processedLosersBracket
+				losersBracket: processedLosersBracket,
+				consolationBracket: processedConsolationBracket
 			};
 		} else {
 			// Regular season - load rosters and users first
@@ -301,11 +351,14 @@ export class MatchupHelper {
 			const team1RosterId = typeof bracket.t1 === 'number' ? bracket.t1 : null;
 			const team2RosterId = typeof bracket.t2 === 'number' ? bracket.t2 : null;
 
+			// Check for bye weeks (when t2 is an object or null in round 1)
+			const isByeWeek = bracket.r === 1 && typeof bracket.t2 === 'object';
+
 			const team1Name = MatchupHelper.GetTeamName(team1RosterId, rosters, users);
-			const team2Name = MatchupHelper.GetTeamName(team2RosterId, rosters, users);
+			const team2Name = isByeWeek ? 'BYE' : MatchupHelper.GetTeamName(team2RosterId, rosters, users);
 			const team1Score = MatchupHelper.GetMatchupScore(team1RosterId, weekMatchups);
-			const team2Score = MatchupHelper.GetMatchupScore(team2RosterId, weekMatchups);
-			const winnerName = MatchupHelper.GetTeamName(bracket.w ?? null, rosters, users);
+			const team2Score = isByeWeek ? 0 : MatchupHelper.GetMatchupScore(team2RosterId, weekMatchups);
+			const winnerName = isByeWeek ? team1Name : MatchupHelper.GetTeamName(bracket.w ?? null, rosters, users);
 
 			processed.push({
 				round: bracket.r,

@@ -11,10 +11,11 @@
 	import { get } from 'svelte/store';
 
 	export let data: PageData;
-	const { currentWeek, isPlayoffs, matchups, winnersBracket, losersBracket } = data.matchupData;
+	const { currentWeek, isPlayoffs, matchups, winnersBracket, losersBracket, consolationBracket } = data.matchupData;
 
 	// Toggle state for playoff view (true = brackets, false = matchups)
 	let showBrackets = true;
+	let showLosersBracket = false;
 	let playersLoaded = false;
 
 	// Group matchups by MatchupId for regular season
@@ -86,14 +87,20 @@
 		<div class="mb-6 flex justify-center">
 			<div class="btn-group">
 				<button 
-					class="btn {showBrackets ? 'btn-active' : ''}" 
-					on:click={() => showBrackets = true}
+					class="btn {showBrackets && !showLosersBracket ? 'btn-active' : ''}" 
+					on:click={() => { showBrackets = true; showLosersBracket = false; }}
 				>
 					Playoff Brackets
 				</button>
 				<button 
+					class="btn {showBrackets && showLosersBracket ? 'btn-active' : ''}" 
+					on:click={() => { showBrackets = true; showLosersBracket = true; }}
+				>
+					Losers Bracket
+				</button>
+				<button 
 					class="btn {!showBrackets ? 'btn-active' : ''}" 
-					on:click={() => showBrackets = false}
+					on:click={() => { showBrackets = false; showLosersBracket = false; }}
 				>
 					Week 14 Matchups
 				</button>
@@ -101,78 +108,276 @@
 		</div>
 	{/if}
 
-	{#if isPlayoffs && showBrackets}
+	{#if isPlayoffs && showBrackets && !showLosersBracket}
 		<!-- Display processed bracket data -->
-		<div class="space-y-8">
+		<div class="space-y-12">
 			<!-- Winners Bracket -->
 			<div class="rounded-lg bg-base-200 p-6">
-				<h2 class="mb-4 text-2xl font-bold">Winners Bracket</h2>
-				{#each winnersBracket ?? [] as matchup}
-					<div class="mb-4 rounded-lg bg-base-300 p-4">
-						<div class="mb-2 text-sm font-semibold text-gray-500">
-							Round {matchup.round} (Week {14 + matchup.round})
-						</div>
-						<div class="space-y-2">
-							<div class="flex items-center justify-between">
-								<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-									{matchup.team1Name}
-								</span>
-								<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-									{matchup.team1Score.toFixed(2)}
-								</span>
-							</div>
-							<div class="flex items-center justify-between">
-								<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-									{matchup.team2Name}
-								</span>
-								<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-									{matchup.team2Score.toFixed(2)}
-								</span>
-							</div>
-							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-								<div class="mt-2 border-t border-gray-600 pt-2 text-center text-sm">
-									Winner: <span class="font-bold text-success">{matchup.winnerName}</span>
+				<h2 class="mb-6 text-center text-3xl font-bold">Winners Bracket</h2>
+				
+				<!-- Bracket Flow: Left to Right -->
+				<div class="flex items-center justify-center gap-8">
+					<!-- Round 1 (Week 15) - 4 matchups -->
+					<div class="flex flex-col justify-center gap-8">
+						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 1 (Week 15)</div>
+						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup}
+							<div class="rounded-lg bg-base-300 p-4 w-64">
+								<div class="space-y-2">
+									<div class="flex items-center justify-between">
+										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+											{matchup.team1Name}
+										</span>
+										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+											{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+										</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : matchup.team2Name === 'BYE' ? 'text-gray-500 italic' : ''}>
+											{matchup.team2Name}
+										</span>
+										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+											{matchup.team2Name === 'BYE' || matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+										</span>
+									</div>
 								</div>
-							{/if}
-						</div>
+							</div>
+						{/each}
 					</div>
-				{/each}
-			</div>
 
-			<!-- Losers Bracket -->
-			{#if losersBracket && losersBracket.length > 0}
-				<div class="rounded-lg bg-base-200 p-6">
-					<h2 class="mb-4 text-2xl font-bold">Consolation Bracket</h2>
-					{#each losersBracket as matchup}
-						<div class="mb-4 rounded-lg bg-base-300 p-4">
-							<div class="mb-2 text-sm font-semibold text-gray-500">
-								Round {matchup.round} (Week {14 + matchup.round})
-							</div>
-							<div class="space-y-2">
-								<div class="flex items-center justify-between">
-									<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-										{matchup.team1Name}
-									</span>
-									<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
-										{matchup.team1Score.toFixed(2)}
-									</span>
+					<!-- Round 2 (Week 16) - 2 matchups -->
+					<div class="flex flex-col justify-center gap-16">
+						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 2 (Week 16)</div>
+						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup}
+							<div class="rounded-lg bg-base-300 p-4 w-64">
+								<div class="space-y-2">
+									<div class="flex items-center justify-between">
+										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+											{matchup.team1Name}
+										</span>
+										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+											{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+										</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+											{matchup.team2Name}
+										</span>
+										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+											{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+										</span>
+									</div>
 								</div>
-								<div class="flex items-center justify-between">
-									<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-										{matchup.team2Name}
-									</span>
-									<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
-										{matchup.team2Score.toFixed(2)}
-									</span>
+							</div>
+						{/each}
+					</div>
+
+					<!-- Round 3 (Week 17) - Championship -->
+					<div class="flex flex-col justify-center">
+						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Championship (Week 17)</div>
+						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
+							<div class="rounded-lg bg-base-300 p-4 w-64">
+								<div class="space-y-2">
+									<div class="flex items-center justify-between">
+										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+											{matchup.team1Name}
+										</span>
+										<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+											{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+										</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+											{matchup.team2Name}
+										</span>
+										<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+											{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+										</span>
+									</div>
 								</div>
 								{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-									<div class="mt-2 border-t border-gray-600 pt-2 text-center text-sm">
-										Winner: <span class="font-bold text-success">{matchup.winnerName}</span>
+									<div class="mt-3 border-t border-gray-600 pt-3 text-center">
+										<div class="text-xs text-gray-400 mb-1">🏆 Champion</div>
+										<div class="font-bold text-success text-lg">{matchup.winnerName}</div>
 									</div>
 								{/if}
 							</div>
+						{/each}
+					</div>
+				</div>
+			</div>
+
+			<!-- Consolation Bracket -->
+			{#if consolationBracket && consolationBracket.length > 0}
+				<div class="rounded-lg bg-base-200 p-6">
+					<h2 class="mb-6 text-center text-3xl font-bold">Consolation Bracket</h2>
+					
+					<!-- Bracket Flow: Left to Right -->
+					<div class="flex items-center justify-center gap-8">
+						<!-- Round 2 (Week 16) - 5th place game -->
+						<div class="flex flex-col justify-center">
+							<div class="text-center text-sm font-semibold text-gray-400 mb-2">5th Place (Week 16)</div>
+							{#each (consolationBracket ?? []).filter(m => m.round === 2) as matchup}
+								<div class="rounded-lg bg-base-300 p-4 w-64">
+									<div class="space-y-2">
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+											</span>
+										</div>
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+											</span>
+										</div>
+									</div>
+								</div>
+							{/each}
 						</div>
-					{/each}
+
+						<!-- Round 3 (Week 17) - 3rd Place Game -->
+						<div class="flex flex-col justify-center">
+							<div class="text-center text-sm font-semibold text-gray-400 mb-2">3rd Place (Week 17)</div>
+							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
+								<div class="rounded-lg bg-base-300 p-4 w-64">
+									<div class="space-y-2">
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+											</span>
+										</div>
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+											</span>
+										</div>
+									</div>
+									{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
+										<div class="mt-3 border-t border-gray-600 pt-3 text-center">
+											<div class="text-xs text-gray-400 mb-1">🥉 3rd Place</div>
+											<div class="font-bold text-success">{matchup.winnerName}</div>
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
+			{/if}
+		</div>
+	{:else if isPlayoffs && showBrackets && showLosersBracket}
+		<!-- Display losers bracket (teams that didn't make playoffs) -->
+		<div class="space-y-12">
+			<div class="rounded-lg bg-base-200 p-6">
+				<h2 class="mb-6 text-center text-3xl font-bold">Losers Bracket</h2>
+				<p class="mb-6 text-center text-gray-400">Teams competing for 7th place</p>
+				
+				<!-- Bracket Flow: Left to Right -->
+				<div class="flex items-center justify-center gap-8">
+					<!-- Round 1 (Week 15) - 2 matchups -->
+					{#if (losersBracket ?? []).filter(m => m.round === 1).length > 0}
+						<div class="flex flex-col justify-center gap-8">
+							<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 1 (Week 15)</div>
+							{#each (losersBracket ?? []).filter(m => m.round === 1) as matchup}
+								<div class="rounded-lg bg-base-300 p-4 w-64">
+									<div class="space-y-2">
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+											</span>
+										</div>
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+											</span>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+
+					<!-- Round 2 (Week 16) - 7th place game -->
+					{#if (losersBracket ?? []).filter(m => m.round === 2).length > 0}
+						<div class="flex flex-col justify-center">
+							<div class="text-center text-sm font-semibold text-gray-400 mb-2">7th Place (Week 16)</div>
+							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
+								<div class="rounded-lg bg-base-300 p-4 w-64">
+									<div class="space-y-2">
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+											</span>
+										</div>
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+											</span>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<!-- Consolation Bracket for Losers Bracket (9th place) -->
+			{#if (losersBracket ?? []).filter(m => m.round === 2).length > 1}
+				<div class="rounded-lg bg-base-200 p-6">
+					<h2 class="mb-6 text-center text-3xl font-bold">9th Place Game</h2>
+					<p class="mb-6 text-center text-gray-400">Losers of Round 1</p>
+					
+					<div class="flex items-center justify-center">
+						<div class="flex flex-col justify-center">
+							<div class="text-center text-sm font-semibold text-gray-400 mb-2">9th Place (Week 16)</div>
+							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(1, 2) as matchup}
+								<div class="rounded-lg bg-base-300 p-4 w-64">
+									<div class="space-y-2">
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}>
+												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
+											</span>
+										</div>
+										<div class="flex items-center justify-between">
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name}
+											</span>
+											<span class={matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}>
+												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
+											</span>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
 				</div>
 			{/if}
 		</div>
@@ -180,7 +385,6 @@
 		<p>Loading...</p>
 	{:else}
 		<!-- Regular season matchups display (also used for playoff matchups toggle) -->
-		<!-- Regular season matchups display -->
 		{#each Object.entries(groupedMatchups) as [matchupId, group], matchupIndex}
 			<section class="mt-8 mb-8">
 				<!-- Box wrapping the entire matchup group with a light gray background in light mode -->
