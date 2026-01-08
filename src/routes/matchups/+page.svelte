@@ -77,7 +77,7 @@
 	});
 </script>
 
-<main class="mx-4 p-6 md:mx-auto md:max-w-7xl">
+<main class="mx-4 p-6 md:mx-auto {isPlayoffs ? 'max-w-none' : 'md:max-w-7xl'}">
 	<h1 class="mb-6 text-center text-4xl font-bold">
 		Week {currentWeek} {isPlayoffs ? '- PLAYOFFS' : 'Matchups'}
 	</h1>
@@ -115,10 +115,10 @@
 			<div class="rounded-lg bg-base-200 p-6">
 				<h2 class="mb-6 text-center text-3xl font-bold">Winners Bracket</h2>
 				
-				<!-- Bracket Flow: Left to Right -->
-				<div class="flex items-center justify-center gap-8">
+				<!-- Bracket Flow: 4 Columns (Round 1, Round 2, Round 3, Champion Card) -->
+				<div class="flex items-center justify-evenly min-h-[800px] overflow-x-auto">
 					<!-- Round 1 (Week 15) - 4 matchups -->
-					<div class="flex flex-col justify-center gap-8">
+					<div class="flex flex-col justify-center gap-8 flex-shrink-0">
 						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 1 (Week 15)</div>
 						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
@@ -159,7 +159,7 @@
 					</div>
 
 					<!-- Round 2 (Week 16) - 2 matchups -->
-					<div class="flex flex-col justify-center gap-16">
+				<div class="flex flex-col justify-center gap-16 flex-shrink-0">
 						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 2 (Week 16)</div>
 						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
@@ -200,7 +200,7 @@
 					</div>
 
 					<!-- Round 3 (Week 17) - Championship -->
-					<div class="flex flex-col justify-center">
+				<div class="flex flex-col justify-center flex-shrink-0">
 						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Championship (Week 17)</div>
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
@@ -236,13 +236,27 @@
 										</span>
 									</div>
 								</div>
-								{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-									<div class="border-t border-gray-600 p-3 text-center bg-base-200">
-										<div class="text-xs text-gray-400 mb-1">🏆 Champion</div>
-										<div class="font-bold text-success text-lg">{matchup.winnerName}</div>
-									</div>
-								{/if}
 							</div>
+						{/each}
+					</div>
+					
+					<!-- Champion Card (4th Column) -->
+				<div class="flex flex-col justify-center flex-shrink-0">
+						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
+							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
+									<div class="text-6xl mb-4">🏆</div>
+									<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Champion</div>
+									<div class="flex items-center justify-center gap-3 mb-2">
+										{#if matchup.team1Avatar && matchup.winnerName === matchup.team1Name}
+											<img src={matchup.team1Avatar} alt={matchup.winnerName} class="w-16 h-16 rounded-full" />
+										{:else if matchup.team2Avatar && matchup.winnerName === matchup.team2Name}
+											<img src={matchup.team2Avatar} alt={matchup.winnerName} class="w-16 h-16 rounded-full" />
+										{/if}
+									</div>
+									<div class="font-bold text-2xl">{matchup.winnerName}</div>
+								</div>
+							{/if}
 						{/each}
 					</div>
 				</div>
@@ -250,13 +264,18 @@
 
 			<!-- Consolation Bracket -->
 			{#if consolationBracket && consolationBracket.length > 0}
-				<div class="rounded-lg bg-base-200 p-6">
-					<h2 class="mb-6 text-center text-3xl font-bold">Consolation Bracket</h2>
-					
-					<!-- Bracket Flow: Left to Right -->
-					<div class="flex items-center justify-center gap-8">
+			<div class="rounded-lg bg-base-200 p-6 overflow-x-auto">
+				<h2 class="mb-6 text-center text-3xl font-bold">Consolation Bracket</h2>
+				
+				<!-- Bracket Flow: 4 Columns (Empty, Round 2, Round 3, 3rd Place Card) -->
+				<div class="flex items-center justify-evenly overflow-x-auto">
+						<!-- Empty Column 1 for alignment -->
+						<div class="flex flex-col justify-center flex-shrink-0 w-72 opacity-0 pointer-events-none">
+							<!-- Invisible placeholder -->
+						</div>
+						
 						<!-- Round 2 (Week 16) - 5th place game -->
-						<div class="flex flex-col justify-center">
+						<div class="flex flex-col justify-center flex-shrink-0">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">5th Place (Week 16)</div>
 							{#each (consolationBracket ?? []).filter(m => m.round === 2) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
@@ -297,7 +316,7 @@
 						</div>
 
 						<!-- Round 3 (Week 17) - 3rd Place Game -->
-						<div class="flex flex-col justify-center">
+					<div class="flex flex-col justify-center flex-shrink-0">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">3rd Place (Week 17)</div>
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
@@ -333,13 +352,27 @@
 											</span>
 										</div>
 									</div>
-									{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-										<div class="border-t border-gray-600 p-3 text-center bg-base-200">
-											<div class="text-xs text-gray-400 mb-1">🥉 3rd Place</div>
-											<div class="font-bold text-success">{matchup.winnerName}</div>
-										</div>
-									{/if}
 								</div>
+							{/each}
+						</div>
+						
+						<!-- 3rd Place Card (3rd Column) -->
+					<div class="flex flex-col justify-center flex-shrink-0">
+							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
+								{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
+									<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
+										<div class="text-6xl mb-4">🥉</div>
+										<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">3rd Place</div>
+										<div class="flex items-center justify-center gap-3 mb-2">
+											{#if matchup.team1Avatar && matchup.winnerName === matchup.team1Name}
+												<img src={matchup.team1Avatar} alt={matchup.winnerName} class="w-16 h-16 rounded-full" />
+											{:else if matchup.team2Avatar && matchup.winnerName === matchup.team2Name}
+												<img src={matchup.team2Avatar} alt={matchup.winnerName} class="w-16 h-16 rounded-full" />
+											{/if}
+										</div>
+										<div class="font-bold text-2xl">{matchup.winnerName}</div>
+									</div>
+								{/if}
 							{/each}
 						</div>
 					</div>
