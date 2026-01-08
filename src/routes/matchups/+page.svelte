@@ -126,7 +126,7 @@
 			<!-- Bracket Flow: 4 Columns (Round 1, Round 2, Round 3, Champion Card) -->
 			<div class="flex items-center justify-evenly min-h-[800px] overflow-x-auto">
 				<!-- Round 1 (Week 15) - 4 matchups -->
-				<div class="flex flex-col justify-center gap-8 flex-shrink-0">
+				<div class="flex flex-col justify-evenly flex-shrink-0 min-h-[800px] w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 								<!-- Team 1 -->
@@ -166,8 +166,7 @@
 					</div>
 
 					<!-- Round 2 (Week 16) - 2 matchups -->
-				<div class="flex flex-col justify-center gap-16 flex-shrink-0">
-
+				<div class="flex flex-col justify-evenly flex-shrink-0 min-h-[800px] w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 								<!-- Team 1 -->
@@ -207,8 +206,7 @@
 					</div>
 
 					<!-- Round 3 (Week 17) - Championship -->
-				<div class="flex flex-col justify-center flex-shrink-0">
-
+				<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 								<!-- Team 1 -->
@@ -248,7 +246,7 @@
 					</div>
 					
 					<!-- Champion Card (4th Column) -->
-				<div class="flex flex-col justify-center flex-shrink-0">
+				<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-80">
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
 							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
@@ -285,12 +283,12 @@
 				<!-- Bracket Flow: 4 Columns (Empty, Round 2, Round 3, 3rd Place Card) -->
 				<div class="flex items-center justify-evenly overflow-x-auto">
 						<!-- Empty Column 1 for alignment -->
-						<div class="flex flex-col justify-center flex-shrink-0 w-72 opacity-0 pointer-events-none">
+					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72 opacity-0 pointer-events-none">
 							<!-- Invisible placeholder -->
 						</div>
 						
 						<!-- Round 2 (Week 16) - 5th place game -->
-						<div class="flex flex-col justify-center flex-shrink-0">
+					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
 							{#each (consolationBracket ?? []).filter(m => m.round === 2) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
@@ -330,8 +328,7 @@
 						</div>
 
 						<!-- Round 3 (Week 17) - 3rd Place Game -->
-					<div class="flex flex-col justify-center flex-shrink-0">
-
+					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
@@ -370,8 +367,8 @@
 							{/each}
 						</div>
 						
-						<!-- 3rd Place Card (3rd Column) -->
-					<div class="flex flex-col justify-center flex-shrink-0">
+					<!-- 3rd Place Card (4th Column) -->
+					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-80">
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
 								{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
 									<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
