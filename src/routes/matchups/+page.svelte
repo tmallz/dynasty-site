@@ -127,10 +127,10 @@
 			<div class="flex items-center justify-evenly min-h-[800px] overflow-x-auto">
 				<!-- Round 1 (Week 15) - 4 matchups -->
 				<div class="flex flex-col justify-around flex-shrink-0 min-h-[800px] w-72">
-						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup}
+						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup, i}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
-								<!-- Team 1 -->
-								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+									<!-- Team 1 -->
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 									<div class="flex items-center justify-between gap-2">
 										<div class="flex items-center gap-2 flex-1 min-w-0">
 											{#if matchup.team1Avatar}
@@ -162,12 +162,13 @@
 									</div>
 								</div>
 							</div>
-						{/each}
-					</div>
 
-					<!-- Round 2 (Week 16) - 2 matchups -->
+					{/each}
+				</div>
+
+				<!-- Round 2 (Week 16) - 2 matchups -->
 				<div class="flex flex-col justify-around flex-shrink-0 min-h-[800px] w-72">
-						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup}
+						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup, i}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 								<!-- Team 1 -->
 								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
@@ -202,10 +203,11 @@
 									</div>
 								</div>
 							</div>
-						{/each}
-					</div>
 
-					<!-- Round 3 (Week 17) - Championship -->
+					{/each}
+				</div>
+
+				<!-- Round 3 (Week 17) - Championship -->
 				<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
@@ -324,10 +326,11 @@
 										</div>
 									</div>
 								</div>
-							{/each}
-						</div>
 
-						<!-- Round 3 (Week 17) - 3rd Place Game -->
+						{/each}
+					</div>
+
+					<!-- Round 3 (Week 17) - 3rd Place Game -->
 					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
