@@ -115,11 +115,18 @@
 			<div class="rounded-lg bg-base-200 p-6">
 				<h2 class="mb-6 text-center text-3xl font-bold">Winners Bracket</h2>
 				
-				<!-- Bracket Flow: 4 Columns (Round 1, Round 2, Round 3, Champion Card) -->
-				<div class="flex items-center justify-evenly min-h-[800px] overflow-x-auto">
-					<!-- Round 1 (Week 15) - 4 matchups -->
-					<div class="flex flex-col justify-center gap-8 flex-shrink-0">
-						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 1 (Week 15)</div>
+			<!-- Week Labels Row -->
+			<div class="flex items-center justify-evenly mb-4 overflow-x-auto">
+				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Round 1 (Week 15)</div>
+				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Round 2 (Week 16)</div>
+				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Championship (Week 17)</div>
+				<div class="text-center text-sm font-semibold text-gray-400 w-80 flex-shrink-0 opacity-0">Placeholder</div>
+			</div>
+			
+			<!-- Bracket Flow: 4 Columns (Round 1, Round 2, Round 3, Champion Card) -->
+			<div class="flex items-center justify-evenly min-h-[800px] overflow-x-auto">
+				<!-- Round 1 (Week 15) - 4 matchups -->
+				<div class="flex flex-col justify-center gap-8 flex-shrink-0">
 						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 								<!-- Team 1 -->
@@ -160,7 +167,7 @@
 
 					<!-- Round 2 (Week 16) - 2 matchups -->
 				<div class="flex flex-col justify-center gap-16 flex-shrink-0">
-						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Round 2 (Week 16)</div>
+
 						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 								<!-- Team 1 -->
@@ -201,7 +208,7 @@
 
 					<!-- Round 3 (Week 17) - Championship -->
 				<div class="flex flex-col justify-center flex-shrink-0">
-						<div class="text-center text-sm font-semibold text-gray-400 mb-2">Championship (Week 17)</div>
+
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
 							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 								<!-- Team 1 -->
@@ -267,6 +274,14 @@
 			<div class="rounded-lg bg-base-200 p-6 overflow-x-auto">
 				<h2 class="mb-6 text-center text-3xl font-bold">Consolation Bracket</h2>
 				
+				<!-- Week Labels Row -->
+				<div class="flex items-center justify-evenly mb-4 overflow-x-auto">
+					<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0 opacity-0">Placeholder</div>
+					<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">5th Place (Week 16)</div>
+					<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">3rd Place (Week 17)</div>
+					<div class="text-center text-sm font-semibold text-gray-400 w-80 flex-shrink-0 opacity-0">Placeholder</div>
+				</div>
+				
 				<!-- Bracket Flow: 4 Columns (Empty, Round 2, Round 3, 3rd Place Card) -->
 				<div class="flex items-center justify-evenly overflow-x-auto">
 						<!-- Empty Column 1 for alignment -->
@@ -276,7 +291,6 @@
 						
 						<!-- Round 2 (Week 16) - 5th place game -->
 						<div class="flex flex-col justify-center flex-shrink-0">
-							<div class="text-center text-sm font-semibold text-gray-400 mb-2">5th Place (Week 16)</div>
 							{#each (consolationBracket ?? []).filter(m => m.round === 2) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
@@ -317,7 +331,7 @@
 
 						<!-- Round 3 (Week 17) - 3rd Place Game -->
 					<div class="flex flex-col justify-center flex-shrink-0">
-							<div class="text-center text-sm font-semibold text-gray-400 mb-2">3rd Place (Week 17)</div>
+
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
