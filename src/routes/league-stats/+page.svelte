@@ -5,19 +5,80 @@
 </script>
 
 {#if stats}
-	<h1>League Stats (Debug View)</h1>
+	<div class="container mx-auto px-4 py-8">
+		<h1 class="text-4xl font-bold text-center mb-8">League Stats</h1>
 
-	<h2>All League Winners</h2>
-	{#if stats.Winners && stats.Winners.length}
-		{#each stats.Winners as winner}
-			<p>
-				Season {winner.Season}: {winner.DisplayName ?? 'Unknown'} (Roster {winner.RosterId})
-			</p>
-		{/each}
-	{:else}
-		<p>No winners found.</p>
-	{/if}
-
+		<!-- Two-column grid layout for tables -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+			<!-- Top Scoring Weeks Table -->
+			<div class="card bg-base-200 shadow-xl mx-auto w-fit">
+				<div class="card-body px-4 py-4">
+					{#if stats.TopScoringWeeks && stats.TopScoringWeeks.length}
+						<div class="overflow-x-auto">
+							<table class="table table-zebra table-sm w-full border-2 border-base-content/20">
+								<thead>
+									<tr>
+										<th colspan="5" class="text-center text-lg font-bold border-b-2 border-base-content/20">
+											<div class="flex items-center justify-center gap-2">
+												<span class="text-2xl">🔥</span>
+												Highest Scoring Weeks
+											</div>
+										</th>
+									</tr>
+									<tr class="border-b border-base-content/20">
+										<th class="text-center w-12"></th>
+										<th class="w-10"></th>
+										<th>Manager</th>
+										<th class="text-center w-20">Season</th>
+										<th class="text-right w-20">Points</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each stats.TopScoringWeeks as weekRecord, index}
+										<tr class="border-b border-base-content/20">
+											<td class="text-center font-semibold">{index + 1}</td>
+											<td class="text-center">
+												{#if index < 3}
+													<span class="text-xl">🔥</span>
+												{/if}
+											</td>
+											<td>
+												<div class="flex items-center gap-2">
+													{#if weekRecord.UserId}
+														<div class="avatar">
+															<div class="w-8 h-8 rounded-full">
+																<img
+																	src="https://sleepercdn.com/avatars/{data.users?.find(
+																		(u) => u.user_id === weekRecord.UserId
+																	)?.avatar ?? 'default'}"
+																	alt={weekRecord.DisplayName ?? 'Manager'}
+																/>
+															</div>
+														</div>
+													{/if}
+													<span class="font-medium truncate">{weekRecord.DisplayName ?? 'Unknown'}</span>
+												</div>
+											</td>
+											<td class="text-center">
+												<span class="text-sm">{weekRecord.Season}</span>
+												<br />
+												<span class="text-xs text-base-content/70">Wk {weekRecord.Week}</span>
+											</td>
+											<td class="text-right font-bold text-lg">{weekRecord.Points}</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{:else}
+						<p class="text-center text-sm text-base-content/70">No top scoring week data available.</p>
+					{/if}
+				</div>
+			</div>
+		</div>
+		
+		<!-- Debug sections below - keeping for now -->
+		<div class="mt-8">
 	<h2>Top Scoring Weeks (Top 10)</h2>
 	{#if stats.TopScoringWeeks && stats.TopScoringWeeks.length}
 		{#each stats.TopScoringWeeks as weekRecord, index}
@@ -116,6 +177,8 @@
 	{:else}
 		<p>No closest victory data.</p>
 	{/if}
+		</div>
+	</div>
 {:else}
 	<p>No league stats available.</p>
 {/if}
