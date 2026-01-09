@@ -414,33 +414,33 @@
 							{#each (losersBracket ?? []).filter(m => m.round === 1) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
-									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
 											<div class="flex items-center gap-2 flex-1 min-w-0">
 												{#if matchup.team1Avatar}
 													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
 												{/if}
-												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-error' : ''}">
 													{matchup.team1Name}
 												</span>
 											</div>
-											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-error' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
 									</div>
 									<!-- Team 2 -->
-									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-error bg-error/5' : ''}">
 										<div class="flex items-center justify-between gap-2">
 											<div class="flex items-center gap-2 flex-1 min-w-0">
 												{#if matchup.team2Avatar}
 													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
 												{/if}
-												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-error' : ''}">
 													{matchup.team2Name}
 												</span>
 											</div>
-											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-error' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
@@ -456,33 +456,33 @@
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
-									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
 											<div class="flex items-center gap-2 flex-1 min-w-0">
 												{#if matchup.team1Avatar}
 													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
 												{/if}
-												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-error' : ''}">
 													{matchup.team1Name}
 												</span>
 											</div>
-											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-error' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
 									</div>
 									<!-- Team 2 -->
-									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-error bg-error/5' : ''}">
 										<div class="flex items-center justify-between gap-2">
 											<div class="flex items-center gap-2 flex-1 min-w-0">
 												{#if matchup.team2Avatar}
 													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
 												{/if}
-												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-error' : ''}">
 													{matchup.team2Name}
 												</span>
 											</div>
-											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-error' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
@@ -525,33 +525,33 @@
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(1, 2) as matchup}
 								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
 									<!-- Team 1 -->
-									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
+									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
 											<div class="flex items-center gap-2 flex-1 min-w-0">
 												{#if matchup.team1Avatar}
 													<img src={matchup.team1Avatar} alt={matchup.team1Name} class="w-8 h-8 rounded-full" />
 												{/if}
-												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-success' : ''}">
+												<span class="truncate {matchup.winnerName === matchup.team1Name ? 'font-bold text-error' : ''}">
 													{matchup.team1Name}
 												</span>
 											</div>
-											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-success' : ''}">
+											<span class="font-semibold {matchup.winnerName === matchup.team1Name ? 'text-error' : ''}">
 												{matchup.team1Name === 'TBD' ? '' : matchup.team1Score.toFixed(2)}
 											</span>
 										</div>
 									</div>
 									<!-- Team 2 -->
-									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-success bg-success/5' : ''}">
+									<div class="p-3 {matchup.winnerName === matchup.team2Name ? 'border-l-4 border-error bg-error/5' : ''}">
 										<div class="flex items-center justify-between gap-2">
 											<div class="flex items-center gap-2 flex-1 min-w-0">
 												{#if matchup.team2Avatar}
 													<img src={matchup.team2Avatar} alt={matchup.team2Name} class="w-8 h-8 rounded-full" />
 												{/if}
-												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-success' : ''}">
+												<span class="truncate {matchup.winnerName === matchup.team2Name ? 'font-bold text-error' : ''}">
 													{matchup.team2Name}
 												</span>
 											</div>
-											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-success' : ''}">
+											<span class="font-semibold {matchup.winnerName === matchup.team2Name ? 'text-error' : ''}">
 												{matchup.team2Name === 'TBD' ? '' : matchup.team2Score.toFixed(2)}
 											</span>
 										</div>
