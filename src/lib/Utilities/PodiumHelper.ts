@@ -76,14 +76,15 @@ export class PodiumHelper {
         return RostersHelper.GetUserFromRosterId(rosterId || 0);
     }
 
-    static async GetMostRecentWinner(): Promise<LeagueUser> {
+    static async GetMostRecentWinner(): Promise<LeagueUser & { season?: string }> {
         const previousLeague = await this.getPreviousLeague();
         if (!previousLeague) return {} as LeagueUser;
 
         const winnersBracket = await this.getBracket(previousLeague.league_id, 'winners');
         const winnerRosterId = this.getFinalsMatchup(winnersBracket, 'winner');
         console.log('Winner Roster ID:', winnerRosterId);
-        return await this.getUserFromRosterId(winnerRosterId);
+        const winner = await this.getUserFromRosterId(winnerRosterId);
+        return { ...winner, season: previousLeague.season };
     }
 
     static async GetMostRecentRunnerUp(): Promise<LeagueUser> {
