@@ -15,7 +15,7 @@
 				<div class="card-body px-4 py-4">
 					{#if stats.TopScoringWeeks && stats.TopScoringWeeks.length}
 						<div class="overflow-x-auto">
-							<table class="table table-zebra table-sm w-full border-2 border-base-content/20">
+							<table class="table table-zebra table-sm w-full min-w-[500px] border-2 border-base-content/20">
 								<thead>
 									<tr>
 										<th colspan="5" class="text-center text-lg font-bold border-b-2 border-base-content/20">
@@ -26,18 +26,18 @@
 										</th>
 									</tr>
 									<tr class="border-b border-base-content/20">
-										<th class="text-center w-12"></th>
+										<th class="w-12"></th>
 										<th class="w-10"></th>
 										<th>Manager</th>
-										<th class="text-center w-20">Season</th>
-										<th class="text-right w-20">Points</th>
+										<th class="w-20">Season</th>
+										<th class="w-20">Points</th>
 									</tr>
 								</thead>
 								<tbody>
 									{#each stats.TopScoringWeeks as weekRecord, index}
 										<tr class="border-b border-base-content/20">
-											<td class="text-center font-semibold">{index + 1}</td>
-											<td class="text-center">
+											<td class="font-semibold">{index + 1}</td>
+											<td>
 												{#if index < 3}
 													<span class="text-xl">🔥</span>
 												{/if}
@@ -59,12 +59,12 @@
 													<span class="font-medium truncate">{weekRecord.DisplayName ?? 'Unknown'}</span>
 												</div>
 											</td>
-											<td class="text-center">
+											<td>
 												<span class="text-sm">{weekRecord.Season}</span>
 												<br />
 												<span class="text-xs text-base-content/70">Wk {weekRecord.Week}</span>
 											</td>
-											<td class="text-right font-bold text-lg">{weekRecord.Points}</td>
+											<td class="font-bold text-lg">{weekRecord.Points}</td>
 										</tr>
 									{/each}
 								</tbody>
@@ -72,6 +72,72 @@
 						</div>
 					{:else}
 						<p class="text-center text-sm text-base-content/70">No top scoring week data available.</p>
+					{/if}
+				</div>
+			</div>
+
+			<!-- Lowest Scoring Weeks Table -->
+			<div class="card bg-base-200 shadow-xl mx-auto w-fit">
+				<div class="card-body px-4 py-4">
+					{#if stats.BottomScoringWeeks && stats.BottomScoringWeeks.length}
+						<div class="overflow-x-auto">
+							<table class="table table-zebra table-sm w-full min-w-[500px] border-2 border-base-content/20">
+								<thead>
+									<tr>
+										<th colspan="5" class="text-center text-lg font-bold border-b-2 border-base-content/20">
+											<div class="flex items-center justify-center gap-2">
+												<span class="text-2xl">💩</span>
+												Lowest Scoring Weeks
+											</div>
+										</th>
+									</tr>
+									<tr class="border-b border-base-content/20">
+										<th class="w-12"></th>
+										<th class="w-10"></th>
+										<th>Manager</th>
+										<th class="w-20">Season</th>
+										<th class="w-20">Points</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each stats.BottomScoringWeeks as weekRecord, index}
+										<tr class="border-b border-base-content/20">
+											<td class="font-semibold">{index + 1}</td>
+											<td>
+												{#if index < 3}
+													<span class="text-xl">💩</span>
+												{/if}
+											</td>
+											<td>
+												<div class="flex items-center gap-2">
+													{#if weekRecord.UserId}
+														<div class="avatar">
+															<div class="w-8 h-8 rounded-full">
+																<img
+																	src="https://sleepercdn.com/avatars/{data.users?.find(
+																		(u) => u.user_id === weekRecord.UserId
+																	)?.avatar ?? 'default'}"
+																	alt={weekRecord.DisplayName ?? 'Manager'}
+																/>
+															</div>
+														</div>
+													{/if}
+													<span class="font-medium truncate">{weekRecord.DisplayName ?? 'Unknown'}</span>
+												</div>
+											</td>
+											<td>
+												<span class="text-sm">{weekRecord.Season}</span>
+												<br />
+												<span class="text-xs text-base-content/70">Wk {weekRecord.Week}</span>
+											</td>
+											<td class="font-bold text-lg">{weekRecord.Points}</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{:else}
+						<p class="text-center text-sm text-base-content/70">No lowest scoring week data available.</p>
 					{/if}
 				</div>
 			</div>
