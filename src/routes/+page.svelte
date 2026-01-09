@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { SleeperState } from '$lib/api/dtos/LeagueDtos/SleeperState';
+	import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 	import { TransactionType } from '$lib/api/Enums/TransactionType';
 	import { SleeperClient } from '$lib/api/services/SleeperClient';
 	import TrendingPlayer from '$lib/Components/homepage/TrendingPlayer.svelte';
@@ -18,7 +19,7 @@
 	let recentWaivers: TransactionsPageDto[] = [];
 	let trendingUpPlayers: TrendingPlayerPageDto[] = [];
 	let trendingDownPlayers: TrendingPlayerPageDto[] = [];
-	let mostRecentWinner: string = '';
+	let mostRecentWinner: LeagueUser | null = null;
 	let sleeperState: SleeperState = {};
 	let currentSeasonStatus: string = '';
 	let loading: boolean = true;
@@ -58,7 +59,7 @@
 				)
 				.slice(0, 3);
 
-			mostRecentWinner = (await PodiumHelper.GetMostRecentWinner()).display_name;
+			mostRecentWinner = await PodiumHelper.GetMostRecentWinner();
 			trendingUpPlayers = await TrendingPlayersHelper.GetTrendingUpPlayers();
 			trendingDownPlayers = await TrendingPlayersHelper.GetTrendingDownPlayers();
 		} catch (error) {
@@ -138,18 +139,29 @@
 
 			<!-- Most Recent Winner -->
 			<div class="mb-6">
-				{#if mostRecentWinner}
-					<h2 class="mb-4 text-xl font-bold">{mostRecentWinner}</h2>
+				{#if mostRecentWinner && mostRecentWinner.display_name}
+					<h2 class="mb-4 text-xl font-bold">Most Recent Champion</h2>
+					<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 text-center">
+						<div class="text-6xl mb-4">🏆</div>
+						<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Champion</div>
+						<div class="flex items-center justify-center gap-3 mb-2">
+							{#if mostRecentWinner.avatar}
+								<img
+								src={`https://sleepercdn.com/avatars/${mostRecentWinner.avatar}`}
+									alt={mostRecentWinner.display_name}
+									class="w-16 h-16 rounded-full"
+								/>
+							{/if}
+						</div>
+						<div class="font-bold text-2xl">{mostRecentWinner.display_name}</div>
+					</div>
 				{:else}
 					<a
 						href="https://imgflip.com/i/9qrtql"
 						title="Real Griddy meme on imgflip"
 						aria-label="Open Real Griddy meme on imgflip"
 					>
-						<img
-							src="https://i.imgflip.com/9qrtql.jpg"
-							alt="Real Griddy meme"
-						/>
+						<img src="https://i.imgflip.com/9qrtql.jpg" alt="Real Griddy meme" />
 					</a>
 				{/if}
 			</div>

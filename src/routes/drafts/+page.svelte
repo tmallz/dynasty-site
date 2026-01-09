@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { DraftsHelper } from '$lib/Utilities/DraftsHelper';
 	import type {
 		DraftPageDto,
 		DraftPagePicks,
@@ -10,25 +8,18 @@
 	import DraftCell from '$lib/Components/drafts/DraftCell.svelte';
 	import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 	import { UsersStore } from '$lib/Stores/UserStores';
-	import { get } from 'svelte/store';
-	import { StoresHelper } from '$lib/Utilities/StoresHelper';
 	import { DraftStatus } from '$lib/api/Enums/DraftStatus';
 	import { DraftType } from '$lib/api/Enums/DraftType';
-	let pageDrafts: DraftPageDto[] | null = null;
-	let users: LeagueUser[] = get(UsersStore);
+
+	export let data;
+	$: pageDrafts = data.pageDrafts;
 
 	let getUsernameFromUserId = (userId: string): string => {
-		if (users.length === 0) {
-			users = get(UsersStore);
-		}
-		return users.find((user) => user.user_id === userId)?.display_name ?? '';
+		return $UsersStore.find((user) => user.user_id === userId)?.display_name ?? '';
 	};
 
 	let getAvatarFromUserId = (userId: string): string => {
-		if (users.length === 0) {
-			users = get(UsersStore);
-		}
-		return users.find((user) => user.user_id === userId)?.avatar ?? '';
+		return $UsersStore.find((user) => user.user_id === userId)?.avatar ?? '';
 	};
 
 	let getOrderedPicks = (draft: DraftPageDto): DraftPagePicks[] => {
@@ -162,19 +153,11 @@
 
 		return [];
 	};
-
-	onMount(async () => {
-		pageDrafts = await DraftsHelper.GetAllDrafts();
-		await StoresHelper.EnsureStoresLoaded();
-	});
 </script>
 
 <main class="p-8">
-	{#if !pageDrafts}
-		<p>Loading...</p>
-	{:else}
-		<!-- Upcoming Draft -->
-		{#if pageDrafts.find((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT)}
+	<!-- Upcoming Draft -->
+	{#if pageDrafts.find((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT)}
 			<section class="mb-12">
 				{#each pageDrafts.filter((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT) as draft}
 					<section class="mb-8">
@@ -273,5 +256,4 @@
 				</section>
 			{/each}
 		</section>
-	{/if}
 </main>

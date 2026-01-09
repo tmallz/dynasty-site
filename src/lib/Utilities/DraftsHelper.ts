@@ -27,7 +27,7 @@ export class DraftsHelper {
 		let rosters: Roster[] = [];
 		let draftsAndDetails: DraftAndDetail[] = [];
 
-		await StoresHelper.EnsureStoresLoaded();
+		// Get data from stores (assumes stores are already loaded by caller)
 		users = get(UsersStore) ?? [];
 		rosters = get(RostersStore) ?? [];
 		draftsAndDetails = get(DraftsStore) ?? [];
