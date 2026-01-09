@@ -7,7 +7,7 @@ import type { League } from '$lib/api/dtos/LeagueDtos/League';
 
 export class AvatarHelper {
 	public static async GetUserAvatarUrl(roster: Roster): Promise<string> {
-		await StoresHelper.EnsureStoresLoaded();
+		// Assumes UsersStore is already loaded by caller
 		let users = get(UsersStore) ?? [];
 		let avatarId = users.find((u) => u.user_id === roster.owner_id)?.avatar || '';
 		return `https://sleepercdn.com/avatars/${avatarId}`;

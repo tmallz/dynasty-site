@@ -1,14 +1,20 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { RostersHelper } from '$lib/Utilities/RostersHelper';
 	import type { RosterPageDto } from '$lib/Utilities/Dtos/RosterPageDto';
 	import TeamHeader from '$lib/Components/rosters/TeamHeader.svelte';
 	import RosterSpot from '$lib/Components/rosters/RosterSpot.svelte';
 	import { RosterSorter } from '$lib/Utilities/RosterSorter';
 
-	let rosters: RosterPageDto[] = [];
+	export let data;
+	$: rosters = data.rosters;
 	let expandedBenches: Record<string, boolean> = {};
 	let allBenchesExpanded = false;
+
+	// Initialize expanded benches when rosters are loaded
+	$: if (rosters.length > 0 && Object.keys(expandedBenches).length === 0) {
+		rosters.forEach((roster) => {
+			expandedBenches[roster.TeamName] = false;
+		});
+	}
 
 	function toggleBench(teamName: string) {
 		expandedBenches[teamName] = !expandedBenches[teamName];
@@ -20,25 +26,14 @@
 			expandedBenches[teamName] = allBenchesExpanded;
 		});
 	}
-
-	onMount(async () => {
-		rosters = await RostersHelper.GetAllRosters();
-
-		rosters.forEach((roster) => {
-			expandedBenches[roster.TeamName] = false; // Default to collapsed
-		});
-	});
 </script>
 
 <main class="grid grid-cols-1 gap-8 p-6 md:grid-cols-3">
-	{#if rosters.length === 0}
-		<div class="col-span-full text-center text-lg font-semibold">Loading rosters...</div>
-	{:else}
-		<div class="col-span-full mb-4 text-center">
-			<button class="btn btn-primary" on:click={toggleAllBenches}>
-				{allBenchesExpanded ? 'Collapse All Benches' : 'Expand All Benches'}
-			</button>
-		</div>
+	<div class="col-span-full mb-4 text-center">
+		<button class="btn btn-primary" on:click={toggleAllBenches}>
+			{allBenchesExpanded ? 'Collapse All Benches' : 'Expand All Benches'}
+		</button>
+	</div>
 
 		{#each rosters as roster}
 			<div class="bg-base-100 rounded-lg p-6 shadow-lg">
@@ -87,5 +82,4 @@
 				{/if}
 			</div>
 		{/each}
-	{/if}
 </main>

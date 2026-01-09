@@ -12,8 +12,7 @@ import { AvatarHelper } from './AvatarHelper';
 export class RostersHelper {
 	public static async GetAllRosters(): Promise<RosterPageDto[]> {
 		let rosters: Roster[] = [];
-		StoresHelper.EnsureStoresLoaded();
-
+		// Get data from stores (assumes stores are already loaded by caller)
 		rosters = get(RostersStore) ?? [];
 
 		let pageRosters: RosterPageDto[] = [];
@@ -74,9 +73,7 @@ export class RostersHelper {
 	}
 
 	public static GetUserFromRosterId(rosterId: number): LeagueUser {
-		// Ensure the stores are loaded
-		StoresHelper.EnsureStoresLoaded();
-
+		// Assumes stores are already loaded by caller
 		// Get the latest data from the stores
 		const rosters = get(RostersStore) ?? [];
 		const users = get(UsersStore) ?? [];
