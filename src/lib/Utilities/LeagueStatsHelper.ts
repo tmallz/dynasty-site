@@ -3,6 +3,7 @@ import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 import type { Matchup } from '$lib/api/dtos/LeagueDtos/Matchup';
 import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
 import { SleeperClient } from '$lib/api/services/SleeperClient';
+import { LeagueHistoryHelper } from '$lib/Utilities/LeagueHistoryHelper';
 import type {
 	LeagueScoreRecordDto,
 	LeagueStatsPageDto,
@@ -17,8 +18,6 @@ export class LeagueStatsHelper {
 		// Reasonable upper bound to cover regular season + playoffs
 		return 22;
 	}
-
-import { LeagueHistoryHelper } from '$lib/Utilities/LeagueHistoryHelper';
 
 	private static getFinalWinnerRosterId(bracket: any[]): number {
 		return BracketHelper.getFinalWinnerRosterId(bracket);
