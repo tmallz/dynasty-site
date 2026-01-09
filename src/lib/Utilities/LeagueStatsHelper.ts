@@ -309,6 +309,12 @@ export class LeagueStatsHelper {
 			.sort((a, b) => (b.TotalPoints ?? 0) - (a.TotalPoints ?? 0))
 			.slice(0, TOP_SEASONS);
 
+		// Bottom scoring seasons (lowest total points)
+		const bottomSeasons = seasonRecords
+			.filter((s) => typeof s.TotalPoints === 'number')
+			.sort((a, b) => (a.TotalPoints ?? 0) - (b.TotalPoints ?? 0))
+			.slice(0, TOP_SEASONS);
+
 		// Top and bottom scoring weeks
 		const sortedWeeks = allWeeks
 			.filter((w) => typeof w.Points === 'number')
@@ -361,6 +367,7 @@ export class LeagueStatsHelper {
 			topWeeks,
 			bottomWeeks,
 			topSeasons,
+			bottomSeasons,
 			highestWinPcts,
 			lowestWinPcts,
 			largestBlowouts,
@@ -383,6 +390,7 @@ export class LeagueStatsHelper {
 			topWeeks,
 			bottomWeeks,
 			topSeasons,
+			bottomSeasons,
 			highestWinPcts,
 			lowestWinPcts,
 			largestBlowouts,
@@ -396,6 +404,7 @@ export class LeagueStatsHelper {
 			HighestSeason: highestSeason,
 			LowestSeason: lowestSeason,
 			TopSeasons: topSeasons,
+			BottomSeasons: bottomSeasons,
 			HighestWinningPercentages: highestWinPcts,
 			LowestWinningPercentages: lowestWinPcts,
 			LargestBlowouts: largestBlowouts,
