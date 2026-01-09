@@ -7,7 +7,7 @@
 	});
 </script>
 
-<nav class="navbar bg-base-100 shadow-lg">
+<nav class="navbar bg-base-100 shadow-lg w-full">
 	<!-- Title -->
 	<div class="flex-1">
 		<a href="/" class="btn btn-ghost text-xl normal-case">League of Extraordinary Armchair GMs</a>
@@ -20,6 +20,7 @@
 			<li><a href="/matchups" class="hover:text-primary">Matchups</a></li>
 			<li><a href="/transactions" class="hover:text-primary">Transactions</a></li>
 			<li><a href="/drafts" class="hover:text-primary">Drafts</a></li>
+			<li><a href="/league-stats" class="hover:text-primary">League Stats</a></li>
 			<li><a href="/resources" class="hover:text-primary">Resources</a></li>
 			<li><a href="/constitution" class="hover:text-primary">Constitution</a></li>
 		</ul>
@@ -81,6 +82,7 @@
 			<li><a href="/matchups">Matchups</a></li>
 			<li><a href="/transactions">Transactions</a></li>
 			<li><a href="/drafts">Drafts</a></li>
+			<li><a href="/league-stats">League Stats</a></li>
 			<li><a href="/resources">Resources</a></li>
 			<li><a href="/constitution">Constitution</a></li>
 		</ul>

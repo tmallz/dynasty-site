@@ -48,6 +48,7 @@ export interface LeagueStatsPageDto {
 	HighestSeason?: LeagueScoreRecordDto | null;
 	LowestSeason?: LeagueScoreRecordDto | null;
 	TopSeasons?: LeagueScoreRecordDto[];
+	BottomSeasons?: LeagueScoreRecordDto[];
 	HighestWinningPercentages?: WinningPercentageRecordDto[];
 	LowestWinningPercentages?: WinningPercentageRecordDto[];
 	LargestBlowouts?: MatchResultRecordDto[];
