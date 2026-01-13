@@ -7,7 +7,7 @@
 	});
 </script>
 
-<nav class="navbar bg-base-100 shadow-lg w-full">
+<nav class="navbar bg-base-100 shadow-lg w-full sticky top-0 z-50">
 	<!-- Title -->
 	<div class="flex-1">
 		<a href="/" class="btn btn-ghost text-xl normal-case">League of Extraordinary Armchair GMs</a>
