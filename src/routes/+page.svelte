@@ -19,7 +19,7 @@
 	let recentWaivers: TransactionsPageDto[] = [];
 	let trendingUpPlayers: TrendingPlayerPageDto[] = [];
 	let trendingDownPlayers: TrendingPlayerPageDto[] = [];
-	let mostRecentWinner: LeagueUser | null = null;
+	let mostRecentWinner: (LeagueUser & { season?: string }) | null = null;
 	let sleeperState: SleeperState = {};
 	let currentSeasonStatus: string = '';
 	let loading: boolean = true;
@@ -87,7 +87,7 @@
 	</div>
 
 	<!-- Side Panel - Second on mobile, right column on desktop -->
-	<div class="bg-base-200 order-2 flex-[1] rounded-lg p-6 shadow-lg lg:order-2">
+	<div class="bg-base-200 order-2 flex-[1] rounded-lg p-6 shadow-lg lg:order-2 lg:ml-6">
 		{#if loading}
 			<!-- Loading Indicator -->
 			<div class="flex h-full items-center justify-center">

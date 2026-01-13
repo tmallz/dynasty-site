@@ -56,7 +56,10 @@
 
 				<div
 					class="bg-base-100 hover:background-secondary dark:hover:bg-base-300 mt-4 flex cursor-pointer items-center justify-between rounded-lg p-2"
+					role="button"
+					tabindex="0"
 					on:click={() => toggleBench(roster.TeamName)}
+					on:keydown={(e) => e.key === 'Enter' && toggleBench(roster.TeamName)}
 				>
 					<span class="font-semibold">
 						{expandedBenches[roster.TeamName] ? 'Collapse Bench' : 'Expand to See Bench'}
