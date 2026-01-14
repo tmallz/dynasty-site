@@ -1,0 +1,102 @@
+import type { PageServerLoad } from './$types';
+import { RostersHelper } from '$lib/Utilities/RostersHelper';
+import { LeagueHistoryHelper } from '$lib/Utilities/LeagueHistoryHelper';
+import { SleeperClient } from '$lib/api/services/SleeperClient';
+import { LoadRosters, IsRostersLoaded } from '$lib/Stores/RosterStore';
+import { LoadUsers, IsUsersLoaded } from '$lib/Stores/UserStores';
+import { PlayersStore } from '$lib/Stores/PlayerStore';
+import { TransactionStatus } from '$lib/api/Enums/TransactionStatus';
+import { promises as fs } from 'fs';
+import path from 'path';
+import type { Matchup } from '$lib/api/dtos/LeagueDtos/Matchup';
+import type { Transaction } from '$lib/api/dtos/LeagueDtos/Transaction';
+
+export const load: PageServerLoad = async () => {
+	const leagueID = import.meta.env.VITE_LEAGUE_ID;
+
+	try {
+		// Load necessary stores
+		if (!IsRostersLoaded()) {
+			await LoadRosters(leagueID);
+		}
+
+		if (!IsUsersLoaded()) {
+			await LoadUsers(leagueID);
+		}
+
+		// Load players
+		const DATA_FILE_PATH =
+			process.env.NODE_ENV === 'production'
+				? path.join('/tmp', 'players.json')
+				: path.join(process.cwd(), 'static', 'players.json');
+
+		let players: Record<string, any> = {};
+
+		try {
+			const fileData = await fs.readFile(DATA_FILE_PATH, 'utf-8');
+			if (fileData.trim() !== '') {
+				players = JSON.parse(fileData);
+			}
+		} catch {
+			players = await SleeperClient.GetAllPlayers();
+			await fs.writeFile(DATA_FILE_PATH, JSON.stringify(players, null, 2));
+		}
+
+		PlayersStore.set(players);
+
+		// Load rosters and basic data
+		const rosters = await RostersHelper.GetAllRosters();
+		const users = await SleeperClient.GetLeagueUsers(leagueID);
+
+		// Load all historical matchups and transactions organized by season and week
+		const matchups: Record<string, Record<number, Matchup[]>> = {};
+		const allTransactions: Transaction[] = [];
+		
+		// Get all previous league IDs
+		const leagues = await LeagueHistoryHelper.GetLeagueChainFromCurrent();
+		
+		// Iterate through each league/season
+		for (const league of leagues) {
+			const season = league.season;
+			matchups[season] = {};
+			
+			// Load matchups and transactions for each week (assuming 18 week max regular + playoffs)
+			for (let week = 1; week <= 18; week++) {
+				try {
+					const weekMatchups = await SleeperClient.GetMatchups(league.league_id, week);
+					if (weekMatchups && weekMatchups.length > 0) {
+						matchups[season][week] = weekMatchups;
+					}
+				} catch (error) {
+					// Week doesn't exist or failed to load, skip it
+				}
+
+				try {
+					const weekTransactions = await SleeperClient.GetTransactions(league.league_id, week);
+					// Filter for completed transactions and add season info
+					const completedTx = weekTransactions
+						.filter(t => t.status === TransactionStatus.Complete)
+						.map(t => ({ ...t, season: season }));
+					allTransactions.push(...completedTx);
+				} catch (error) {
+					// Week doesn't exist or failed to load, skip it
+				}
+			}
+		}
+
+		return {
+			rosters: rosters ?? [],
+			matchups: matchups ?? {},
+			transactions: allTransactions ?? [],
+			users: users ?? []
+		};
+	} catch (error) {
+		console.error('Error loading rivalries data:', error);
+		return {
+			rosters: [],
+			matchups: {},
+			transactions: [],
+			users: []
+		};
+	}
+};

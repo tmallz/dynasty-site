@@ -21,6 +21,7 @@
 			<li><a href="/transactions" class="hover:text-primary">Transactions</a></li>
 			<li><a href="/drafts" class="hover:text-primary">Drafts</a></li>
 			<li><a href="/league-stats" class="hover:text-primary">League Stats</a></li>
+			<li><a href="/rivalries" class="hover:text-primary">Rivalries</a></li>
 			<li><a href="/resources" class="hover:text-primary">Resources</a></li>
 			<li><a href="/constitution" class="hover:text-primary">Constitution</a></li>
 		</ul>
@@ -84,6 +85,7 @@
 			<li><a href="/transactions">Transactions</a></li>
 			<li><a href="/drafts">Drafts</a></li>
 			<li><a href="/league-stats">League Stats</a></li>
+			<li><a href="/rivalries">Rivalries</a></li>
 			<li><a href="/resources">Resources</a></li>
 			<li><a href="/constitution">Constitution</a></li>
 		</ul>
