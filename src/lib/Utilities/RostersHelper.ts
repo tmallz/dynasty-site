@@ -28,6 +28,7 @@ export class RostersHelper {
 	private static async MapRoster(roster: Roster): Promise<RosterPageDto> {
 		let pageRoster: RosterPageDto = {} as RosterPageDto;
 		let users: LeagueUser[] = get(UsersStore) ?? [];
+		pageRoster.roster_id = roster.roster_id;
 		pageRoster.OwnerId = roster.owner_id;
 		pageRoster.AvatarUrl = await AvatarHelper.GetUserAvatarUrl(roster);
 		pageRoster.TeamName = RostersHelper.GetUserFromRosterId(roster.roster_id).display_name;
