@@ -118,11 +118,20 @@ export class RivalriesHelper {
     ): RivalryMatchup[] {
         const games: RivalryMatchup[] = [];
 
+        console.log(`Finding matchups between roster ${team1RosterId} and roster ${team2RosterId}`);
+
         // Matchups are organized by season -> week
         for (const season in matchups) {
             const seasonMatchups = matchups[season];
             
             for (const week in seasonMatchups) {
+                const weekNum = parseInt(week);
+                
+                // Skip week 18 (no lineups set)
+                if (weekNum === 18) {
+                    continue;
+                }
+                
                 const weekMatchups = seasonMatchups[week];
                 
                 // Find if these two teams played each other this week
@@ -143,10 +152,19 @@ export class RivalriesHelper {
                     team1Matchup.matchup_id === team2Matchup.matchup_id) {
                     const team1Score = team1Matchup.points || 0;
                     const team2Score = team2Matchup.points || 0;
+                    
+                    // Skip matchups where both scores are 0 (no lineups set)
+                    if (team1Score === 0 && team2Score === 0) {
+                        console.log(`Skipping ${season} Week ${weekNum}: Both scores are 0`);
+                        continue;
+                    }
+                    
                     const margin = Math.abs(team1Score - team2Score);
                     
+                    console.log(`Found matchup: ${season} Week ${weekNum} - Score: ${team1Score.toFixed(2)} vs ${team2Score.toFixed(2)} (Margin: ${margin.toFixed(2)})`);
+                    
                     games.push({
-                        week: parseInt(week),
+                        week: weekNum,
                         season: season,
                         margin: margin,
                         team1Score: team1Score,
@@ -158,6 +176,8 @@ export class RivalriesHelper {
             }
         }
 
+        console.log(`Total matchups found: ${games.length}`);
+        
         return games;
     }
 
