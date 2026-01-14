@@ -51,6 +51,7 @@ export const load: PageServerLoad = async () => {
 		// Load all historical matchups and transactions organized by season and week
 		const matchups: Record<string, Record<number, Matchup[]>> = {};
 		const allTransactions: Transaction[] = [];
+		const brackets: Record<string, { winners: any[]; losers: any[] }> = {};
 		
 		// Get all previous league IDs
 		const leagues = await LeagueHistoryHelper.GetLeagueChainFromCurrent();
@@ -59,6 +60,21 @@ export const load: PageServerLoad = async () => {
 		for (const league of leagues) {
 			const season = league.season;
 			matchups[season] = {};
+			
+			// Load playoff brackets for this season
+			try {
+				const [winnersBracket, losersBracket] = await Promise.all([
+					SleeperClient.GetWinnersBracket(league.league_id),
+					SleeperClient.GetLosersBracket(league.league_id)
+				]);
+				brackets[season] = {
+					winners: winnersBracket || [],
+					losers: losersBracket || []
+				};
+			} catch (error) {
+				console.error(`Failed to load brackets for ${season}:`, error);
+				brackets[season] = { winners: [], losers: [] };
+			}
 			
 			// Load matchups and transactions for each week (assuming 18 week max regular + playoffs)
 			for (let week = 1; week <= 18; week++) {
@@ -88,7 +104,8 @@ export const load: PageServerLoad = async () => {
 			rosters: rosters ?? [],
 			matchups: matchups ?? {},
 			transactions: allTransactions ?? [],
-			users: users ?? []
+			users: users ?? [],
+			brackets: brackets ?? {}
 		};
 	} catch (error) {
 		console.error('Error loading rivalries data:', error);
@@ -96,7 +113,8 @@ export const load: PageServerLoad = async () => {
 			rosters: [],
 			matchups: {},
 			transactions: [],
-			users: []
+			users: [],
+			brackets: {}
 		};
 	}
 };

@@ -39,7 +39,8 @@ export class RivalriesHelper {
         team1RosterId: number,
         team2RosterId: number,
         matchups: any,
-        transactions: TransactionWithSeason[]
+        transactions: TransactionWithSeason[],
+        brackets: Record<string, { winners: any[]; losers: any[] }>
     ): RivalryStats {
         // Initialize stats
         const stats: RivalryStats = {
@@ -59,7 +60,8 @@ export class RivalriesHelper {
         const headToHeadGames = this.findHeadToHeadMatchups(
             team1RosterId,
             team2RosterId,
-            matchups
+            matchups,
+            brackets
         );
 
         // Calculate win/loss record
@@ -114,7 +116,8 @@ export class RivalriesHelper {
     private static findHeadToHeadMatchups(
         team1RosterId: number,
         team2RosterId: number,
-        matchups: any
+        matchups: any,
+        brackets: Record<string, { winners: any[]; losers: any[] }>
     ): RivalryMatchup[] {
         const games: RivalryMatchup[] = [];
 
@@ -123,6 +126,7 @@ export class RivalriesHelper {
         // Matchups are organized by season -> week
         for (const season in matchups) {
             const seasonMatchups = matchups[season];
+            const seasonBrackets = brackets[season] || { winners: [], losers: [] };
             
             for (const week in seasonMatchups) {
                 const weekNum = parseInt(week);
@@ -153,6 +157,19 @@ export class RivalriesHelper {
                     const team1Score = team1Matchup.points || 0;
                     const team2Score = team2Matchup.points || 0;
                     
+                    // Validate this is a real matchup by checking bracket data
+                    const isValidMatchup = this.isMatchupInBracket(
+                        team1RosterId,
+                        team2RosterId,
+                        weekNum,
+                        seasonBrackets
+                    );
+                    
+                    if (!isValidMatchup) {
+                        console.log(`Skipping ${season} Week ${weekNum}: Not found in playoff brackets`);
+                        continue;
+                    }
+                    
                     // Skip matchups where both scores are 0 (no lineups set)
                     if (team1Score === 0 && team2Score === 0) {
                         console.log(`Skipping ${season} Week ${weekNum}: Both scores are 0`);
@@ -179,6 +196,43 @@ export class RivalriesHelper {
         console.log(`Total matchups found: ${games.length}`);
         
         return games;
+    }
+
+    private static isMatchupInBracket(
+        team1RosterId: number,
+        team2RosterId: number,
+        week: number,
+        brackets: { winners: any[]; losers: any[] }
+    ): boolean {
+        // Regular season matchups are always valid (typically weeks 1-14)
+        // Assuming playoffs start around week 15
+        if (week <= 14) {
+            return true;
+        }
+        
+        // For playoff weeks, check if this matchup exists in either bracket
+        const allBracketMatchups = [...brackets.winners, ...brackets.losers];
+        
+        for (const bracketMatchup of allBracketMatchups) {
+            // Check if both teams are in this bracket matchup
+            const t1 = typeof bracketMatchup.t1 === 'number' ? bracketMatchup.t1 : null;
+            const t2 = typeof bracketMatchup.t2 === 'number' ? bracketMatchup.t2 : null;
+            
+            // Also check winner/loser in case match is complete
+            const hasTeam1 = t1 === team1RosterId || t1 === team2RosterId || 
+                            bracketMatchup.w === team1RosterId || bracketMatchup.w === team2RosterId ||
+                            bracketMatchup.l === team1RosterId || bracketMatchup.l === team2RosterId;
+            const hasTeam2 = t2 === team1RosterId || t2 === team2RosterId ||
+                            bracketMatchup.w === team1RosterId || bracketMatchup.w === team2RosterId ||
+                            bracketMatchup.l === team1RosterId || bracketMatchup.l === team2RosterId;
+            
+            if ((t1 === team1RosterId && t2 === team2RosterId) ||
+                (t1 === team2RosterId && t2 === team1RosterId)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private static findTradesBetweenTeams(

@@ -15,7 +15,8 @@
 				selectedTeam1,
 				selectedTeam2,
 				data.matchups,
-				data.transactions
+				data.transactions,
+				data.brackets
 			);
 		} else {
 			rivalryStats = null;
