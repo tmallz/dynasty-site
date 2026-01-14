@@ -32,6 +32,15 @@
 		const roster = data.rosters.find((r) => r.roster_id === rosterId);
 		return roster?.AvatarUrl || '';
 	}
+
+	function getPlayerName(playerId: string): string {
+		const player = data.players[playerId];
+		if (player) {
+			const fullName = `${player.first_name || ''} ${player.last_name || ''}`.trim();
+			return fullName || playerId;
+		}
+		return playerId;
+	}
 </script>
 
 <div class="container mx-auto p-6 max-w-7xl">
@@ -294,8 +303,83 @@
 						<p class="text-sm text-base-content/70">Total Trades</p>
 					</div>
 
+					<!-- Most Recent Trade -->
+					{#if rivalryStats.mostRecentTrade}
+						<div class="bg-gradient-to-br from-accent/20 to-accent/10 rounded-lg p-4 mb-4">
+							<div class="flex items-center justify-between mb-3">
+								<p class="text-sm font-semibold text-accent">Most Recent Trade</p>
+								<div>
+									<span class="badge badge-accent badge-sm">{rivalryStats.mostRecentTrade.season}</span>
+									<span class="text-xs ml-1">Week {rivalryStats.mostRecentTrade.week}</span>
+								</div>
+							</div>
+
+							<div class="grid grid-cols-2 gap-4">
+								<!-- Team 1 Received -->
+								<div>
+									<div class="flex items-center gap-1 mb-2">
+										<div class="avatar">
+											<div class="w-5 rounded-full">
+												<img src={getTeamAvatar(selectedTeam1)} alt="" />
+											</div>
+										</div>
+										<p class="text-xs font-semibold">Received</p>
+									</div>
+									<div class="space-y-1">
+										{#if rivalryStats.mostRecentTrade.team1Adds.length > 0}
+											{#each rivalryStats.mostRecentTrade.team1Adds as playerId}
+												<p class="text-xs bg-base-200 rounded px-2 py-1">{getPlayerName(playerId)}</p>
+											{/each}
+										{/if}
+										{#if rivalryStats.mostRecentTrade.team1Picks.length > 0}
+											{#each rivalryStats.mostRecentTrade.team1Picks as pick}
+												<p class="text-xs bg-base-200 rounded px-2 py-1">
+													{pick.season} Round {pick.round} Pick
+												</p>
+											{/each}
+										{/if}
+										{#if rivalryStats.mostRecentTrade.team1Adds.length === 0 && rivalryStats.mostRecentTrade.team1Picks.length === 0}
+											<p class="text-xs text-base-content/50 italic">Nothing received</p>
+										{/if}
+									</div>
+								</div>
+
+								<!-- Team 2 Received -->
+								<div>
+									<div class="flex items-center gap-1 mb-2">
+										<div class="avatar">
+											<div class="w-5 rounded-full">
+												<img src={getTeamAvatar(selectedTeam2)} alt="" />
+											</div>
+										</div>
+										<p class="text-xs font-semibold">Received</p>
+									</div>
+									<div class="space-y-1">
+										{#if rivalryStats.mostRecentTrade.team2Adds.length > 0}
+											{#each rivalryStats.mostRecentTrade.team2Adds as playerId}
+												<p class="text-xs bg-base-200 rounded px-2 py-1">{getPlayerName(playerId)}</p>
+											{/each}
+										{/if}
+										{#if rivalryStats.mostRecentTrade.team2Picks.length > 0}
+											{#each rivalryStats.mostRecentTrade.team2Picks as pick}
+												<p class="text-xs bg-base-200 rounded px-2 py-1">
+													{pick.season} Round {pick.round} Pick
+												</p>
+											{/each}
+										{/if}
+										{#if rivalryStats.mostRecentTrade.team2Adds.length === 0 && rivalryStats.mostRecentTrade.team2Picks.length === 0}
+											<p class="text-xs text-base-content/50 italic">Nothing received</p>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+					{/if}
+
+					<!-- Trade History List -->
 					{#if rivalryStats.tradeDetails.length > 0}
 						<div class="overflow-auto max-h-64">
+							<p class="text-xs font-semibold mb-2 text-base-content/70">All Trades</p>
 							<div class="space-y-2">
 								{#each rivalryStats.tradeDetails as trade}
 									<div class="bg-base-200 rounded-lg p-2 text-sm">

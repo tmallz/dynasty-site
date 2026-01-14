@@ -21,6 +21,13 @@ export interface TradeDetail {
     transactionId: string;
 }
 
+export interface RecentTradeDetail extends TradeDetail {
+    team1Adds: string[]; // player IDs team1 received
+    team2Adds: string[]; // player IDs team2 received
+    team1Picks: Array<{ season: number; round: number; originalOwner?: number }>;
+    team2Picks: Array<{ season: number; round: number; originalOwner?: number }>;
+}
+
 export interface RivalryStats {
     team1Wins: number;
     team2Wins: number;
@@ -32,6 +39,7 @@ export interface RivalryStats {
     team2NarrowestVictory: RivalryMatchup | null;
     totalTrades: number;
     tradeDetails: TradeDetail[];
+    mostRecentTrade: RecentTradeDetail | null;
 }
 
 export class RivalriesHelper {
@@ -53,7 +61,8 @@ export class RivalriesHelper {
             team1NarrowestVictory: null,
             team2NarrowestVictory: null,
             totalTrades: 0,
-            tradeDetails: []
+            tradeDetails: [],
+            mostRecentTrade: null
         };
 
         // Find head-to-head matchups
@@ -107,8 +116,9 @@ export class RivalriesHelper {
             team2RosterId,
             transactions
         );
-        stats.totalTrades = tradeStats.length;
-        stats.tradeDetails = tradeStats;
+        stats.totalTrades = tradeStats.trades.length;
+        stats.tradeDetails = tradeStats.trades;
+        stats.mostRecentTrade = tradeStats.mostRecent;
 
         return stats;
     }
@@ -121,10 +131,17 @@ export class RivalriesHelper {
     ): RivalryMatchup[] {
         const games: RivalryMatchup[] = [];
 
-        console.log(`Finding matchups between roster ${team1RosterId} and roster ${team2RosterId}`);
-
+        // Get current year to avoid processing future seasons
+        const currentYear = new Date().getFullYear();
+        
         // Matchups are organized by season -> week
         for (const season in matchups) {
+            // Skip future seasons (in case Sleeper returns data for seasons not yet played)
+            const seasonYear = parseInt(season);
+            if (seasonYear > currentYear) {
+                continue;
+            }
+            
             const seasonMatchups = matchups[season];
             const seasonBrackets = brackets[season] || { winners: [], losers: [] };
             
@@ -153,7 +170,8 @@ export class RivalriesHelper {
                 
                 // If both teams played and have the same matchup_id, they played each other
                 if (team1Matchup && team2Matchup && 
-                    team1Matchup.matchup_id === team2Matchup.matchup_id) {
+                    team1Matchup.matchup_id === team2Matchup.matchup_id &&
+                    team1Matchup.matchup_id !== null) {
                     const team1Score = team1Matchup.points || 0;
                     const team2Score = team2Matchup.points || 0;
                     
@@ -162,17 +180,16 @@ export class RivalriesHelper {
                         team1RosterId,
                         team2RosterId,
                         weekNum,
+                        season,
                         seasonBrackets
                     );
                     
                     if (!isValidMatchup) {
-                        console.log(`Skipping ${season} Week ${weekNum}: Not found in playoff brackets`);
                         continue;
                     }
                     
                     // Skip matchups where both scores are 0 (no lineups set)
                     if (team1Score === 0 && team2Score === 0) {
-                        console.log(`Skipping ${season} Week ${weekNum}: Both scores are 0`);
                         continue;
                     }
                     
@@ -192,8 +209,6 @@ export class RivalriesHelper {
                 }
             }
         }
-
-        console.log(`Total matchups found: ${games.length}`);
         
         return games;
     }
@@ -202,6 +217,7 @@ export class RivalriesHelper {
         team1RosterId: number,
         team2RosterId: number,
         week: number,
+        season: string,
         brackets: { winners: any[]; losers: any[] }
     ): boolean {
         // Regular season matchups are always valid (typically weeks 1-14)
@@ -218,20 +234,11 @@ export class RivalriesHelper {
             const t1 = typeof bracketMatchup.t1 === 'number' ? bracketMatchup.t1 : null;
             const t2 = typeof bracketMatchup.t2 === 'number' ? bracketMatchup.t2 : null;
             
-            // Also check winner/loser in case match is complete
-            const hasTeam1 = t1 === team1RosterId || t1 === team2RosterId || 
-                            bracketMatchup.w === team1RosterId || bracketMatchup.w === team2RosterId ||
-                            bracketMatchup.l === team1RosterId || bracketMatchup.l === team2RosterId;
-            const hasTeam2 = t2 === team1RosterId || t2 === team2RosterId ||
-                            bracketMatchup.w === team1RosterId || bracketMatchup.w === team2RosterId ||
-                            bracketMatchup.l === team1RosterId || bracketMatchup.l === team2RosterId;
-            
             if ((t1 === team1RosterId && t2 === team2RosterId) ||
                 (t1 === team2RosterId && t2 === team1RosterId)) {
                 return true;
             }
         }
-        
         return false;
     }
 
@@ -239,8 +246,9 @@ export class RivalriesHelper {
         team1RosterId: number,
         team2RosterId: number,
         transactions: TransactionWithSeason[]
-    ): TradeDetail[] {
+    ): { trades: TradeDetail[]; mostRecent: RecentTradeDetail | null } {
         const trades: TradeDetail[] = [];
+        let mostRecentTransaction: TransactionWithSeason | null = null;
 
         transactions.forEach(transaction => {
             if (transaction.type === TransactionType.Trade) {
@@ -249,15 +257,69 @@ export class RivalriesHelper {
                 
                 if (rosterIds.includes(team1RosterId) && 
                     rosterIds.includes(team2RosterId)) {
-                    trades.push({
+                    const tradeDetail: TradeDetail = {
                         season: transaction.season?.toString() || '',
                         week: transaction.leg || 0,
                         transactionId: transaction.transaction_id || ''
-                    });
+                    };
+                    trades.push(tradeDetail);
+                    
+                    // Keep track of most recent (first one we encounter since transactions are loaded newest first)
+                    if (!mostRecentTransaction) {
+                        mostRecentTransaction = transaction;
+                    }
                 }
             }
         });
 
-        return trades;
+        // Parse most recent trade details if exists
+        let mostRecent: RecentTradeDetail | null = null;
+        if (mostRecentTransaction) {
+            const team1Adds: string[] = [];
+            const team2Adds: string[] = [];
+            
+            // Parse adds - figure out which team got which players
+            if (mostRecentTransaction.adds) {
+                for (const [playerId, rosterId] of Object.entries(mostRecentTransaction.adds)) {
+                    if (rosterId === team1RosterId) {
+                        team1Adds.push(playerId);
+                    } else if (rosterId === team2RosterId) {
+                        team2Adds.push(playerId);
+                    }
+                }
+            }
+            
+            // Parse draft picks
+            const team1Picks: Array<{ season: number; round: number; originalOwner?: number }> = [];
+            const team2Picks: Array<{ season: number; round: number; originalOwner?: number }> = [];
+            
+            if (mostRecentTransaction.draft_picks) {
+                for (const pick of mostRecentTransaction.draft_picks) {
+                    const pickDetail = {
+                        season: pick.season,
+                        round: pick.round,
+                        originalOwner: pick.roster_id
+                    };
+                    
+                    if (pick.owner_id === team1RosterId) {
+                        team1Picks.push(pickDetail);
+                    } else if (pick.owner_id === team2RosterId) {
+                        team2Picks.push(pickDetail);
+                    }
+                }
+            }
+            
+            mostRecent = {
+                season: mostRecentTransaction.season?.toString() || '',
+                week: mostRecentTransaction.leg || 0,
+                transactionId: mostRecentTransaction.transaction_id || '',
+                team1Adds,
+                team2Adds,
+                team1Picks,
+                team2Picks
+            };
+        }
+
+        return { trades, mostRecent };
     }
 }

@@ -10,6 +10,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import type { Matchup } from '$lib/api/dtos/LeagueDtos/Matchup';
 import type { Transaction } from '$lib/api/dtos/LeagueDtos/Transaction';
+import type { Player } from '$lib/api/dtos/PlayerDtos/Player';
+import { get } from 'svelte/store';
 
 export const load: PageServerLoad = async () => {
 	const leagueID = import.meta.env.VITE_LEAGUE_ID;
@@ -105,7 +107,8 @@ export const load: PageServerLoad = async () => {
 			matchups: matchups ?? {},
 			transactions: allTransactions ?? [],
 			users: users ?? [],
-			brackets: brackets ?? {}
+			brackets: brackets ?? {},
+			players: players ?? {}
 		};
 	} catch (error) {
 		console.error('Error loading rivalries data:', error);
@@ -114,7 +117,8 @@ export const load: PageServerLoad = async () => {
 			matchups: {},
 			transactions: [],
 			users: [],
-			brackets: {}
+			brackets: {},
+			players: {}
 		};
 	}
 };
