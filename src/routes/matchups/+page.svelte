@@ -11,7 +11,32 @@
 	import { get } from 'svelte/store';
 
 	export let data: PageData;
-	const { currentWeek, isPlayoffs, matchups, winnersBracket, losersBracket, consolationBracket } = data.matchupData;
+	
+	let currentWeek: number | undefined;
+	let isPlayoffs: boolean = false;
+	let matchups: MatchupPageDto[] = [];
+	let winnersBracket: any[] = [];
+	let losersBracket: any[] = [];
+	let consolationBracket: any[] = [];
+	let isLoading = true;
+
+	// Handle streamed data
+	$: if (data.streamed?.matchupData) {
+		data.streamed.matchupData.then((result: any) => {
+			currentWeek = result.currentWeek;
+			isPlayoffs = result.isPlayoffs;
+			matchups = result.matchups || [];
+			winnersBracket = result.winnersBracket || [];
+			losersBracket = result.losersBracket || [];
+			consolationBracket = result.consolationBracket || [];
+			isLoading = false;
+			
+			// Load player data after matchup data arrives
+			if (!isPlayoffs) {
+				ensurePlayerDataLoaded();
+			}
+		});
+	}
 
 	// Toggle state for playoff view (true = brackets, false = matchups)
 	let showBrackets = true;
@@ -51,24 +76,32 @@
 	}
 
 	// Load player data when viewing matchup details
-	$: if (!showBrackets || !isPlayoffs) {
+	$: if (!isLoading && (!showBrackets || !isPlayoffs)) {
 		ensurePlayerDataLoaded();
 	}
 
 	onMount(() => {
 		// Load player data if we're in regular season (not showing brackets)
-		if (!isPlayoffs) {
+		if (!isLoading && !isPlayoffs) {
 			ensurePlayerDataLoaded();
 		}
 	});
 </script>
 
 <main class="mx-0 p-2 md:mx-4 md:p-6 md:mx-auto {isPlayoffs ? 'max-w-none' : 'md:max-w-7xl'}">
-	<h1 class="mb-4 md:mb-6 text-center text-3xl md:text-4xl font-bold">
-		Week {currentWeek} {isPlayoffs ? '- PLAYOFFS' : 'Matchups'}
-	</h1>
+	{#if isLoading}
+		<!-- Loading State -->
+		<div class="flex flex-col items-center justify-center py-20">
+			<span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+			<p class="text-lg font-semibold">Loading matchups...</p>
+			<p class="text-sm text-base-content/70 mt-2">This may take a moment</p>
+		</div>
+	{:else}
+		<h1 class="mb-4 md:mb-6 text-center text-3xl md:text-4xl font-bold">
+			Week {currentWeek} {isPlayoffs ? '- PLAYOFFS' : 'Matchups'}
+		</h1>
 
-	{#if isPlayoffs}
+		{#if isPlayoffs}
 		<!-- Toggle button for playoffs -->
 		<div class="mb-6 flex justify-center">
 			<div class="btn-group">
@@ -605,5 +638,6 @@
 				</section>
 			{/each}
 		{/if}
+	{/if}
 	{/if}
 </main>
