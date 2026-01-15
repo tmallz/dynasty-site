@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import type { PageData } from './$types';
 	import type { MatchupPageDto } from '$lib/Utilities/Dtos/MatchupPageDto';
 	import { RosterSorter } from '$lib/Utilities/RosterSorter';
@@ -58,21 +59,25 @@
 
 	// Populate player store with data from layout (already loaded server-side)
 	function ensurePlayerDataLoaded() {
-		if (!playersLoaded && data.players) {
-			// Set the players in the store from layout data
-			PlayersStore.set(data.players);
-			
-			// Re-populate Starters for each matchup
-			const rosters = get(RostersStore);
-			matchups.forEach((matchup: MatchupPageDto) => {
-				const roster = rosters.find((r: any) => r.roster_id === matchup.RosterId);
-				if (roster) {
-					matchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
-				}
-			});
-			
-			playersLoaded = true;
-		}
+		if (playersLoaded) return;
+		
+		// Access players from parent layout data (automatically inherited)
+		const players = $page.data?.players;
+		if (!players || players.length === 0) return;
+		
+		// Set the players in the store from layout data
+		PlayersStore.set(players);
+		
+		// Re-populate Starters for each matchup
+		const rosters = get(RostersStore);
+		matchups.forEach((matchup: MatchupPageDto) => {
+			const roster = rosters.find((r: any) => r.roster_id === matchup.RosterId);
+			if (roster) {
+				matchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
+			}
+		});
+		
+		playersLoaded = true;
 	}
 
 	// Load player data when viewing matchup details
