@@ -575,14 +575,14 @@
 					<!-- Container that stacks vertically on mobile and becomes a 3-column grid on desktop, centered on larger screens -->
 					<div class="flex flex-col gap-4 md:grid md:grid-cols-3 md:items-center md:justify-center">
 						{#each group as matchup, i}
-							<div class="bg-base-100 rounded-lg p-6 shadow-lg">
+							<div class="bg-base-100 rounded-xl p-6 shadow-xl">
 								<!-- TeamHeader displays team info -->
 								<TeamHeader
 									teamName={matchup.TeamName ?? 'Unknown Team'}
 									teamLogo={matchup.AvatarUrl ?? 'https://via.placeholder.com/150'}
 								/>
 								<!-- Sorted roster starters using RosterSorter.assignRoles -->
-								<ul class="mt-4 space-y-2">
+								<ul class="mt-4 space-y-3">
 									{#each RosterSorter.assignRoles(Object.values(matchup.Starters ?? {})) as player}
 										<RosterSpot
 											position={player.role}
