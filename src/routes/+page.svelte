@@ -4,8 +4,8 @@
 	import { TransactionType } from '$lib/api/Enums/TransactionType';
 	import { SleeperClient } from '$lib/api/services/SleeperClient';
 	import TrendingPlayer from '$lib/Components/homepage/TrendingPlayer.svelte';
-	import TradeTransaction from '$lib/Components/transactions/TradeTransaction.svelte';
-	import WaiverTransaction from '$lib/Components/transactions/WaiverTransaction.svelte';
+	import CompactTradeTransaction from '$lib/Components/transactions/CompactTradeTransaction.svelte';
+	import CompactWaiverTransaction from '$lib/Components/transactions/CompactWaiverTransaction.svelte';
 	import { AvatarHelper } from '$lib/Utilities/AvatarHelper';
 	import type { TransactionsPageDto } from '$lib/Utilities/Dtos/TransactionsPageDto';
 	import type { TrendingPlayerPageDto } from '$lib/Utilities/Dtos/TrendingPlayerPageDto';
@@ -62,6 +62,25 @@
 			mostRecentWinner = await PodiumHelper.GetMostRecentWinner();
 			trendingUpPlayers = await TrendingPlayersHelper.GetTrendingUpPlayers();
 			trendingDownPlayers = await TrendingPlayersHelper.GetTrendingDownPlayers();
+
+			// Filter out players with missing data (defensive strategy for API timing issues)
+			const originalUpCount = trendingUpPlayers.length;
+			const originalDownCount = trendingDownPlayers.length;
+			
+			trendingUpPlayers = trendingUpPlayers.filter(
+				(player) => player.playerName && player.playerPosition && player.playerId
+			);
+			trendingDownPlayers = trendingDownPlayers.filter(
+				(player) => player.playerName && player.playerPosition && player.playerId
+			);
+			
+			// Log if any players were filtered out
+			if (trendingUpPlayers.length < originalUpCount) {
+				console.warn(`Filtered out ${originalUpCount - trendingUpPlayers.length} trending up player(s) with missing data`);
+			}
+			if (trendingDownPlayers.length < originalDownCount) {
+				console.warn(`Filtered out ${originalDownCount - trendingDownPlayers.length} trending down player(s) with missing data`);
+			}
 		} catch (error) {
 			console.error(error);
 		} finally {
@@ -135,13 +154,13 @@
 			<!-- Recent Trades -->
 			<h2 class="mb-4 text-xl font-bold">Recent Trades</h2>
 			{#each recentTrades as trade}
-				<TradeTransaction transaction={trade} />
+				<CompactTradeTransaction transaction={trade} />
 			{/each}
 
 			<!-- Recent Waivers -->
 			<h2 class="mt-6 mb-4 text-xl font-bold">Recent Waivers</h2>
 			{#each recentWaivers as waiver}
-				<WaiverTransaction transaction={waiver} />
+				<CompactWaiverTransaction transaction={waiver} />
 			{/each}
 		{/if}
 	</div>

@@ -28,20 +28,21 @@
 	}
 </script>
 
-<main class="grid grid-cols-1 gap-8 p-6 md:grid-cols-3">
+<main class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8">
 	<div class="col-span-full mb-4 text-center">
-		<button class="btn btn-primary" on:click={toggleAllBenches}>
+		<button class="btn btn-primary btn-lg" on:click={toggleAllBenches}>
+			<i class={`fas ${allBenchesExpanded ? 'fa-eye-slash' : 'fa-eye'}`}></i>
 			{allBenchesExpanded ? 'Collapse All Benches' : 'Expand All Benches'}
 		</button>
 	</div>
 
 		{#each rosters as roster}
-			<div class="bg-base-100 rounded-lg p-6 shadow-lg">
+			<div class="bg-base-100 rounded-xl p-6 shadow-xl">
 				<!-- Team Header -->
 				<TeamHeader teamName={roster.TeamName} teamLogo={roster.AvatarUrl} />
 
 				<!-- Player List -->
-				<ul class="space-y-2">
+				<ul class="space-y-3">
 					{#each RosterSorter.assignRoles(Object.values(roster.Starters)) as player}
 						<RosterSpot
 							position={player.role}
@@ -54,23 +55,28 @@
 					{/each}
 				</ul>
 
+				<!-- Divider -->
+				<div class="my-6 border-t border-base-content/10"></div>
+
 				<div
-					class="bg-base-100 hover:background-secondary dark:hover:bg-base-300 mt-4 flex cursor-pointer items-center justify-between rounded-lg p-2"
+					class="btn btn-outline w-full justify-between hover:btn-primary"
 					role="button"
 					tabindex="0"
 					on:click={() => toggleBench(roster.TeamName)}
 					on:keydown={(e) => e.key === 'Enter' && toggleBench(roster.TeamName)}
 				>
-					<span class="font-semibold">
-						{expandedBenches[roster.TeamName] ? 'Collapse Bench' : 'Expand to See Bench'}
+					<span class="flex items-center gap-2 font-semibold">
+						<i class={`fas ${expandedBenches[roster.TeamName] ? 'fa-users-slash' : 'fa-users'}`}></i>
+						{expandedBenches[roster.TeamName] ? 'Hide Bench' : 'Show Bench'}
+						<span class="badge badge-sm">{Object.values(roster.Bench).length} Players</span>
 					</span>
-					<i class={`fas ${expandedBenches[roster.TeamName] ? 'fa-chevron-up' : 'fa-chevron-down'}`}
+					<i class={`fas ${expandedBenches[roster.TeamName] ? 'fa-chevron-up' : 'fa-chevron-down'} text-lg`}
 					></i>
 				</div>
 
 				<!-- Bench Players -->
 				{#if expandedBenches[roster.TeamName]}
-					<ul class="mt-4 space-y-2">
+					<ul class="mt-4 space-y-3">
 						{#each Object.values(roster.Bench) as player}
 							<RosterSpot
 								position="BN"

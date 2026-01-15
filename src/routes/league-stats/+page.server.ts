@@ -11,7 +11,7 @@ export const load: PageServerLoad = async () => {
 		await LoadUsers(leagueId);
 	}
 	
-	const stats = await LeagueStatsHelper.GetLeagueStats();
+	const stats = await LeagueStatsHelper.GetLeagueStatsCached();
 	const users = get(UsersStore);
 	
 	return { stats, users };
