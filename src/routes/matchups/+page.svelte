@@ -6,7 +6,7 @@
 	import { RostersHelper } from '$lib/Utilities/RostersHelper';
 	import TeamHeader from '$lib/Components/rosters/TeamHeader.svelte';
 	import RosterSpot from '$lib/Components/rosters/RosterSpot.svelte';
-	import { LoadPlayers, IsPlayersLoaded } from '$lib/Stores/PlayerStore';
+	import { PlayersStore } from '$lib/Stores/PlayerStore';
 	import { RostersStore } from '$lib/Stores/RosterStore';
 	import { get } from 'svelte/store';
 
@@ -17,7 +17,6 @@
 	let showBrackets = true;
 	let showLosersBracket = false;
 	let playersLoaded = false;
-	let isLoadingPlayers = false;
 
 	// Group matchups by MatchupId for regular season - make reactive
 	$: groupedMatchups = matchups ? matchups.reduce(
@@ -32,26 +31,22 @@
 		{} as Record<string, MatchupPageDto[]>
 	) : {};
 
-	// Lazy load player details when viewing matchups
-	async function ensurePlayerDataLoaded() {
-		if (!playersLoaded && !IsPlayersLoaded() && !isLoadingPlayers) {
-			isLoadingPlayers = true;
-			try {
-				await LoadPlayers();
-				
-				// Re-populate Starters for each matchup
-				const rosters = get(RostersStore);
-				matchups.forEach(matchup => {
-					const roster = rosters.find(r => r.roster_id === matchup.RosterId);
-					if (roster) {
-						matchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
-					}
-				});
-				
-				playersLoaded = true;
-			} finally {
-				isLoadingPlayers = false;
-			}
+	// Populate player store with data from layout (already loaded server-side)
+	function ensurePlayerDataLoaded() {
+		if (!playersLoaded && data.players) {
+			// Set the players in the store from layout data
+			PlayersStore.set(data.players);
+			
+			// Re-populate Starters for each matchup
+			const rosters = get(RostersStore);
+			matchups.forEach((matchup: MatchupPageDto) => {
+				const roster = rosters.find((r: any) => r.roster_id === matchup.RosterId);
+				if (roster) {
+					matchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
+				}
+			});
+			
+			playersLoaded = true;
 		}
 	}
 
@@ -561,7 +556,7 @@
 		<p>Loading...</p>
 	{:else}
 		<!-- Regular Season or Non-Bracket View -->
-		{#if isLoadingPlayers}
+		{#if !playersLoaded}
 			<div class="flex justify-center items-center min-h-[400px]">
 				<div class="text-center">
 					<span class="loading loading-spinner loading-lg"></span>
