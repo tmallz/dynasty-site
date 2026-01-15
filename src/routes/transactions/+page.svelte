@@ -11,6 +11,7 @@
 	let loading = false;
 	let hasMore = true;
 	let isLoading = true;
+	let filterType: 'all' | 'trades' | 'waivers' = 'all';
 
 	// Handle streamed data
 	$: if (data.streamed?.transactions) {
@@ -19,6 +20,19 @@
 			isLoading = false;
 		});
 	}
+
+	// Filter transactions based on selected type
+	$: filteredTransactions = transactions.filter(transaction => {
+		if (filterType === 'all') {
+			return true;
+		} else if (filterType === 'trades') {
+			return transaction.TransactionType === TransactionType.Trade;
+		} else if (filterType === 'waivers') {
+			return transaction.TransactionType === TransactionType.Waiver || 
+			       transaction.TransactionType === TransactionType.FreeAgent;
+		}
+		return true;
+	});
 
 	async function loadMore() {
 		if (loading) return;
@@ -53,6 +67,24 @@
 		<p class="text-base-content/70">Recent trades, waivers, and free agent pickups</p>
 	</div>
 
+	<!-- Filter Dropdown -->
+	<div class="mb-6 flex justify-center">
+		<div class="form-control w-full max-w-xs">
+			<label class="label" for="transaction-filter">
+				<span class="label-text font-semibold">Filter by type</span>
+			</label>
+			<select 
+				id="transaction-filter"
+				class="select select-bordered w-full"
+				bind:value={filterType}
+			>
+				<option value="all">All Transactions</option>
+				<option value="trades">Trades Only</option>
+				<option value="waivers">Waivers & Free Agents</option>
+			</select>
+		</div>
+	</div>
+
 	{#if isLoading}
 		<!-- Loading State -->
 		<div class="flex flex-col items-center justify-center py-20">
@@ -62,7 +94,7 @@
 		</div>
 	{:else if transactions && transactions.length > 0}
 		<div class="space-y-6">
-			{#each transactions as transaction}
+			{#each filteredTransactions as transaction}
 				{#if transaction.TransactionType === TransactionType.Trade}
 					<TradeTransaction {transaction} />
 				{/if}
@@ -71,6 +103,12 @@
 				{/if}
 			{/each}
 		</div>
+
+		{#if filteredTransactions.length === 0}
+			<div class="text-center py-12">
+				<p class="text-base-content/70 text-lg">No {filterType === 'trades' ? 'trades' : filterType === 'waivers' ? 'waivers or free agent pickups' : 'transactions'} found</p>
+			</div>
+		{/if}
 
 		<!-- Load More Button -->
 		{#if hasMore}

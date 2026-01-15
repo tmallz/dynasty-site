@@ -38,7 +38,7 @@ export interface RivalryStats {
     team1NarrowestVictory: RivalryMatchup | null;
     team2NarrowestVictory: RivalryMatchup | null;
     totalTrades: number;
-    tradeDetails: TradeDetail[];
+    tradeDetails: RecentTradeDetail[];
     mostRecentTrade: RecentTradeDetail | null;
 }
 
@@ -123,7 +123,7 @@ export class RivalriesHelper {
         return stats;
     }
 
-    private static findHeadToHeadMatchups(
+    static findHeadToHeadMatchups(
         team1RosterId: number,
         team2RosterId: number,
         matchups: any,
@@ -244,9 +244,8 @@ export class RivalriesHelper {
         team1RosterId: number,
         team2RosterId: number,
         transactions: TransactionWithSeason[]
-    ): { trades: TradeDetail[]; mostRecent: RecentTradeDetail | null } {
-        const trades: TradeDetail[] = [];
-        let mostRecentTransaction: TransactionWithSeason | null = null;
+    ): { trades: RecentTradeDetail[]; mostRecent: RecentTradeDetail | null } {
+        const trades: RecentTradeDetail[] = [];
 
         transactions.forEach(transaction => {
             if (transaction.type === TransactionType.Trade) {
@@ -255,72 +254,58 @@ export class RivalriesHelper {
                 
                 if (rosterIds.includes(team1RosterId) && 
                     rosterIds.includes(team2RosterId)) {
-                    const tradeDetail: TradeDetail = {
+                    
+                    // Parse trade details for each trade
+                    const team1Adds: string[] = [];
+                    const team2Adds: string[] = [];
+                    
+                    // Parse adds - figure out which team got which players
+                    const adds = transaction.adds;
+                    if (adds) {
+                        for (const [playerId, rosterId] of Object.entries(adds)) {
+                            if (rosterId === team1RosterId) {
+                                team1Adds.push(playerId);
+                            } else if (rosterId === team2RosterId) {
+                                team2Adds.push(playerId);
+                            }
+                        }
+                    }
+                    
+                    // Parse draft picks
+                    const team1Picks: Array<{ season: string; round: number; originalOwner?: number }> = [];
+                    const team2Picks: Array<{ season: string; round: number; originalOwner?: number }> = [];
+                    
+                    const draftPicks = transaction.draft_picks;
+                    if (draftPicks) {
+                        for (const pick of draftPicks) {
+                            const pickDetail = {
+                                season: pick.season,
+                                round: pick.round,
+                                originalOwner: pick.roster_id
+                            };
+                            
+                            if (pick.owner_id === team1RosterId) {
+                                team1Picks.push(pickDetail);
+                            } else if (pick.owner_id === team2RosterId) {
+                                team2Picks.push(pickDetail);
+                            }
+                        }
+                    }
+                    
+                    const tradeDetail: RecentTradeDetail = {
                         season: transaction.season?.toString() || '',
                         week: transaction.leg || 0,
-                        transactionId: transaction.transaction_id || ''
+                        transactionId: transaction.transaction_id || '',
+                        team1Adds,
+                        team2Adds,
+                        team1Picks,
+                        team2Picks
                     };
                     trades.push(tradeDetail);
-                    
-                    // Keep track of most recent (first one we encounter since transactions are loaded newest first)
-                    if (mostRecentTransaction === null) {
-                        mostRecentTransaction = transaction;
-                    }
                 }
             }
         });
 
-        // Parse most recent trade details if exists
-        let mostRecent: RecentTradeDetail | null = null;
-        if (mostRecentTransaction !== null) {
-            const tx: TransactionWithSeason = mostRecentTransaction;
-            const team1Adds: string[] = [];
-            const team2Adds: string[] = [];
-            
-            // Parse adds - figure out which team got which players
-            const adds = tx.adds;
-            if (adds) {
-                for (const [playerId, rosterId] of Object.entries(adds)) {
-                    if (rosterId === team1RosterId) {
-                        team1Adds.push(playerId);
-                    } else if (rosterId === team2RosterId) {
-                        team2Adds.push(playerId);
-                    }
-                }
-            }
-            
-            // Parse draft picks
-            const team1Picks: Array<{ season: string; round: number; originalOwner?: number }> = [];
-            const team2Picks: Array<{ season: string; round: number; originalOwner?: number }> = [];
-            
-            const draftPicks = tx.draft_picks;
-            if (draftPicks) {
-                for (const pick of draftPicks) {
-                    const pickDetail = {
-                        season: pick.season,
-                        round: pick.round,
-                        originalOwner: pick.roster_id
-                    };
-                    
-                    if (pick.owner_id === team1RosterId) {
-                        team1Picks.push(pickDetail);
-                    } else if (pick.owner_id === team2RosterId) {
-                        team2Picks.push(pickDetail);
-                    }
-                }
-            }
-            
-            mostRecent = {
-                season: tx.season?.toString() || '',
-                week: tx.leg || 0,
-                transactionId: tx.transaction_id || '',
-                team1Adds,
-                team2Adds,
-                team1Picks,
-                team2Picks
-            };
-        }
-
-        return { trades, mostRecent };
+        return { trades, mostRecent: trades.length > 0 ? trades[0] : null };
     }
 }

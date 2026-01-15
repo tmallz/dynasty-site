@@ -43,6 +43,7 @@
 	let showBrackets = true;
 	let showLosersBracket = false;
 	let playersLoaded = false;
+	let selectedBracketMatchup: any = null;
 
 	// Group matchups by MatchupId for regular season - make reactive
 	$: groupedMatchups = matchups ? matchups.reduce(
@@ -78,6 +79,38 @@
 		});
 		
 		playersLoaded = true;
+	}
+
+	function handleBracketMatchupClick(bracketMatchup: any) {
+		// Ensure player data is loaded first
+		ensurePlayerDataLoaded();
+		
+		console.log('Bracket matchup clicked:', bracketMatchup);
+		console.log('Available matchups:', matchups);
+		
+		// Find the corresponding detailed matchups by roster IDs
+		const team1Matchup = matchups.find(m => m.RosterId === bracketMatchup.team1RosterId);
+		const team2Matchup = matchups.find(m => m.RosterId === bracketMatchup.team2RosterId);
+		
+		console.log('Team 1 matchup found:', team1Matchup);
+		console.log('Team 2 matchup found:', team2Matchup);
+		
+		if (team1Matchup && team2Matchup) {
+			selectedBracketMatchup = {
+				bracketInfo: bracketMatchup,
+				team1: team1Matchup,
+				team2: team2Matchup
+			};
+			
+			console.log('Selected bracket matchup set:', selectedBracketMatchup);
+			
+			// Scroll to the detailed view
+			setTimeout(() => {
+				document.getElementById('selected-matchup-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}, 100);
+		} else {
+			console.warn('Could not find matching detailed matchups');
+		}
 	}
 
 	// Load player data when viewing matchup details
@@ -154,7 +187,13 @@
 				<!-- Round 1 (Week 15) - 4 matchups -->
 				<div class="flex flex-col justify-around flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup, i}
-							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
+					<div 
+						class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+						on:click={() => handleBracketMatchupClick(matchup)}
+						on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+						role="button"
+						tabindex="0"
+					>
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 									<div class="flex items-center justify-between gap-2">
@@ -195,7 +234,13 @@
 				<!-- Round 2 (Week 16) - 2 matchups -->
 				<div class="flex flex-col justify-around flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup, i}
-							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
+					<div 
+						class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+						on:click={() => handleBracketMatchupClick(matchup)}
+						on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+						role="button"
+						tabindex="0"
+					>
 								<!-- Team 1 -->
 								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 									<div class="flex items-center justify-between gap-2">
@@ -236,7 +281,13 @@
 				<!-- Round 3 (Week 17) - Championship -->
 				<div class="flex flex-col justify-center flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
-							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
+					<div 
+						class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+						on:click={() => handleBracketMatchupClick(matchup)}
+						on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+						role="button"
+						tabindex="0"
+					>
 								<!-- Team 1 -->
 								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 									<div class="flex items-center justify-between gap-2">
@@ -277,7 +328,7 @@
 				<div class="flex flex-col justify-center flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-80">
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
 							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-6 md:p-8 w-64 md:w-80 text-center">
+						<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-6 md:p-8 w-64 md:w-80 text-center hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
 									<div class="text-6xl mb-4">🏆</div>
 									<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Champion</div>
 									<div class="flex items-center justify-center gap-3 mb-2">
@@ -317,7 +368,13 @@
 						<!-- Round 2 (Week 16) - 5th place game -->
 					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
 							{#each (consolationBracket ?? []).filter(m => m.round === 2) as matchup}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+					<div 
+						class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+						on:click={() => handleBracketMatchupClick(matchup)}
+						on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+						role="button"
+						tabindex="0"
+					>
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
@@ -358,7 +415,13 @@
 					<!-- Round 3 (Week 17) - 3rd Place Game -->
 					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+					<div 
+						class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+						on:click={() => handleBracketMatchupClick(matchup)}
+						on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+						role="button"
+						tabindex="0"
+					>
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
@@ -399,7 +462,7 @@
 					<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-80">
 							{#each (consolationBracket ?? []).filter(m => m.round === 3) as matchup}
 								{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-									<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
+						<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
 										<div class="text-6xl mb-4">🥉</div>
 										<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">3rd Place</div>
 										<div class="flex items-center justify-center gap-3 mb-2">
@@ -439,7 +502,13 @@
 					{#if (losersBracket ?? []).filter(m => m.round === 1).length > 0}
 						<div class="flex flex-col justify-center gap-4 md:gap-8">
 							{#each (losersBracket ?? []).filter(m => m.round === 1) as matchup}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
+						<div 
+							class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+							on:click={() => handleBracketMatchupClick(matchup)}
+							on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+							role="button"
+							tabindex="0"
+						>
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
@@ -481,7 +550,13 @@
 					{#if (losersBracket ?? []).filter(m => m.round === 2).length > 0}
 						<div class="flex flex-col justify-center">
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
+						<div 
+							class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+							on:click={() => handleBracketMatchupClick(matchup)}
+							on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+							role="button"
+							tabindex="0"
+						>
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
@@ -523,7 +598,7 @@
 					<div class="flex flex-col justify-center flex-shrink-0 w-64 md:w-80">
 						{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
 							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-6 md:p-8 w-64 md:w-80 text-center">
+						<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-6 md:p-8 w-64 md:w-80 text-center hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
 									<div class="text-6xl mb-4">💩</div>
 									<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Toilet Bowl Champion</div>
 									<div class="flex items-center justify-center gap-3 mb-2">
@@ -549,7 +624,13 @@
 						<div class="flex flex-col justify-center">
 							<div class="text-center text-sm font-semibold text-gray-400 mb-2">9th Place (Week 16)</div>
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(1, 2) as matchup}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+						<div 
+							class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+							on:click={() => handleBracketMatchupClick(matchup)}
+							on:keydown={(e) => e.key === 'Enter' && handleBracketMatchupClick(matchup)}
+							role="button"
+							tabindex="0"
+						>
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
@@ -590,6 +671,7 @@
 
 		{/if}
 	</div>
+	
 	{:else if !matchups || matchups.length === 0}
 		<p>Loading...</p>
 	{:else}
@@ -611,7 +693,7 @@
 						<!-- Container that stacks vertically on mobile and becomes a 3-column grid on desktop, centered on larger screens -->
 						<div class="flex flex-col gap-4 md:grid md:grid-cols-3 md:items-center md:justify-center">
 							{#each group as matchup, i}
-								<div class="bg-base-100 rounded-xl p-4 md:p-6 shadow-xl">
+								<div class="bg-base-100 rounded-xl p-4 md:p-6 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
 									<!-- TeamHeader displays team info -->
 									<TeamHeader
 										teamName={matchup.TeamName ?? 'Unknown Team'}
@@ -644,5 +726,85 @@
 			{/each}
 		{/if}
 	{/if}
+	{/if}
+	
+	<!-- Selected Bracket Matchup Detail View - Always at bottom -->
+	{#if selectedBracketMatchup}
+		<div id="selected-matchup-detail" class="mt-8 mb-8">
+			<div class="border-base-content/10 bg-base-300 rounded-lg border p-6">
+				<div class="flex items-center justify-between mb-6">
+					<h2 class="text-2xl md:text-3xl font-bold">
+						{selectedBracketMatchup.bracketInfo.round === 1 ? 'Round 1' : selectedBracketMatchup.bracketInfo.round === 2 ? 'Round 2' : 'Championship'} Matchup Details
+					</h2>
+					<button 
+						class="btn btn-sm btn-circle btn-ghost"
+						on:click={() => selectedBracketMatchup = null}
+						aria-label="Close matchup details"
+					>✕</button>
+				</div>
+				
+				<!-- Container for the two teams, centered on larger screens -->
+				<div class="flex flex-col gap-4 md:grid md:grid-cols-3 md:items-center md:justify-center">
+					<!-- Team 1 -->
+					<div class="bg-base-100 rounded-xl p-4 md:p-6 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+						<TeamHeader
+							teamName={selectedBracketMatchup.team1.TeamName ?? 'Unknown Team'}
+							teamLogo={selectedBracketMatchup.team1.AvatarUrl ?? 'https://via.placeholder.com/150'}
+						/>
+						<div class="text-center mt-2 mb-3">
+							<span class="text-3xl font-bold {selectedBracketMatchup.bracketInfo.winnerName === selectedBracketMatchup.bracketInfo.team1Name ? 'text-success' : ''}">
+								{selectedBracketMatchup.bracketInfo.team1Score.toFixed(2)}
+							</span>
+							{#if selectedBracketMatchup.bracketInfo.winnerName === selectedBracketMatchup.bracketInfo.team1Name}
+								<div class="badge badge-success mt-2">Winner</div>
+							{/if}
+						</div>
+						<ul class="mt-4 space-y-2 md:space-y-3">
+							{#each RosterSorter.assignRoles(Object.values(selectedBracketMatchup.team1.Starters ?? {})) as player}
+								<RosterSpot
+									position={player.role}
+									badgeClass={RosterSorter.getBadgeClass(player.role)}
+									playerName={player.first_name + ' ' + player.last_name}
+									playerTeam={player.team ?? ''}
+									playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
+									PlayerTeamLogo={player.playerTeamAvatarUrl ?? 'https://via.placeholder.com/150'}
+								/>
+							{/each}
+						</ul>
+					</div>
+					
+					<!-- VS divider -->
+					<div class="flex items-center justify-center text-2xl md:text-3xl font-bold">VS</div>
+					
+					<!-- Team 2 -->
+					<div class="bg-base-100 rounded-xl p-4 md:p-6 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+						<TeamHeader
+							teamName={selectedBracketMatchup.team2.TeamName ?? 'Unknown Team'}
+							teamLogo={selectedBracketMatchup.team2.AvatarUrl ?? 'https://via.placeholder.com/150'}
+						/>
+						<div class="text-center mt-2 mb-3">
+							<span class="text-3xl font-bold {selectedBracketMatchup.bracketInfo.winnerName === selectedBracketMatchup.bracketInfo.team2Name ? 'text-success' : ''}">
+								{selectedBracketMatchup.bracketInfo.team2Score.toFixed(2)}
+							</span>
+							{#if selectedBracketMatchup.bracketInfo.winnerName === selectedBracketMatchup.bracketInfo.team2Name}
+								<div class="badge badge-success mt-2">Winner</div>
+							{/if}
+						</div>
+						<ul class="mt-4 space-y-2 md:space-y-3">
+							{#each RosterSorter.assignRoles(Object.values(selectedBracketMatchup.team2.Starters ?? {})) as player}
+								<RosterSpot
+									position={player.role}
+									badgeClass={RosterSorter.getBadgeClass(player.role)}
+									playerName={player.first_name + ' ' + player.last_name}
+									playerTeam={player.team ?? ''}
+									playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
+									PlayerTeamLogo={player.playerTeamAvatarUrl ?? 'https://via.placeholder.com/150'}
+								/>
+							{/each}
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
 	{/if}
 </main>

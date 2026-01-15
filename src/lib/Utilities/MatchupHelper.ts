@@ -383,9 +383,11 @@ export class MatchupHelper {
 				team1Name,
 				team1Score,
 				team1Avatar,
+				team1RosterId,
 				team2Name,
 				team2Score,
 				team2Avatar,
+				team2RosterId,
 				winnerName
 			});
 		}
