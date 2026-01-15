@@ -5,6 +5,10 @@ export interface MatchupPageDto {
 	RosterId?: number;
 	TeamName?: string;
 	Starters?: Record<string, Player>;
+	Bench?: Record<string, Player>;
 	Score?: number;
 	AvatarUrl?: string;
+	PlayersPoints?: Record<string, number>; // Map player IDs to their fantasy points
+	StarterIds?: string[]; // Historical starters for this specific matchup
+	PlayerIds?: string[]; // Historical all players for this specific matchup
 }

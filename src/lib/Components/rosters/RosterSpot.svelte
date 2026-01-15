@@ -5,6 +5,7 @@
 	export let playerTeam: string;
 	export let playerImage: string;
 	export let PlayerTeamLogo: string;
+	export let playerPoints: number | undefined = undefined;
 </script>
 
 <li class="flex items-center justify-between rounded-lg bg-base-200 p-2 md:p-3 transition-all duration-200 hover:bg-base-300 hover:shadow-md">
@@ -32,6 +33,14 @@
 			<p class="font-semibold text-sm md:text-base">{playerName}</p>
 			<p class="text-xs md:text-sm text-base-content/60">{playerTeam}</p>
 		</div>
+		
+		<!-- Player Points -->
+		{#if playerPoints !== undefined}
+			<div class="text-right flex-shrink-0 min-w-[3rem]">
+				<p class="font-bold text-sm md:text-base">{playerPoints.toFixed(2)}</p>
+				<p class="text-xs text-base-content/60">pts</p>
+			</div>
+		{/if}
 	</div>
 </li>
 

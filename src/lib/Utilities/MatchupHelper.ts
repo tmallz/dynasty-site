@@ -103,13 +103,22 @@ export class MatchupHelper {
 		pageMatchup.RosterId = roster.roster_id;
 		pageMatchup.TeamName = users.find((u) => u.user_id === roster.owner_id)?.display_name ?? '';
 		
+		// Include players_points from matchup API response
+		pageMatchup.PlayersPoints = matchup.players_points || {};
+		
+		// Store the historical lineup from this matchup (not current roster)
+		pageMatchup.StarterIds = matchup.starters;
+		pageMatchup.PlayerIds = matchup.players;
+
 		// Only include player details if requested (requires PlayersStore which may not be available server-side)
 		if (includePlayerDetails) {
-			pageMatchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
+			pageMatchup.Starters = RostersHelper.MapPlayerNames(matchup.starters);
+			const benchIds = matchup.players.filter((p) => !matchup.starters.includes(p));
+			pageMatchup.Bench = RostersHelper.MapPlayerNames(benchIds) as Record<string, Player>;
 		}
-		
+
 		pageMatchup.Score = matchup.points;
-		
+
 		// Get avatar URL directly without loading stores
 		const user = users.find((u) => u.user_id === roster.owner_id);
 		const avatarId = user?.avatar || '';
@@ -144,9 +153,9 @@ export class MatchupHelper {
 				usePreviousLeague: false
 			};
 		} else if (nflState.season_type === 'post') {
-			// NFL Playoffs - if league season doesn't match, we need previous league's playoff data
+			// NFL Playoffs - fantasy season ends at week 17, so show week 17 (championship week)
 			return {
-				week: 18,
+				week: 17,
 				isPlayoffs: true,
 				usePreviousLeague: !isCurrentSeason
 			};
@@ -165,7 +174,8 @@ export class MatchupHelper {
 			}
 
 			// Search from week 18 down to 1 to find the last week with data
-			for (let week = 18; week >= 1; week--) {
+			// Note: Fantasy season is weeks 1-17 (regular season 1-14, playoffs 15-17)
+			for (let week = 17; week >= 1; week--) {
 				try {
 					const matchups = await SleeperClient.GetMatchups(searchLeagueId, week);
 					if (matchups && matchups.length > 0) {

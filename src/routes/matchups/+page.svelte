@@ -16,10 +16,12 @@
 	let currentWeek: number | undefined;
 	let isPlayoffs: boolean = false;
 	let matchups: MatchupPageDto[] = [];
+	let regularSeasonMatchups: MatchupPageDto[] = []; // For week 14 view during playoffs
 	let winnersBracket: any[] = [];
 	let losersBracket: any[] = [];
 	let consolationBracket: any[] = [];
 	let isLoading = true;
+	let loadingRegularSeason = false;
 
 	// Handle streamed data
 	$: if (data.streamed?.matchupData) {
@@ -44,9 +46,158 @@
 	let showLosersBracket = false;
 	let playersLoaded = false;
 	let selectedBracketMatchup: any = null;
+	let viewingRegularSeasonDuringPlayoffs = false;
+	
+	// Function to load week 14 matchups during playoffs
+	async function loadRegularSeasonMatchups() {
+		if (regularSeasonMatchups.length > 0) {
+			// Already loaded
+			viewingRegularSeasonDuringPlayoffs = true;
+			showBrackets = false;
+			showLosersBracket = false;
+			ensurePlayerDataLoaded();
+			return;
+		}
+		
+		loadingRegularSeason = true;
+		try {
+			// Fetch week 14 matchups (last regular season week)
+			const week14Matchups = await fetch(`/api/matchups?week=14`).then(r => r.json());
+			
+			if (week14Matchups && Array.isArray(week14Matchups)) {
+				regularSeasonMatchups = week14Matchups;
+				viewingRegularSeasonDuringPlayoffs = true;
+				showBrackets = false;
+				showLosersBracket = false;
+				ensurePlayerDataLoaded();
+			}
+		} catch (error) {
+			console.error('Failed to load week 14 matchups:', error);
+		} finally {
+			loadingRegularSeason = false;
+		}
+	}
+	
+	// State for collapsible matchup sections
+	let expandedRosters: Record<string, boolean> = {};
+	let expandedStats: Record<string, boolean> = {};
+	
+	function toggleRoster(matchupId: string) {
+		expandedRosters[matchupId] = !expandedRosters[matchupId];
+		expandedRosters = expandedRosters; // Trigger reactivity
+	}
+	
+	function toggleStats(matchupId: string) {
+		expandedStats[matchupId] = !expandedStats[matchupId];
+		expandedStats = expandedStats; // Trigger reactivity
+	}
+	
+	function getTopScorer(group: MatchupPageDto[]) {
+		let topPlayer: any = null;
+		let topScore = 0;
+		
+		group.forEach(matchup => {
+			Object.values(matchup.Starters ?? {}).forEach((player: any) => {
+				const score = player.stats?.pts_half_ppr || player.stats?.pts_ppr || 0;
+				if (score > topScore) {
+					topScore = score;
+					topPlayer = player;
+				}
+			});
+		});
+		
+		return topPlayer ? {
+			name: `${topPlayer.first_name} ${topPlayer.last_name}`,
+			score: topScore
+		} : null;
+	}
+	
+	function getBenchPoints(matchup: MatchupPageDto) {
+		if (!matchup.Bench || !matchup.PlayersPoints) return '0.00';
+
+		let total = 0;
+		Object.keys(matchup.Bench).forEach(playerId => {
+			total += matchup.PlayersPoints?.[playerId] || 0;
+		});
+
+		// Return as a formatted string with 2 decimal places
+		return total.toFixed(2);
+	}
+
+	/**
+	 * Computes manager accuracy vs an "optimal" lineup for a matchup.
+	 * Uses historical starters (matchup.Starters) and all available players (Starters+Bench)
+	 * Returns totals and per-position missed points.
+	 */
+	function computeManagerAccuracy(matchup: MatchupPageDto) {
+		if (!matchup.Starters || !matchup.PlayersPoints) return null;
+
+		// Build list of all players (starters + bench)
+		const allMap: Record<string, any> = { ...(matchup.Starters || {}), ...(matchup.Bench || {}) };
+		const allPlayers = Object.keys(allMap).map(id => ({
+			id,
+			pos: (allMap[id]?.position || allMap[id]?.position?.toUpperCase?.() || '').toUpperCase(),
+			points: Number(matchup.PlayersPoints?.[id] ?? 0),
+			player: allMap[id]
+		}));
+
+		// Starter counts by position
+		const starterCounts: Record<string, number> = {};
+		Object.keys(matchup.Starters).forEach(id => {
+			const pos = (matchup.Starters?.[id]?.position || '').toUpperCase();
+			starterCounts[pos] = (starterCounts[pos] || 0) + 1;
+		});
+
+		const positions = Object.keys(starterCounts);
+
+		// Helper to sum top N by position
+		function topSumByPos(pos: string, n: number) {
+			const candidates = allPlayers.filter(p => p.pos === pos).sort((a,b) => b.points - a.points);
+			return candidates.slice(0, n).reduce((s, p) => s + p.points, 0);
+		}
+
+		let actualTotal = 0;
+		let optimalTotal = 0;
+		const perPosition: Record<string, { actual: number; optimal: number; missed: number }> = {};
+
+			positions.forEach(pos => {
+			const count = starterCounts[pos] || 0;
+			const actual = Object.keys(matchup.Starters ?? {}).filter(id => (matchup.Starters?.[id]?.position || '').toUpperCase() === pos).reduce((s, id) => s + (Number(matchup.PlayersPoints?.[id] ?? 0)), 0);
+			const optimal = topSumByPos(pos, count);
+			perPosition[pos] = { actual, optimal, missed: Math.max(0, optimal - actual) };
+			actualTotal += actual;
+			optimalTotal += optimal;
+		});
+
+		// In case there are starters at positions not listed above (rare), account for them
+		const totalStarterSlots = Object.keys(matchup.Starters).length;
+		const accountedSlots = positions.reduce((s,p) => s + (starterCounts[p]||0), 0);
+		const remainingSlots = totalStarterSlots - accountedSlots;
+		if (remainingSlots > 0) {
+			// Fill remaining slots with highest scoring remaining players regardless of pos
+			const picked = new Set<string>();
+			positions.forEach(pos => {
+				Object.keys(matchup.Starters ?? {}).forEach(id => picked.add(id));
+			});
+			const remainingCandidates = allPlayers.filter(p => !picked.has(p.id)).sort((a,b) => b.points - a.points);
+			const remOptimal = remainingCandidates.slice(0, remainingSlots).reduce((s,p) => s + p.points, 0);
+			optimalTotal += remOptimal;
+		}
+
+		const missedTotal = Math.max(0, optimalTotal - actualTotal);
+		const accuracyPct = optimalTotal > 0 ? ((optimalTotal - missedTotal) / optimalTotal) * 100 : 100;
+
+		return {
+			actualTotal,
+			optimalTotal,
+			missedTotal,
+			accuracyPct,
+			perPosition
+		};
+	}
 
 	// Group matchups by MatchupId for regular season - make reactive
-	$: groupedMatchups = matchups ? matchups.reduce(
+	$: groupedMatchups = (viewingRegularSeasonDuringPlayoffs ? regularSeasonMatchups : matchups) ? (viewingRegularSeasonDuringPlayoffs ? regularSeasonMatchups : matchups).reduce(
 		(groups, matchup) => {
 			const key = matchup.MatchupId ?? 'unknown';
 			if (!groups[key]) {
@@ -60,25 +211,30 @@
 
 	// Populate player store with data from layout (already loaded server-side)
 	function ensurePlayerDataLoaded() {
-		if (playersLoaded) return;
-		
 		// Access players from parent layout data (automatically inherited)
 		const players = $page.data?.players;
 		if (!players || players.length === 0) return;
 		
-		// Set the players in the store from layout data
-		PlayersStore.set(players);
+		// Set players store only once
+		if (!playersLoaded) {
+			PlayersStore.set(players);
+			playersLoaded = true;
+		}
 		
-		// Re-populate Starters for each matchup
-		const rosters = get(RostersStore);
-		matchups.forEach((matchup: MatchupPageDto) => {
-			const roster = rosters.find((r: any) => r.roster_id === matchup.RosterId);
-			if (roster) {
-				matchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
-			}
-		});
-		
-		playersLoaded = true;
+		// Re-populate Starters and Bench using historical lineup data from the matchup (not current roster)
+		const hydrate = (list: MatchupPageDto[]) => {
+			list.forEach((matchup: MatchupPageDto) => {
+				// Use the historical lineup from the matchup API (StarterIds and PlayerIds)
+				// instead of the current roster which may have changed
+				if (matchup.StarterIds && matchup.PlayerIds) {
+					matchup.Starters = RostersHelper.MapPlayerNames(matchup.StarterIds);
+					const benchIds = matchup.PlayerIds.filter((p: string) => !matchup.StarterIds!.includes(p));
+					matchup.Bench = RostersHelper.MapPlayerNames(benchIds) as Record<string, any>;
+				}
+			});
+		};
+		hydrate(matchups || []);
+		hydrate(regularSeasonMatchups || []);
 	}
 
 	function handleBracketMatchupClick(bracketMatchup: any) {
@@ -136,7 +292,7 @@
 		</div>
 	{:else}
 		<h1 class="mb-4 md:mb-6 text-center text-3xl md:text-4xl font-bold">
-			Week {currentWeek} {isPlayoffs ? '- PLAYOFFS' : 'Matchups'}
+			Week {viewingRegularSeasonDuringPlayoffs ? 14 : currentWeek} {isPlayoffs && !viewingRegularSeasonDuringPlayoffs ? '- PLAYOFFS' : 'Matchups'}
 		</h1>
 
 		{#if isPlayoffs}
@@ -157,9 +313,10 @@
 				</button>
 				<button 
 					class="btn {!showBrackets ? 'btn-active' : ''}" 
-					on:click={() => { showBrackets = false; showLosersBracket = false; }}
+					on:click={loadRegularSeasonMatchups}
+					disabled={loadingRegularSeason}
 				>
-					Week 14 Matchups
+					{loadingRegularSeason ? 'Loading...' : 'Week 14 Matchups'}
 				</button>
 			</div>
 		</div>
@@ -686,49 +843,226 @@
 		{:else}
 			<!-- Regular season matchups display (also used for playoff matchups toggle) -->
 			{#each Object.entries(groupedMatchups) as [matchupId, group], matchupIndex}
+				{@const team1 = group[0]}
+				{@const team2 = group[1]}
+			{@const isWinner1 = team1 && team2 && (team1.Score ?? 0) > (team2.Score ?? 0)}
+			{@const isWinner2 = team1 && team2 && (team2.Score ?? 0) > (team1.Score ?? 0)}
+			{@const pointDiff = team1 && team2 ? Math.abs((team1.Score ?? 0) - (team2.Score ?? 0)) : 0}
+				{@const benchPoints2 = getBenchPoints(team2)}
+				
 				<section class="mt-4 mb-4 md:mt-8 md:mb-8">
-					<!-- Box wrapping the entire matchup group with a light gray background in light mode -->
-					<div class="border-base-content/10 bg-base-300 rounded-none md:rounded-lg border-y md:border p-3 md:p-6">
-						<h2 class="mb-4 text-center text-2xl md:text-3xl font-bold">Matchup #{matchupIndex + 1}</h2>
-						<!-- Container that stacks vertically on mobile and becomes a 3-column grid on desktop, centered on larger screens -->
-						<div class="flex flex-col gap-4 md:grid md:grid-cols-3 md:items-center md:justify-center">
-							{#each group as matchup, i}
-								<div class="bg-base-100 rounded-xl p-4 md:p-6 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer">
-									<!-- TeamHeader displays team info -->
-									<TeamHeader
-										teamName={matchup.TeamName ?? 'Unknown Team'}
-										teamLogo={matchup.AvatarUrl ?? 'https://via.placeholder.com/150'}
-									/>
-									<!-- Sorted roster starters using RosterSorter.assignRoles -->
-									<ul class="mt-4 space-y-2 md:space-y-3">
-										{#each RosterSorter.assignRoles(Object.values(matchup.Starters ?? {})) as player}
-											<RosterSpot
-												position={player.role}
-												badgeClass={RosterSorter.getBadgeClass(player.role)}
-												playerName={player.first_name + ' ' + player.last_name}
-												playerTeam={player.team ?? ''}
-												playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
-												PlayerTeamLogo={player.playerTeamAvatarUrl ??
-													'https://via.placeholder.com/150'}
-											/>
-										{/each}
-									</ul>
-								</div>
-
-								{#if i < group.length - 1}
-									<!-- VS divider inserted between matchup cards -->
-									<div class="flex items-center justify-center text-2xl md:text-3xl font-bold">VS</div>
-								{/if}
-							{/each}
+					<!-- Compact Matchup Card -->
+					<div class="border-base-content/10 bg-base-300 rounded-none md:rounded-lg border-y md:border p-4 md:p-6">
+						<!-- Header: Team Names and Week -->
+						<div class="text-center mb-6">
+							<h2 class="text-lg md:text-xl font-bold text-base-content/70">
+								{team1?.TeamName ?? 'Team 1'} vs {team2?.TeamName ?? 'Team 2'} - Week {currentWeek}
+							</h2>
 						</div>
+						
+						<!-- Compact Score Display -->
+						<div class="flex items-center justify-center gap-4 md:gap-8 mb-6">
+							<!-- Team 1 -->
+							<div class="flex flex-col items-center gap-2 flex-1 max-w-[200px]">
+								<div class="avatar">
+									<div class="w-16 md:w-20 rounded-full ring ring-base-content/20 {isWinner1 ? 'ring-success ring-4' : ''}">
+										<img src={team1?.AvatarUrl ?? 'https://via.placeholder.com/150'} alt={team1?.TeamName ?? 'Team 1'} />
+									</div>
+								</div>
+								<div class="text-center">
+									<div class="font-bold text-sm md:text-base truncate max-w-[150px]">{team1?.TeamName ?? 'Team 1'}</div>
+									<div class="text-3xl md:text-4xl font-bold {isWinner1 ? 'text-success' : ''}">
+										{team1?.Score?.toFixed(2) ?? '0.00'}
+									</div>
+									{#if isWinner1}
+										<div class="badge badge-success badge-sm mt-1">👑 Winner</div>
+									{/if}
+								</div>
+							</div>
+							
+							<!-- VS Divider -->
+							<div class="flex flex-col items-center gap-1">
+								<div class="text-xl md:text-2xl font-bold opacity-50">VS</div>
+								<div class="h-px w-12 bg-base-content/20"></div>
+								<div class="text-sm md:text-base font-semibold opacity-70">
+									+{pointDiff.toFixed(2)}
+								</div>
+							</div>
+							
+							<!-- Team 2 -->
+							<div class="flex flex-col items-center gap-2 flex-1 max-w-[200px]">
+								<div class="avatar">
+									<div class="w-16 md:w-20 rounded-full ring ring-base-content/20 {isWinner2 ? 'ring-success ring-4' : ''}">
+										<img src={team2?.AvatarUrl ?? 'https://via.placeholder.com/150'} alt={team2?.TeamName ?? 'Team 2'} />
+									</div>
+								</div>
+								<div class="text-center">
+									<div class="font-bold text-sm md:text-base truncate max-w-[150px]">{team2?.TeamName ?? 'Team 2'}</div>
+									<div class="text-3xl md:text-4xl font-bold {isWinner2 ? 'text-success' : ''}">
+										{team2?.Score?.toFixed(2) ?? '0.00'}
+									</div>
+									{#if isWinner2}
+										<div class="badge badge-success badge-sm mt-1">👑 Winner</div>
+									{/if}
+								</div>
+							</div>
+						</div>
+						
+						<!-- Quick Stats Bar (Always Visible) -->
+						<div class="bg-base-100 rounded-lg p-4 mb-4">
+							<div class="flex items-center gap-2 mb-3">
+								<span class="text-lg">📊</span>
+								<span class="font-semibold">Quick Stats</span>
+							</div>
+							<div class="space-y-2 text-sm">
+								{#if getTopScorer(group)}
+									{@const ts = getTopScorer(group)}
+									{#if ts}
+										<div class="flex items-center gap-2">
+											<span>🏆</span>
+											<span><strong>Top Scorer:</strong> {ts.name} ({ts.score.toFixed(2)} pts)</span>
+										</div>
+									{/if}
+								{/if}
+								<div class="flex items-center gap-2">
+									<span>💤</span>
+									<span><strong>Bench Points:</strong> {team1?.TeamName}: {getBenchPoints(team1)} | {team2?.TeamName}: {getBenchPoints(team2)}</span>
+								</div>
+							</div>
+						</div>
+						
+						<!-- Action Buttons -->
+						<div class="flex gap-2 justify-center flex-wrap">
+							<button 
+								class="btn btn-sm btn-outline"
+								on:click={() => toggleRoster(matchupId)}
+							>
+								<span>{expandedRosters[matchupId] ? '▲' : '▼'}</span>
+								{expandedRosters[matchupId] ? 'Hide' : 'View'} Full Rosters
+							</button>
+							<button 
+								class="btn btn-sm btn-outline"
+								on:click={() => toggleStats(matchupId)}
+							>
+								<span>📈</span>
+								{expandedStats[matchupId] ? 'Hide' : 'More'} Stats
+							</button>
+						</div>
+						
+						<!-- Expanded Full Rosters -->
+						{#if expandedRosters[matchupId]}
+							<div class="mt-6 pt-6 border-t border-base-content/10">
+								<div class="flex flex-col gap-4 md:grid md:grid-cols-3 md:items-start md:justify-center">
+									{#each group as matchup, i}
+										<div class="bg-base-100 rounded-xl p-4 md:p-6 shadow-lg">
+											<TeamHeader
+												teamName={matchup.TeamName ?? 'Unknown Team'}
+												teamLogo={matchup.AvatarUrl ?? 'https://via.placeholder.com/150'}
+											/>
+											<div class="text-center my-3">
+												<div class="text-2xl font-bold">
+													{matchup.Score?.toFixed(2) ?? '0.00'}
+												</div>
+												<div class="text-xs opacity-60">Total Points</div>
+											</div>
+											<ul class="mt-4 space-y-2">
+												{#each RosterSorter.assignRoles(Object.values(matchup.Starters ?? {})) as player}
+													<RosterSpot
+														position={player.role}
+														badgeClass={RosterSorter.getBadgeClass(player.role)}
+														playerName={player.first_name + ' ' + player.last_name}
+														playerTeam={player.team ?? ''}
+														playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
+														PlayerTeamLogo={player.playerTeamAvatarUrl ?? 'https://via.placeholder.com/150'}
+														playerPoints={matchup.PlayersPoints?.[player.player_id]}
+													/>
+												{/each}
+											</ul>
+										</div>
+										
+										{#if i < group.length - 1}
+											<div class="flex items-center justify-center text-xl font-bold opacity-30">VS</div>
+										{/if}
+									{/each}
+								</div>
+							</div>
+						{/if}
+						
+						<!-- Expanded More Stats -->
+						{#if expandedStats[matchupId]}
+							<div class="mt-6 pt-6 border-t border-base-content/10">
+								<div class="bg-base-100 rounded-lg p-4">
+									<h3 class="font-semibold text-lg mb-4">📈 Advanced Stats</h3>
+                                    
+									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div class="stat bg-base-200 rounded-lg p-4">
+											<div class="stat-title text-xs">Total Score</div>
+											<div class="stat-value text-2xl">{team1?.Score?.toFixed(2) ?? 'N/A'}</div>
+											<div class="stat-desc">{team1?.TeamName}</div>
+										</div>
+										<div class="stat bg-base-200 rounded-lg p-4">
+											<div class="stat-title text-xs">Total Score</div>
+											<div class="stat-value text-2xl">{team2?.Score?.toFixed(2) ?? 'N/A'}</div>
+											<div class="stat-desc">{team2?.TeamName}</div>
+										</div>
+										{#if team1}
+											<div class="stat bg-base-200 rounded-lg p-4">
+												<div class="stat-title text-xs">Manager Accuracy</div>
+												<div class="stat-value text-2xl">{(() => { const a = computeManagerAccuracy(team1); return a ? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%' : 'N/A'; })()}</div>
+												<div class="stat-desc">{team1?.TeamName} • Missed {(() => { const a = computeManagerAccuracy(team1); return a ? a.missedTotal.toFixed(2) : '0.00'; })()} pts</div>
+											</div>
+										{/if}
+										{#if team2}
+											<div class="stat bg-base-200 rounded-lg p-4">
+												<div class="stat-title text-xs">Manager Accuracy</div>
+												<div class="stat-value text-2xl">{(() => { const a = computeManagerAccuracy(team2); return a ? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%' : 'N/A'; })()}</div>
+												<div class="stat-desc">{team2?.TeamName} • Missed {(() => { const a = computeManagerAccuracy(team2); return a ? a.missedTotal.toFixed(2) : '0.00'; })()} pts</div>
+											</div>
+										{/if}
+									</div>
+										{#if team1 || team2}
+											<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+												{#if team1}
+													{@const acc1Local = computeManagerAccuracy(team1)}
+													{#if acc1Local}
+														{@const entries1 = Object.entries(acc1Local.perPosition || {}) as Array<[string, any]>}
+														<div class="text-sm p-3 bg-base-200 rounded">
+															<div class="font-semibold">{team1.TeamName} Breakdown</div>
+															<ul class="text-xs mt-2">
+																{#each entries1 as [pos, vals]}
+																	<li>{pos}: Missed {vals.missed.toFixed(2)} pts (Optimal {vals.optimal.toFixed(2)}, Actual {vals.actual.toFixed(2)})</li>
+																{/each}
+															</ul>
+														</div>
+													{/if}
+												{/if}
+												{#if team2}
+													{@const acc2Local = computeManagerAccuracy(team2)}
+													{#if acc2Local}
+														{@const entries2 = Object.entries(acc2Local.perPosition || {}) as Array<[string, any]>}
+														<div class="text-sm p-3 bg-base-200 rounded">
+															<div class="font-semibold">{team2.TeamName} Breakdown</div>
+															<ul class="text-xs mt-2">
+																{#each entries2 as [pos, vals]}
+																	<li>{pos}: Missed {vals.missed.toFixed(2)} pts (Optimal {vals.optimal.toFixed(2)}, Actual {vals.actual.toFixed(2)})</li>
+																{/each}
+															</ul>
+														</div>
+													{/if}
+												{/if}
+											</div>
+										{/if}
+								</div>
+							</div>
+						{/if}
 					</div>
 				</section>
 			{/each}
 		{/if}
 	{/if}
-	{/if}
-	
-	<!-- Selected Bracket Matchup Detail View - Always at bottom -->
+{/if}
+
+<!-- Selected Bracket Matchup Detail View - Always at bottom -->
 	{#if selectedBracketMatchup}
 		<div id="selected-matchup-detail" class="mt-8 mb-8">
 			<div class="border-base-content/10 bg-base-300 rounded-lg border p-6">
@@ -768,6 +1102,7 @@
 									playerTeam={player.team ?? ''}
 									playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
 									PlayerTeamLogo={player.playerTeamAvatarUrl ?? 'https://via.placeholder.com/150'}
+									playerPoints={selectedBracketMatchup.team1.PlayersPoints?.[player.player_id]}
 								/>
 							{/each}
 						</ul>
@@ -799,6 +1134,7 @@
 									playerTeam={player.team ?? ''}
 									playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
 									PlayerTeamLogo={player.playerTeamAvatarUrl ?? 'https://via.placeholder.com/150'}
+									playerPoints={selectedBracketMatchup.team2.PlayersPoints?.[player.player_id]}
 								/>
 							{/each}
 						</ul>
