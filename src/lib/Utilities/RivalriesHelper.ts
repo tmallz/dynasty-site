@@ -24,8 +24,8 @@ export interface TradeDetail {
 export interface RecentTradeDetail extends TradeDetail {
     team1Adds: string[]; // player IDs team1 received
     team2Adds: string[]; // player IDs team2 received
-    team1Picks: Array<{ season: number; round: number; originalOwner?: number }>;
-    team2Picks: Array<{ season: number; round: number; originalOwner?: number }>;
+    team1Picks: Array<{ season: string; round: number; originalOwner?: number }>;
+    team2Picks: Array<{ season: string; round: number; originalOwner?: number }>;
 }
 
 export interface RivalryStats {
@@ -195,8 +195,6 @@ export class RivalriesHelper {
                     
                     const margin = Math.abs(team1Score - team2Score);
                     
-                    console.log(`Found matchup: ${season} Week ${weekNum} - Score: ${team1Score.toFixed(2)} vs ${team2Score.toFixed(2)} (Margin: ${margin.toFixed(2)})`);
-                    
                     games.push({
                         week: weekNum,
                         season: season,
@@ -265,7 +263,7 @@ export class RivalriesHelper {
                     trades.push(tradeDetail);
                     
                     // Keep track of most recent (first one we encounter since transactions are loaded newest first)
-                    if (!mostRecentTransaction) {
+                    if (mostRecentTransaction === null) {
                         mostRecentTransaction = transaction;
                     }
                 }
@@ -274,13 +272,15 @@ export class RivalriesHelper {
 
         // Parse most recent trade details if exists
         let mostRecent: RecentTradeDetail | null = null;
-        if (mostRecentTransaction) {
+        if (mostRecentTransaction !== null) {
+            const tx: TransactionWithSeason = mostRecentTransaction;
             const team1Adds: string[] = [];
             const team2Adds: string[] = [];
             
             // Parse adds - figure out which team got which players
-            if (mostRecentTransaction.adds) {
-                for (const [playerId, rosterId] of Object.entries(mostRecentTransaction.adds)) {
+            const adds = tx.adds;
+            if (adds) {
+                for (const [playerId, rosterId] of Object.entries(adds)) {
                     if (rosterId === team1RosterId) {
                         team1Adds.push(playerId);
                     } else if (rosterId === team2RosterId) {
@@ -290,11 +290,12 @@ export class RivalriesHelper {
             }
             
             // Parse draft picks
-            const team1Picks: Array<{ season: number; round: number; originalOwner?: number }> = [];
-            const team2Picks: Array<{ season: number; round: number; originalOwner?: number }> = [];
+            const team1Picks: Array<{ season: string; round: number; originalOwner?: number }> = [];
+            const team2Picks: Array<{ season: string; round: number; originalOwner?: number }> = [];
             
-            if (mostRecentTransaction.draft_picks) {
-                for (const pick of mostRecentTransaction.draft_picks) {
+            const draftPicks = tx.draft_picks;
+            if (draftPicks) {
+                for (const pick of draftPicks) {
                     const pickDetail = {
                         season: pick.season,
                         round: pick.round,
@@ -310,9 +311,9 @@ export class RivalriesHelper {
             }
             
             mostRecent = {
-                season: mostRecentTransaction.season?.toString() || '',
-                week: mostRecentTransaction.leg || 0,
-                transactionId: mostRecentTransaction.transaction_id || '',
+                season: tx.season?.toString() || '',
+                week: tx.leg || 0,
+                transactionId: tx.transaction_id || '',
                 team1Adds,
                 team2Adds,
                 team1Picks,
