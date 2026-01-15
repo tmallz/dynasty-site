@@ -33,6 +33,7 @@ export interface MatchupPageData {
 	winnersBracket?: ProcessedBracketMatchup[];
 	losersBracket?: ProcessedBracketMatchup[];
 	consolationBracket?: ProcessedBracketMatchup[];
+	rosterPositions?: string[];
 }
 
 export class MatchupHelper {
@@ -211,6 +212,8 @@ export class MatchupHelper {
 		// Get target week and playoff status
 		const { week, isPlayoffs, usePreviousLeague } = await MatchupHelper.GetTargetWeekForDisplay();
 
+		let rosterPositions: string[] = [];
+
 		if (isPlayoffs) {
 			// Get the correct league ID (current or previous)
 			if (usePreviousLeague) {
@@ -219,6 +222,10 @@ export class MatchupHelper {
 					leagueId = currentLeague.previous_league_id;
 				}
 			}
+
+			// Fetch roster positions for strict slot enforcement (QB/RB/WR/TE/FLEX/SUPER_FLEX)
+			const league = await SleeperClient.GetLeague(leagueId);
+			rosterPositions = (league.roster_positions as string[]) ?? [];
 
 			// Load rosters and users for bracket processing
 			await LoadRosters(leagueId);
@@ -306,10 +313,14 @@ export class MatchupHelper {
 				matchups,
 				winnersBracket: processedWinnersBracket,
 				losersBracket: processedLosersBracket,
-				consolationBracket: processedConsolationBracket
+				consolationBracket: processedConsolationBracket,
+				rosterPositions
 			};
 		} else {
 			// Regular season - load rosters and users first
+			const league = await SleeperClient.GetLeague(leagueId);
+			rosterPositions = (league.roster_positions as string[]) ?? [];
+
 			await LoadRosters(leagueId);
 			await LoadUsers(leagueId);
 			const rosters = get(RostersStore);
@@ -321,7 +332,8 @@ export class MatchupHelper {
 			return {
 				currentWeek: week,
 				isPlayoffs: false,
-				matchups
+				matchups,
+				rosterPositions
 			};
 		}
 	}

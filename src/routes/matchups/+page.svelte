@@ -16,6 +16,7 @@
 	let currentWeek: number | undefined;
 	let isPlayoffs: boolean = false;
 	let matchups: MatchupPageDto[] = [];
+	let rosterPositions: string[] = [];
 	let regularSeasonMatchups: MatchupPageDto[] = []; // For week 14 view during playoffs
 	let winnersBracket: any[] = [];
 	let losersBracket: any[] = [];
@@ -29,6 +30,7 @@
 			currentWeek = result.currentWeek;
 			isPlayoffs = result.isPlayoffs;
 			matchups = result.matchups || [];
+			rosterPositions = result.rosterPositions || [];
 			winnersBracket = result.winnersBracket || [];
 			losersBracket = result.losersBracket || [];
 			consolationBracket = result.consolationBracket || [];
@@ -136,56 +138,136 @@
 		const allMap: Record<string, any> = { ...(matchup.Starters || {}), ...(matchup.Bench || {}) };
 		const allPlayers = Object.keys(allMap).map(id => ({
 			id,
-			pos: (allMap[id]?.position || allMap[id]?.position?.toUpperCase?.() || '').toUpperCase(),
+			pos: (allMap[id]?.position || '').toUpperCase(),
 			points: Number(matchup.PlayersPoints?.[id] ?? 0),
 			player: allMap[id]
 		}));
 
-		// Starter counts by position
-		const starterCounts: Record<string, number> = {};
-		Object.keys(matchup.Starters).forEach(id => {
-			const pos = (matchup.Starters?.[id]?.position || '').toUpperCase();
-			starterCounts[pos] = (starterCounts[pos] || 0) + 1;
-		});
+		// Fallback: if no rosterPositions available, use legacy per-position top-sum logic
+		if (!rosterPositions || rosterPositions.length === 0) {
+			const starterCounts: Record<string, number> = {};
+			Object.keys(matchup.Starters).forEach(id => {
+				const pos = (matchup.Starters?.[id]?.position || '').toUpperCase();
+				starterCounts[pos] = (starterCounts[pos] || 0) + 1;
+			});
 
-		const positions = Object.keys(starterCounts);
+			const positions = Object.keys(starterCounts);
 
-		// Helper to sum top N by position
-		function topSumByPos(pos: string, n: number) {
-			const candidates = allPlayers.filter(p => p.pos === pos).sort((a,b) => b.points - a.points);
-			return candidates.slice(0, n).reduce((s, p) => s + p.points, 0);
+			function topSumByPos(pos: string, n: number) {
+				const candidates = allPlayers.filter(p => p.pos === pos).sort((a, b) => b.points - a.points);
+				return candidates.slice(0, n).reduce((s, p) => s + p.points, 0);
+			}
+
+			let actualTotal = 0;
+			let optimalTotal = 0;
+			const perPosition: Record<string, { actual: number; optimal: number; missed: number }> = {};
+
+			positions.forEach(pos => {
+				const count = starterCounts[pos] || 0;
+				const actual = Object.keys(matchup.Starters ?? {})
+					.filter(id => (matchup.Starters?.[id]?.position || '').toUpperCase() === pos)
+					.reduce((s, id) => s + Number(matchup.PlayersPoints?.[id] ?? 0), 0);
+				const optimal = topSumByPos(pos, count);
+				perPosition[pos] = { actual, optimal, missed: Math.max(0, optimal - actual) };
+				actualTotal += actual;
+				optimalTotal += optimal;
+			});
+
+			const missedTotal = Math.max(0, optimalTotal - actualTotal);
+			const accuracyPct = optimalTotal > 0 ? (actualTotal / optimalTotal) * 100 : 100;
+
+			return {
+				actualTotal,
+				optimalTotal,
+				missedTotal,
+				accuracyPct,
+				perPosition
+			};
 		}
 
+		// Strict mode: use league.roster_positions to define slots, ignoring K/DEF
+		const basePositions = ['QB', 'RB', 'WR', 'TE'];
+		const flexEligible = new Set(['RB', 'WR', 'TE']);
+		const superFlexEligible = new Set(['QB', 'RB', 'WR', 'TE']);
+
+		const fixedCounts: Record<string, number> = {};
+		let flexCount = 0;
+		let superFlexCount = 0;
+
+		for (const slot of rosterPositions) {
+			const pos = String(slot).toUpperCase();
+			if (pos === 'FLEX' || pos === 'WR/RB/TE') {
+				flexCount++;
+			} else if (pos === 'SUPER_FLEX' || pos === 'SUPERFLEX' || pos === 'QB/RB/WR/TE') {
+				superFlexCount++;
+			} else if (basePositions.includes(pos)) {
+				fixedCounts[pos] = (fixedCounts[pos] || 0) + 1;
+			} else if (pos === 'K' || pos === 'DEF' || pos === 'DST') {
+				// League does not use K/DEF; explicitly ignore these slots
+				continue;
+			}
+		}
+
+		const used = new Set<string>();
+		const selections: { id: string; pos: string; points: number }[] = [];
+
+		function pickBest(filter: (p: { id: string; pos: string; points: number }) => boolean, count: number) {
+			if (count <= 0) return;
+			const candidates = allPlayers
+				.filter(p => !used.has(p.id) && filter(p))
+				.sort((a, b) => b.points - a.points);
+			for (let i = 0; i < Math.min(count, candidates.length); i++) {
+				const p = candidates[i];
+				used.add(p.id);
+				selections.push({ id: p.id, pos: p.pos, points: p.points });
+			}
+		}
+
+		// Fill fixed position slots first
+		Object.entries(fixedCounts).forEach(([pos, count]) => {
+			pickBest(p => p.pos === pos, count as number);
+		});
+
+		// Then FLEX slots (RB/WR/TE)
+		pickBest(p => flexEligible.has(p.pos), flexCount);
+
+		// Then SUPER_FLEX slots (QB/RB/WR/TE)
+		pickBest(p => superFlexEligible.has(p.pos), superFlexCount);
+
+		// Compute actual totals and per-position actual from historical starters
 		let actualTotal = 0;
-		let optimalTotal = 0;
 		const perPosition: Record<string, { actual: number; optimal: number; missed: number }> = {};
 
-			positions.forEach(pos => {
-			const count = starterCounts[pos] || 0;
-			const actual = Object.keys(matchup.Starters ?? {}).filter(id => (matchup.Starters?.[id]?.position || '').toUpperCase() === pos).reduce((s, id) => s + (Number(matchup.PlayersPoints?.[id] ?? 0)), 0);
-			const optimal = topSumByPos(pos, count);
-			perPosition[pos] = { actual, optimal, missed: Math.max(0, optimal - actual) };
-			actualTotal += actual;
-			optimalTotal += optimal;
+		Object.keys(matchup.Starters).forEach(id => {
+			const starter = matchup.Starters?.[id];
+			const pos = (starter?.position || '').toUpperCase();
+			const pts = Number(matchup.PlayersPoints?.[id] ?? 0);
+			actualTotal += pts;
+			if (!perPosition[pos]) {
+				perPosition[pos] = { actual: 0, optimal: 0, missed: 0 };
+			}
+			perPosition[pos].actual += pts;
 		});
 
-		// In case there are starters at positions not listed above (rare), account for them
-		const totalStarterSlots = Object.keys(matchup.Starters).length;
-		const accountedSlots = positions.reduce((s,p) => s + (starterCounts[p]||0), 0);
-		const remainingSlots = totalStarterSlots - accountedSlots;
-		if (remainingSlots > 0) {
-			// Fill remaining slots with highest scoring remaining players regardless of pos
-			const picked = new Set<string>();
-			positions.forEach(pos => {
-				Object.keys(matchup.Starters ?? {}).forEach(id => picked.add(id));
-			});
-			const remainingCandidates = allPlayers.filter(p => !picked.has(p.id)).sort((a,b) => b.points - a.points);
-			const remOptimal = remainingCandidates.slice(0, remainingSlots).reduce((s,p) => s + p.points, 0);
-			optimalTotal += remOptimal;
-		}
+		// Apply optimal selections per position
+		let optimalTotal = 0;
+		selections.forEach(sel => {
+			optimalTotal += sel.points;
+			const pos = sel.pos;
+			if (!perPosition[pos]) {
+				perPosition[pos] = { actual: 0, optimal: 0, missed: 0 };
+			}
+			perPosition[pos].optimal += sel.points;
+		});
+
+		// Compute missed per position
+		Object.keys(perPosition).forEach(pos => {
+			const vals = perPosition[pos];
+			vals.missed = Math.max(0, vals.optimal - vals.actual);
+		});
 
 		const missedTotal = Math.max(0, optimalTotal - actualTotal);
-		const accuracyPct = optimalTotal > 0 ? ((optimalTotal - missedTotal) / optimalTotal) * 100 : 100;
+		const accuracyPct = optimalTotal > 0 ? (actualTotal / optimalTotal) * 100 : 100;
 
 		return {
 			actualTotal,
@@ -995,16 +1077,6 @@
 									<h3 class="font-semibold text-lg mb-4">📈 Advanced Stats</h3>
                                     
 									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<div class="stat bg-base-200 rounded-lg p-4">
-											<div class="stat-title text-xs">Total Score</div>
-											<div class="stat-value text-2xl">{team1?.Score?.toFixed(2) ?? 'N/A'}</div>
-											<div class="stat-desc">{team1?.TeamName}</div>
-										</div>
-										<div class="stat bg-base-200 rounded-lg p-4">
-											<div class="stat-title text-xs">Total Score</div>
-											<div class="stat-value text-2xl">{team2?.Score?.toFixed(2) ?? 'N/A'}</div>
-											<div class="stat-desc">{team2?.TeamName}</div>
-										</div>
 										{#if team1}
 											<div class="stat bg-base-200 rounded-lg p-4">
 												<div class="stat-title text-xs">Manager Accuracy</div>
@@ -1029,7 +1101,7 @@
 														<div class="text-sm p-3 bg-base-200 rounded">
 															<div class="font-semibold">{team1.TeamName} Breakdown</div>
 															<ul class="text-xs mt-2">
-																{#each entries1 as [pos, vals]}
+																{#each entries1.filter(([, vals]) => (vals?.missed ?? 0) > 0) as [pos, vals]}
 																	<li>{pos}: Missed {vals.missed.toFixed(2)} pts (Optimal {vals.optimal.toFixed(2)}, Actual {vals.actual.toFixed(2)})</li>
 																{/each}
 															</ul>
@@ -1043,7 +1115,7 @@
 														<div class="text-sm p-3 bg-base-200 rounded">
 															<div class="font-semibold">{team2.TeamName} Breakdown</div>
 															<ul class="text-xs mt-2">
-																{#each entries2 as [pos, vals]}
+																{#each entries2.filter(([, vals]) => (vals?.missed ?? 0) > 0) as [pos, vals]}
 																	<li>{pos}: Missed {vals.missed.toFixed(2)} pts (Optimal {vals.optimal.toFixed(2)}, Actual {vals.actual.toFixed(2)})</li>
 																{/each}
 															</ul>
