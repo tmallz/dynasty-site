@@ -6,7 +6,35 @@
 	import WaiverTransaction from '$lib/Components/transactions/WaiverTransaction.svelte';
 
 	export let data: PageData;
-	const transactions: TransactionsPageDto[] = data.transactions ?? [];
+	let transactions: TransactionsPageDto[] = data.transactions ?? [];
+	let offset = 50;
+	let loading = false;
+	let hasMore = true;
+
+	async function loadMore() {
+		if (loading) return;
+		
+		loading = true;
+		try {
+			const response = await fetch(`/api/transactions?limit=50&offset=${offset}`);
+			const newTransactions: TransactionsPageDto[] = await response.json();
+			
+			if (newTransactions.length < 50) {
+				hasMore = false;
+			}
+			
+			if (newTransactions.length > 0) {
+				transactions = [...transactions, ...newTransactions];
+				offset += newTransactions.length;
+			} else {
+				hasMore = false;
+			}
+		} catch (error) {
+			console.error('Failed to load more transactions:', error);
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
 <main class="container mx-auto px-4 py-8 max-w-5xl">
@@ -27,6 +55,28 @@
 				{/if}
 			{/each}
 		</div>
+
+		<!-- Load More Button -->
+		{#if hasMore}
+			<div class="flex justify-center mt-8">
+				<button
+					on:click={loadMore}
+					disabled={loading}
+					class="btn btn-primary btn-lg"
+				>
+					{#if loading}
+						<span class="loading loading-spinner"></span>
+						Loading...
+					{:else}
+						Load More Transactions
+					{/if}
+				</button>
+			</div>
+		{:else}
+			<div class="text-center mt-8 text-base-content/50">
+				<p>No more transactions to load</p>
+			</div>
+		{/if}
 	{:else}
 		<div class="text-center py-12">
 			<p class="text-base-content/70 text-lg">No transactions found</p>

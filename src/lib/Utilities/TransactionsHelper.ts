@@ -36,7 +36,7 @@ export class TransactionsHelper {
 	 * Returns recent transactions across all leagues, limited to a specific count.
 	 * This is optimized for fast page loads by stopping once we have enough transactions.
 	 */
-	public static async GetRecentTransactions(limit: number = 50): Promise<TransactionsPageDto[]> {
+	public static async GetRecentTransactions(limit: number = 50, offset: number = 0): Promise<TransactionsPageDto[]> {
 		const leagues: League[] = await LeagueHistoryHelper.GetLeagueChainFromCurrent();
 		if (!leagues.length) return [];
 
@@ -94,11 +94,11 @@ export class TransactionsHelper {
 						}
 					}
 
-					// Sort and check if we have enough transactions
+					// Sort and check if we have enough transactions (including offset)
 					all.sort((a, b) => (b.transaction.created ?? 0) - (a.transaction.created ?? 0));
 					
-					// Stop early if we have enough transactions
-					if (all.length >= limit) {
+					// Stop early if we have enough transactions plus offset
+					if (all.length >= limit + offset) {
 						break;
 					}
 				} catch (error) {
@@ -112,14 +112,14 @@ export class TransactionsHelper {
 			}
 
 			// If we have enough transactions, stop fetching from older leagues
-			if (all.length >= limit) {
+			if (all.length >= limit + offset) {
 				break;
 			}
 		}
 
-		// Final sort and limit
+		// Final sort and apply offset + limit
 		all.sort((a, b) => (b.transaction.created ?? 0) - (a.transaction.created ?? 0));
-		const limitedTransactions = all.slice(0, limit);
+		const limitedTransactions = all.slice(offset, offset + limit);
 
 		// Map into TransactionsPageDto using preloaded players/rosters/users
 		return limitedTransactions.map(({ transaction, league }) => {

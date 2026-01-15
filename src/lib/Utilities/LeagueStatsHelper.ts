@@ -413,4 +413,49 @@ export class LeagueStatsHelper {
 			BottomScoringWeeks: bottomWeeks
 		};
 	}
+
+	public static async GetLeagueStatsCached(): Promise<LeagueStatsPageDto> {
+		// Use filesystem module that works in both server and build contexts
+		const fs = await import('fs');
+		const path = await import('path');
+		
+		const cacheFilePath = path.join(process.cwd(), 'static', 'league-stats.json');
+		
+		try {
+			// Check if cache file exists
+			if (fs.existsSync(cacheFilePath)) {
+				const fileStats = fs.statSync(cacheFilePath);
+				const fileAgeInHours = (Date.now() - fileStats.mtimeMs) / (1000 * 60 * 60);
+				
+				console.log(`League stats cache age: ${fileAgeInHours.toFixed(2)} hours`);
+				
+				// If cache is less than 24 hours old, use it
+				if (fileAgeInHours < 24) {
+					console.log('Loading league stats from cache');
+					const cachedData = fs.readFileSync(cacheFilePath, 'utf-8');
+					return JSON.parse(cachedData);
+				} else {
+					console.log('Cache is stale, recomputing league stats');
+				}
+			} else {
+				console.log('No cache file found, computing league stats for first time');
+			}
+		} catch (error) {
+			console.error('Error checking cache file:', error);
+		}
+		
+		// Compute fresh stats
+		console.log('Computing league stats (this may take 20-60 seconds)...');
+		const stats = await LeagueStatsHelper.GetLeagueStats();
+		
+		// Save to cache
+		try {
+			fs.writeFileSync(cacheFilePath, JSON.stringify(stats, null, 2));
+			console.log('League stats cached successfully');
+		} catch (error) {
+			console.error('Error writing cache file:', error);
+		}
+		
+		return stats;
+	}
 }

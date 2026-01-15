@@ -1,0 +1,619 @@
+{
+  "Winners": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr"
+    }
+  ],
+  "HighestWeek": {
+    "Season": "2025",
+    "LeagueId": "1205917377322024960",
+    "RosterId": 9,
+    "UserId": "1206338369169141760",
+    "DisplayName": "robleonard3",
+    "Week": 16,
+    "MatchupId": 3,
+    "Points": 246.16
+  },
+  "LowestWeek": {
+    "Season": "2025",
+    "LeagueId": "1205917377322024960",
+    "RosterId": 4,
+    "UserId": "1051318216162811904",
+    "DisplayName": "omalleybd",
+    "Week": 18,
+    "MatchupId": 0,
+    "Points": 44.96
+  },
+  "HighestSeason": {
+    "Season": "2025",
+    "LeagueId": "1205917377322024960",
+    "RosterId": 4,
+    "UserId": "1051318216162811904",
+    "DisplayName": "omalleybd",
+    "TotalPoints": 2877.12
+  },
+  "LowestSeason": {
+    "Season": "2025",
+    "LeagueId": "1205917377322024960",
+    "RosterId": 2,
+    "UserId": "737812063434465280",
+    "DisplayName": "BradDodge33",
+    "TotalPoints": 2247.2799999999997
+  },
+  "TopSeasons": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "TotalPoints": 2877.12
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 9,
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "TotalPoints": 2868.16
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 5,
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "TotalPoints": 2722.6400000000003
+    }
+  ],
+  "BottomSeasons": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "TotalPoints": 2247.2799999999997
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 10,
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "TotalPoints": 2282.9400000000005
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 8,
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "TotalPoints": 2348.02
+    }
+  ],
+  "HighestWinningPercentages": [
+    {
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "Wins": 12,
+      "Losses": 5,
+      "Games": 17,
+      "WinPercentage": 0.7058823529411765
+    },
+    {
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "Wins": 11,
+      "Losses": 5,
+      "Games": 16,
+      "WinPercentage": 0.6875
+    },
+    {
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "Wins": 11,
+      "Losses": 6,
+      "Games": 17,
+      "WinPercentage": 0.6470588235294118
+    }
+  ],
+  "LowestWinningPercentages": [
+    {
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "Wins": 2,
+      "Losses": 14,
+      "Games": 16,
+      "WinPercentage": 0.125
+    },
+    {
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "Wins": 5,
+      "Losses": 11,
+      "Games": 16,
+      "WinPercentage": 0.3125
+    },
+    {
+      "UserId": "870857254289707008",
+      "DisplayName": "n0imdirtydan",
+      "Wins": 6,
+      "Losses": 10,
+      "Games": 16,
+      "WinPercentage": 0.375
+    }
+  ],
+  "LargestBlowouts": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 16,
+      "MatchupId": 3,
+      "WinnerUserId": "1206338369169141760",
+      "WinnerDisplayName": "robleonard3",
+      "WinnerPoints": 246.16,
+      "LoserUserId": "1121532813901242368",
+      "LoserDisplayName": "jimpooman",
+      "LoserPoints": 105.3,
+      "Margin": 140.86
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 15,
+      "MatchupId": 1,
+      "WinnerUserId": "869683924631248896",
+      "WinnerDisplayName": "rossbeck44",
+      "WinnerPoints": 236.22,
+      "LoserUserId": "1206338369169141760",
+      "LoserDisplayName": "robleonard3",
+      "LoserPoints": 142,
+      "Margin": 94.22
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 4,
+      "MatchupId": 1,
+      "WinnerUserId": "1051318216162811904",
+      "WinnerDisplayName": "omalleybd",
+      "WinnerPoints": 209.84,
+      "LoserUserId": "1206337549254012928",
+      "LoserDisplayName": "jacksondoetzel",
+      "LoserPoints": 119.06,
+      "Margin": 90.78
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 14,
+      "MatchupId": 2,
+      "WinnerUserId": "1051318216162811904",
+      "WinnerDisplayName": "omalleybd",
+      "WinnerPoints": 174.88,
+      "LoserUserId": "737812063434465280",
+      "LoserDisplayName": "BradDodge33",
+      "LoserPoints": 85.48,
+      "Margin": 89.39999999999999
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 8,
+      "MatchupId": 5,
+      "WinnerUserId": "1121890292220788736",
+      "WinnerDisplayName": "jackleonard24",
+      "WinnerPoints": 170.32,
+      "LoserUserId": "1205976837939793920",
+      "LoserDisplayName": "SkinnyPetyr",
+      "LoserPoints": 93.34,
+      "Margin": 76.97999999999999
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 1,
+      "MatchupId": 1,
+      "WinnerUserId": "1051318216162811904",
+      "WinnerDisplayName": "omalleybd",
+      "WinnerPoints": 185.88,
+      "LoserUserId": "1121532813901242368",
+      "LoserDisplayName": "jimpooman",
+      "LoserPoints": 109.1,
+      "Margin": 76.78
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 8,
+      "MatchupId": 3,
+      "WinnerUserId": "1051318216162811904",
+      "WinnerDisplayName": "omalleybd",
+      "WinnerPoints": 192.92,
+      "LoserUserId": "656006678600331264",
+      "LoserDisplayName": "tmallz",
+      "LoserPoints": 117.72,
+      "Margin": 75.19999999999999
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 3,
+      "MatchupId": 3,
+      "WinnerUserId": "1051318216162811904",
+      "WinnerDisplayName": "omalleybd",
+      "WinnerPoints": 184.44,
+      "LoserUserId": "1206338369169141760",
+      "LoserDisplayName": "robleonard3",
+      "LoserPoints": 116.8,
+      "Margin": 67.64
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 12,
+      "MatchupId": 1,
+      "WinnerUserId": "1205976837939793920",
+      "WinnerDisplayName": "SkinnyPetyr",
+      "WinnerPoints": 202.58,
+      "LoserUserId": "1206337549254012928",
+      "LoserDisplayName": "jacksondoetzel",
+      "LoserPoints": 139.96,
+      "Margin": 62.620000000000005
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 11,
+      "MatchupId": 4,
+      "WinnerUserId": "1121890292220788736",
+      "WinnerDisplayName": "jackleonard24",
+      "WinnerPoints": 155.74,
+      "LoserUserId": "869683924631248896",
+      "LoserDisplayName": "rossbeck44",
+      "LoserPoints": 93.34,
+      "Margin": 62.400000000000006
+    }
+  ],
+  "ClosestVictories": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 13,
+      "MatchupId": 3,
+      "WinnerUserId": "869683924631248896",
+      "WinnerDisplayName": "rossbeck44",
+      "WinnerPoints": 120.34,
+      "LoserUserId": "737812063434465280",
+      "LoserDisplayName": "BradDodge33",
+      "LoserPoints": 119.6,
+      "Margin": 0.7400000000000091
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 2,
+      "MatchupId": 5,
+      "WinnerUserId": "1206338369169141760",
+      "WinnerDisplayName": "robleonard3",
+      "WinnerPoints": 139.22,
+      "LoserUserId": "870857254289707008",
+      "LoserDisplayName": "n0imdirtydan",
+      "LoserPoints": 137.2,
+      "Margin": 2.0200000000000102
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 5,
+      "MatchupId": 1,
+      "WinnerUserId": "1206337549254012928",
+      "WinnerDisplayName": "jacksondoetzel",
+      "WinnerPoints": 152.72,
+      "LoserUserId": "1121532813901242368",
+      "LoserDisplayName": "jimpooman",
+      "LoserPoints": 150.22,
+      "Margin": 2.5
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 7,
+      "MatchupId": 2,
+      "WinnerUserId": "869683924631248896",
+      "WinnerDisplayName": "rossbeck44",
+      "WinnerPoints": 127.9,
+      "LoserUserId": "1121532813901242368",
+      "LoserDisplayName": "jimpooman",
+      "LoserPoints": 125.2,
+      "Margin": 2.700000000000003
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 9,
+      "MatchupId": 2,
+      "WinnerUserId": "1121532813901242368",
+      "WinnerDisplayName": "jimpooman",
+      "WinnerPoints": 166.88,
+      "LoserUserId": "1206338369169141760",
+      "LoserDisplayName": "robleonard3",
+      "LoserPoints": 164.1,
+      "Margin": 2.780000000000001
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 7,
+      "MatchupId": 5,
+      "WinnerUserId": "1205976837939793920",
+      "WinnerDisplayName": "SkinnyPetyr",
+      "WinnerPoints": 137.22,
+      "LoserUserId": "656006678600331264",
+      "LoserDisplayName": "tmallz",
+      "LoserPoints": 134,
+      "Margin": 3.219999999999999
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 5,
+      "MatchupId": 5,
+      "WinnerUserId": "869683924631248896",
+      "WinnerDisplayName": "rossbeck44",
+      "WinnerPoints": 175.94,
+      "LoserUserId": "1206338369169141760",
+      "LoserDisplayName": "robleonard3",
+      "LoserPoints": 170.94,
+      "Margin": 5
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 5,
+      "MatchupId": 4,
+      "WinnerUserId": "1121890292220788736",
+      "WinnerDisplayName": "jackleonard24",
+      "WinnerPoints": 152.62,
+      "LoserUserId": "656006678600331264",
+      "LoserDisplayName": "tmallz",
+      "LoserPoints": 146.9,
+      "Margin": 5.719999999999999
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 1,
+      "MatchupId": 2,
+      "WinnerUserId": "1205976837939793920",
+      "WinnerDisplayName": "SkinnyPetyr",
+      "WinnerPoints": 125.8,
+      "LoserUserId": "737812063434465280",
+      "LoserDisplayName": "BradDodge33",
+      "LoserPoints": 119.8,
+      "Margin": 6
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "Week": 17,
+      "MatchupId": 1,
+      "WinnerUserId": "1205976837939793920",
+      "WinnerDisplayName": "SkinnyPetyr",
+      "WinnerPoints": 168.5,
+      "LoserUserId": "1051318216162811904",
+      "LoserDisplayName": "omalleybd",
+      "LoserPoints": 162.44,
+      "Margin": 6.060000000000002
+    }
+  ],
+  "TopScoringWeeks": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 9,
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "Week": 16,
+      "MatchupId": 3,
+      "Points": 246.16
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 7,
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "Week": 15,
+      "MatchupId": 1,
+      "Points": 236.22
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "Week": 4,
+      "MatchupId": 1,
+      "Points": 209.84
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "Week": 12,
+      "MatchupId": 1,
+      "Points": 202.58
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "Week": 8,
+      "MatchupId": 3,
+      "Points": 192.92
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "Week": 10,
+      "MatchupId": 2,
+      "Points": 191.58
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 5,
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "Week": 6,
+      "MatchupId": 2,
+      "Points": 190.8
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "Week": 16,
+      "MatchupId": 1,
+      "Points": 188.58
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 9,
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "Week": 17,
+      "MatchupId": 0,
+      "Points": 186.84
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "Week": 6,
+      "MatchupId": 4,
+      "Points": 186.72
+    }
+  ],
+  "BottomScoringWeeks": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "Week": 18,
+      "MatchupId": 0,
+      "Points": 44.96
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 1,
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "Week": 18,
+      "MatchupId": 0,
+      "Points": 80.48
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 10,
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "Week": 17,
+      "MatchupId": 0,
+      "Points": 83.42
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "Week": 14,
+      "MatchupId": 2,
+      "Points": 85.48
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 10,
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "Week": 18,
+      "MatchupId": 0,
+      "Points": 91.42
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 5,
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "Week": 18,
+      "MatchupId": 0,
+      "Points": 91.5
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "Week": 11,
+      "MatchupId": 1,
+      "Points": 92.1
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "Week": 18,
+      "MatchupId": 0,
+      "Points": 93.34
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 7,
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "Week": 11,
+      "MatchupId": 4,
+      "Points": 93.34
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "Week": 8,
+      "MatchupId": 5,
+      "Points": 93.34
+    }
+  ]
+}
