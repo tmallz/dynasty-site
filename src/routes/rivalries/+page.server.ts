@@ -112,50 +112,61 @@ async function loadRivalriesData() {
 }
 
 export const load: PageServerLoad = async () => {
-	try {
-		// Check cache first
-		const cacheFilePath = path.join(process.cwd(), 'static', 'rivalries-data.json');
-		
+	// Return a promise that streams data to the client
+	// This allows the page to render immediately while data loads
+	const dataPromise = (async () => {
 		try {
-			const fileStats = await fs.stat(cacheFilePath);
-			const fileAgeInHours = (Date.now() - fileStats.mtimeMs) / (1000 * 60 * 60);
+			// Check cache first
+			const cacheFilePath = path.join(process.cwd(), 'static', 'rivalries-data.json');
 			
-			console.log(`Rivalries cache age: ${fileAgeInHours.toFixed(2)} hours`);
-			
-			// If cache is less than 24 hours old, use it
-			if (fileAgeInHours < 24) {
-				console.log('Loading rivalries data from cache');
-				const cachedData = await fs.readFile(cacheFilePath, 'utf-8');
-				return JSON.parse(cachedData);
-			} else {
-				console.log('Cache is stale, recomputing rivalries data');
+			try {
+				const fileStats = await fs.stat(cacheFilePath);
+				const fileAgeInHours = (Date.now() - fileStats.mtimeMs) / (1000 * 60 * 60);
+				
+				console.log(`Rivalries cache age: ${fileAgeInHours.toFixed(2)} hours`);
+				
+				// If cache is less than 24 hours old, use it
+				if (fileAgeInHours < 24) {
+					console.log('Loading rivalries data from cache');
+					const cachedData = await fs.readFile(cacheFilePath, 'utf-8');
+					return JSON.parse(cachedData);
+				} else {
+					console.log('Cache is stale, recomputing rivalries data');
+				}
+			} catch (error) {
+				console.log('No cache file found, computing rivalries data for first time');
 			}
+			
+			// Compute fresh data
+			console.log('Computing rivalries data (this may take 20-60 seconds)...');
+			const data = await loadRivalriesData();
+			
+			// Save to cache
+			try {
+				await fs.writeFile(cacheFilePath, JSON.stringify(data, null, 2));
+				console.log('Rivalries data cached successfully');
+			} catch (error) {
+				console.error('Error writing cache file:', error);
+			}
+			
+			return data;
 		} catch (error) {
-			console.log('No cache file found, computing rivalries data for first time');
+			console.error('Error loading rivalries data:', error);
+			return {
+				rosters: [],
+				matchups: {},
+				transactions: [],
+				users: [],
+				brackets: {},
+				players: {}
+			};
 		}
-		
-		// Compute fresh data
-		console.log('Computing rivalries data (this may take 20-60 seconds)...');
-		const data = await loadRivalriesData();
-		
-		// Save to cache
-		try {
-			await fs.writeFile(cacheFilePath, JSON.stringify(data, null, 2));
-			console.log('Rivalries data cached successfully');
-		} catch (error) {
-			console.error('Error writing cache file:', error);
+	})();
+
+	// Return the promise wrapped in an object - SvelteKit will stream it
+	return {
+		streamed: {
+			rivalriesData: dataPromise
 		}
-		
-		return data;
-	} catch (error) {
-		console.error('Error loading rivalries data:', error);
-		return {
-			rosters: [],
-			matchups: {},
-			transactions: [],
-			users: [],
-			brackets: {},
-			players: {}
-		};
-	}
+	};
 };

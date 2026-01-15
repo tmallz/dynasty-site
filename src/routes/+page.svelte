@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { PageData } from './$types';
 	import type { SleeperState } from '$lib/api/dtos/LeagueDtos/SleeperState';
 	import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 	import { TransactionType } from '$lib/api/Enums/TransactionType';
@@ -14,6 +15,8 @@
 	import { TrendingPlayersHelper } from '$lib/Utilities/TredningPlayersHelper';
 	import { onMount } from 'svelte';
 
+	export let data: PageData;
+
 	let transactions: TransactionsPageDto[] = [];
 	let recentTrades: TransactionsPageDto[] = [];
 	let recentWaivers: TransactionsPageDto[] = [];
@@ -23,6 +26,14 @@
 	let sleeperState: SleeperState = {};
 	let currentSeasonStatus: string = '';
 	let loading: boolean = true;
+
+	// Handle streamed sleeper state
+	$: if (data.streamed?.sleeperState) {
+		data.streamed.sleeperState.then((result: SleeperState) => {
+			sleeperState = result;
+			currentSeasonStatus = result.season_type ?? '';
+		});
+	}
 
 	let GetSeasonTypeText = (seasonType: string) => {
 		switch (seasonType) {
@@ -42,8 +53,6 @@
 	let LoadData = async () => {
 		try {
 			transactions = await TransactionsHelper.GetAllTransactions();
-			sleeperState = await SleeperClient.GetSportState('nfl');
-			currentSeasonStatus = sleeperState.season_type ?? '';
 
 			// Filter and limit to top 3 trades
 			recentTrades = transactions

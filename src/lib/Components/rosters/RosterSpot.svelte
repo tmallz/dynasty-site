@@ -7,7 +7,7 @@
 	export let PlayerTeamLogo: string;
 </script>
 
-<li class="flex items-center justify-between rounded-lg bg-base-200 p-3 transition-all duration-200 hover:bg-base-300 hover:shadow-md">
+<li class="flex items-center justify-between rounded-lg bg-base-200 p-2 md:p-3 transition-all duration-200 hover:bg-base-300 hover:shadow-md">
 	<!-- Position Badge -->
 	<span class={`badge ${badgeClass}`}>
 		{#if position === 'WRT'}
@@ -20,17 +20,17 @@
 	</span>
 
 	<!-- Player Details -->
-	<div class="ml-4 flex w-full items-center space-x-3">
+	<div class="ml-2 md:ml-4 flex w-full items-center space-x-2 md:space-x-3 min-w-0">
 		<!-- Player Image -->
-		<img src={playerImage} alt={playerName} class="h-12 w-12 rounded-lg object-cover shadow-sm" />
+		<img src={playerImage} alt={playerName} class="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover shadow-sm flex-shrink-0" />
 
 		<!-- Team Logo -->
-		<img src={PlayerTeamLogo} alt={playerTeam} class="h-7 w-7 rounded-md object-cover" />
+		<img src={PlayerTeamLogo} alt={playerTeam} class="h-5 w-5 md:h-7 md:w-7 rounded-md object-cover flex-shrink-0" />
 
 		<!-- Player Info -->
-		<div class="flex-1">
-			<p class="font-semibold text-base">{playerName}</p>
-			<p class="text-sm text-base-content/60">{playerTeam}</p>
+		<div class="flex-1 min-w-0">
+			<p class="font-semibold text-sm md:text-base">{playerName}</p>
+			<p class="text-xs md:text-sm text-base-content/60">{playerTeam}</p>
 		</div>
 	</div>
 </li>
