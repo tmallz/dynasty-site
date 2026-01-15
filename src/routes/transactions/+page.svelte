@@ -6,10 +6,19 @@
 	import WaiverTransaction from '$lib/Components/transactions/WaiverTransaction.svelte';
 
 	export let data: PageData;
-	let transactions: TransactionsPageDto[] = data.transactions ?? [];
+	let transactions: TransactionsPageDto[] = [];
 	let offset = 50;
 	let loading = false;
 	let hasMore = true;
+	let isLoading = true;
+
+	// Handle streamed data
+	$: if (data.streamed?.transactions) {
+		data.streamed.transactions.then((result: TransactionsPageDto[]) => {
+			transactions = result ?? [];
+			isLoading = false;
+		});
+	}
 
 	async function loadMore() {
 		if (loading) return;
@@ -44,7 +53,14 @@
 		<p class="text-base-content/70">Recent trades, waivers, and free agent pickups</p>
 	</div>
 
-	{#if transactions && transactions.length > 0}
+	{#if isLoading}
+		<!-- Loading State -->
+		<div class="flex flex-col items-center justify-center py-20">
+			<span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+			<p class="text-lg font-semibold">Loading transactions...</p>
+			<p class="text-sm text-base-content/70 mt-2">This may take a few seconds</p>
+		</div>
+	{:else if transactions && transactions.length > 0}
 		<div class="space-y-6">
 			{#each transactions as transaction}
 				{#if transaction.TransactionType === TransactionType.Trade}

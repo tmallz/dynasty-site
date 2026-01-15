@@ -9,32 +9,57 @@
 	let selectedTeam2: number | null = null;
 	let rivalryStats: RivalryStats | null = null;
 
+	// Type for the loaded data
+	interface RivalriesData {
+		rosters: any[];
+		matchups: any;
+		transactions: any[];
+		users: any[];
+		brackets: any;
+		players: any;
+	}
+
+	let loadedData: RivalriesData | null = null;
+	let isLoading = true;
+
+	// Handle streamed data
+	$: if (data.streamed?.rivalriesData) {
+		data.streamed.rivalriesData.then((result: RivalriesData) => {
+			loadedData = result;
+			isLoading = false;
+		});
+	}
+
 	function calculateStats() {
-		if (selectedTeam1 && selectedTeam2 && selectedTeam1 !== selectedTeam2) {
-			rivalryStats = RivalriesHelper.CalculateRivalryStats(
-				selectedTeam1,
-				selectedTeam2,
-				data.matchups,
-				data.transactions,
-				data.brackets
-			);
-		} else {
+		if (!loadedData || !selectedTeam1 || !selectedTeam2 || selectedTeam1 === selectedTeam2) {
 			rivalryStats = null;
+			return;
 		}
+
+		rivalryStats = RivalriesHelper.CalculateRivalryStats(
+			selectedTeam1,
+			selectedTeam2,
+			loadedData.matchups,
+			loadedData.transactions,
+			loadedData.brackets
+		);
 	}
 
 	function getTeamName(rosterId: number): string {
-		const roster = data.rosters.find((r) => r.roster_id === rosterId);
+		if (!loadedData) return 'Unknown Team';
+		const roster = loadedData.rosters.find((r: any) => r.roster_id === rosterId);
 		return roster?.TeamName || 'Unknown Team';
 	}
 
 	function getTeamAvatar(rosterId: number): string {
-		const roster = data.rosters.find((r) => r.roster_id === rosterId);
+		if (!loadedData) return '';
+		const roster = loadedData.rosters.find((r: any) => r.roster_id === rosterId);
 		return roster?.AvatarUrl || '';
 	}
 
 	function getPlayerName(playerId: string): string {
-		const player = data.players[playerId];
+		if (!loadedData) return playerId;
+		const player = loadedData.players[playerId];
 		if (player) {
 			const fullName = `${player.first_name || ''} ${player.last_name || ''}`.trim();
 			return fullName || playerId;
@@ -46,60 +71,72 @@
 <div class="container mx-auto p-6 max-w-7xl">
 	<h1 class="text-4xl font-bold mb-8 text-center">Team Rivalries</h1>
 
-	<!-- Team Selection Hero Section -->
-	<div class="card bg-base-100 shadow-xl mb-8">
-		<div class="card-body">
-			<h2 class="card-title text-2xl mb-6 justify-center">Select Teams to Compare</h2>
+	{#if isLoading}
+		<!-- Loading State -->
+		<div class="flex flex-col items-center justify-center py-20">
+			<span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+			<p class="text-lg font-semibold">Loading rivalry data...</p>
+			<p class="text-sm text-base-content/70 mt-2">This may take a few seconds</p>
+		</div>
+	{:else}
+		<!-- Team Selection Hero Section -->
+		<div class="card bg-base-100 shadow-xl mb-8">
+			<div class="card-body">
+				<h2 class="card-title text-2xl mb-6 justify-center">Select Teams to Compare</h2>
 
-			<div class="flex flex-col lg:flex-row items-center justify-center gap-6">
-				<!-- Team 1 Selection -->
-				<div class="flex flex-col items-center gap-3 w-full lg:w-auto">
-					{#if selectedTeam1}
-						<div class="avatar">
-							<div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-								<img src={getTeamAvatar(selectedTeam1)} alt={getTeamName(selectedTeam1)} />
+				<div class="flex flex-col lg:flex-row items-center justify-center gap-6">
+					<!-- Team 1 Selection -->
+					<div class="flex flex-col items-center gap-3 w-full lg:w-auto">
+						{#if selectedTeam1}
+							<div class="avatar">
+								<div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+									<img src={getTeamAvatar(selectedTeam1)} alt={getTeamName(selectedTeam1)} />
+								</div>
 							</div>
-						</div>
-					{/if}
-					<select
-						bind:value={selectedTeam1}
-						on:change={calculateStats}
-						class="select select-primary select-lg w-full max-w-xs font-semibold"
-					>
-						<option value={null}>Select Team 1</option>
-						{#each data.rosters as roster}
-							<option value={roster.roster_id}>{roster.TeamName}</option>
-						{/each}
-					</select>
-				</div>
+						{/if}
+						<select
+							bind:value={selectedTeam1}
+							on:change={calculateStats}
+							class="select select-primary select-lg w-full max-w-xs font-semibold"
+						>
+							<option value={null}>Select Team 1</option>
+							{#if loadedData}
+								{#each loadedData.rosters as roster}
+									<option value={roster.roster_id}>{roster.TeamName}</option>
+								{/each}
+							{/if}
+						</select>
+					</div>
 
-				<!-- VS Divider -->
-				<div class="text-4xl font-bold text-primary hidden lg:block">VS</div>
-				<div class="text-2xl font-bold text-primary lg:hidden">VS</div>
+					<!-- VS Divider -->
+					<div class="text-4xl font-bold text-primary hidden lg:block">VS</div>
+					<div class="text-2xl font-bold text-primary lg:hidden">VS</div>
 
-				<!-- Team 2 Selection -->
-				<div class="flex flex-col items-center gap-3 w-full lg:w-auto">
-					{#if selectedTeam2}
-						<div class="avatar">
-							<div class="w-24 rounded-full ring ring-secondary ring-offset-base-100 ring-offset-2">
-								<img src={getTeamAvatar(selectedTeam2)} alt={getTeamName(selectedTeam2)} />
+					<!-- Team 2 Selection -->
+					<div class="flex flex-col items-center gap-3 w-full lg:w-auto">
+						{#if selectedTeam2}
+							<div class="avatar">
+								<div class="w-24 rounded-full ring ring-secondary ring-offset-base-100 ring-offset-2">
+									<img src={getTeamAvatar(selectedTeam2)} alt={getTeamName(selectedTeam2)} />
+								</div>
 							</div>
-						</div>
-					{/if}
-					<select
-						bind:value={selectedTeam2}
-						on:change={calculateStats}
-						class="select select-secondary select-lg w-full max-w-xs font-semibold"
-					>
-						<option value={null}>Select Team 2</option>
-						{#each data.rosters as roster}
-							<option value={roster.roster_id}>{roster.TeamName}</option>
-						{/each}
-					</select>
+						{/if}
+						<select
+							bind:value={selectedTeam2}
+							on:change={calculateStats}
+							class="select select-secondary select-lg w-full max-w-xs font-semibold"
+						>
+							<option value={null}>Select Team 2</option>
+							{#if loadedData}
+								{#each loadedData.rosters as roster}
+									<option value={roster.roster_id}>{roster.TeamName}</option>
+								{/each}
+							{/if}
+						</select>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
 	<!-- Stats Display -->
 	{#if rivalryStats && selectedTeam1 !== null && selectedTeam2 !== null}
@@ -429,5 +466,6 @@
 			</svg>
 			<span>Select two teams from the dropdowns above to view their rivalry statistics.</span>
 		</div>
+	{/if}
 	{/if}
 </div>

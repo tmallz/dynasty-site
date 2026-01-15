@@ -12,7 +12,16 @@
 	import { DraftType } from '$lib/api/Enums/DraftType';
 
 	export let data;
-	$: pageDrafts = data.pageDrafts;
+	let pageDrafts: DraftPageDto[] = [];
+	let isLoading = true;
+
+	// Handle streamed data
+	$: if (data.streamed?.pageDrafts) {
+		data.streamed.pageDrafts.then((result: DraftPageDto[]) => {
+			pageDrafts = result;
+			isLoading = false;
+		});
+	}
 
 	let getUsernameFromUserId = (userId: string): string => {
 		return $UsersStore.find((user) => user.user_id === userId)?.display_name ?? '';
@@ -156,8 +165,16 @@
 </script>
 
 <main class="p-8">
-	<!-- Upcoming Draft -->
-	{#if pageDrafts.find((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT)}
+	{#if isLoading}
+		<!-- Loading State -->
+		<div class="flex flex-col items-center justify-center py-20">
+			<span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+			<p class="text-lg font-semibold">Loading drafts...</p>
+			<p class="text-sm text-base-content/70 mt-2">This may take a few seconds</p>
+		</div>
+	{:else}
+		<!-- Upcoming Draft -->
+		{#if pageDrafts.find((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT)}
 			<section class="mb-12">
 				{#each pageDrafts.filter((draft) => draft.DraftStatus === DraftStatus.PRE_DRAFT) as draft}
 					<section class="mb-8">
@@ -256,4 +273,5 @@
 				</section>
 			{/each}
 		</section>
+	{/if}
 </main>

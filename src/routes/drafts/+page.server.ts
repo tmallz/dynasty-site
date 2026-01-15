@@ -9,26 +9,32 @@ import type { DraftPageDto } from '$lib/Utilities/Dtos/DraftPageDto';
 export const load: PageServerLoad = async () => {
 	const leagueId = import.meta.env.VITE_LEAGUE_ID;
 
-	// Load only the stores needed for drafts page (not Players which causes issues server-side)
-	if (!IsTransactionsLoaded()) {
-		await LoadTransactions();
-	}
+	// Stream drafts data to client for instant page load
+	const draftsPromise = (async () => {
+		// Load only the stores needed for drafts page (not Players which causes issues server-side)
+		if (!IsTransactionsLoaded()) {
+			await LoadTransactions();
+		}
 
-	if (!AreDraftsLoaded()) {
-		await LoadDrafts();
-	}
+		if (!AreDraftsLoaded()) {
+			await LoadDrafts();
+		}
 
-	if (!IsRostersLoaded()) {
-		await LoadRosters(leagueId);
-	}
+		if (!IsRostersLoaded()) {
+			await LoadRosters(leagueId);
+		}
 
-	if (!IsUsersLoaded()) {
-		await LoadUsers(leagueId);
-	}
+		if (!IsUsersLoaded()) {
+			await LoadUsers(leagueId);
+		}
 
-	const pageDrafts: DraftPageDto[] = await DraftsHelper.GetAllDrafts();
+		const pageDrafts: DraftPageDto[] = await DraftsHelper.GetAllDrafts();
+		return pageDrafts;
+	})();
 
 	return {
-		pageDrafts
+		streamed: {
+			pageDrafts: draftsPromise
+		}
 	};
 };

@@ -17,50 +17,41 @@
 	let showBrackets = true;
 	let showLosersBracket = false;
 	let playersLoaded = false;
+	let isLoadingPlayers = false;
 
-	// Group matchups by MatchupId for regular season
-	let groupedMatchups: Record<string, MatchupPageDto[]> = {};
-	if (matchups) {
-		groupedMatchups = matchups.reduce(
-			(groups, matchup) => {
-				const key = matchup.MatchupId ?? 'unknown';
-				if (!groups[key]) {
-					groups[key] = [];
-				}
-				groups[key].push(matchup);
-				return groups;
-			},
-			{} as Record<string, MatchupPageDto[]>
-		);
-	}
+	// Group matchups by MatchupId for regular season - make reactive
+	$: groupedMatchups = matchups ? matchups.reduce(
+		(groups, matchup) => {
+			const key = matchup.MatchupId ?? 'unknown';
+			if (!groups[key]) {
+				groups[key] = [];
+			}
+			groups[key].push(matchup);
+			return groups;
+		},
+		{} as Record<string, MatchupPageDto[]>
+	) : {};
 
 	// Lazy load player details when viewing matchups
 	async function ensurePlayerDataLoaded() {
-		if (!playersLoaded && !IsPlayersLoaded()) {
-			await LoadPlayers();
-			playersLoaded = true;
-			
-			// Re-populate Starters for each matchup
-			const rosters = get(RostersStore);
-			matchups.forEach(matchup => {
-				const roster = rosters.find(r => r.roster_id === matchup.RosterId);
-				if (roster) {
-					matchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
-				}
-			});
-			
-			// Re-group matchups after adding player data
-			groupedMatchups = matchups.reduce(
-				(groups, matchup) => {
-					const key = matchup.MatchupId ?? 'unknown';
-					if (!groups[key]) {
-						groups[key] = [];
+		if (!playersLoaded && !IsPlayersLoaded() && !isLoadingPlayers) {
+			isLoadingPlayers = true;
+			try {
+				await LoadPlayers();
+				
+				// Re-populate Starters for each matchup
+				const rosters = get(RostersStore);
+				matchups.forEach(matchup => {
+					const roster = rosters.find(r => r.roster_id === matchup.RosterId);
+					if (roster) {
+						matchup.Starters = RostersHelper.MapPlayerNames(roster.starters);
 					}
-					groups[key].push(matchup);
-					return groups;
-				},
-				{} as Record<string, MatchupPageDto[]>
-			);
+				});
+				
+				playersLoaded = true;
+			} finally {
+				isLoadingPlayers = false;
+			}
 		}
 	}
 
@@ -77,8 +68,8 @@
 	});
 </script>
 
-<main class="mx-4 p-6 md:mx-auto {isPlayoffs ? 'max-w-none' : 'md:max-w-7xl'}">
-	<h1 class="mb-6 text-center text-4xl font-bold">
+<main class="mx-0 p-2 md:mx-4 md:p-6 md:mx-auto {isPlayoffs ? 'max-w-none' : 'md:max-w-7xl'}">
+	<h1 class="mb-4 md:mb-6 text-center text-3xl md:text-4xl font-bold">
 		Week {currentWeek} {isPlayoffs ? '- PLAYOFFS' : 'Matchups'}
 	</h1>
 
@@ -112,23 +103,25 @@
 		<!-- Display processed bracket data -->
 		<div class="space-y-12">
 			<!-- Winners Bracket -->
-			<div class="rounded-lg bg-base-200 p-6">
-				<h2 class="mb-6 text-center text-3xl font-bold">Winners Bracket</h2>
+			<div class="rounded-lg bg-base-200 p-3 md:p-6">
+				<h2 class="mb-4 md:mb-6 text-center text-2xl md:text-3xl font-bold">Winners Bracket</h2>
 				
-			<!-- Week Labels Row -->
-			<div class="flex items-center justify-evenly mb-4 overflow-x-auto">
-				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Round 1 (Week 15)</div>
-				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Round 2 (Week 16)</div>
-				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Championship (Week 17)</div>
-				<div class="text-center text-sm font-semibold text-gray-400 w-80 flex-shrink-0 opacity-0">Placeholder</div>
-			</div>
-			
-			<!-- Bracket Flow: 4 Columns (Round 1, Round 2, Round 3, Champion Card) -->
-			<div class="flex items-center justify-evenly min-h-[800px] overflow-x-auto">
+			<!-- Combined scrollable container for labels and bracket -->
+			<div class="overflow-x-auto">
+				<!-- Week Labels Row -->
+				<div class="flex items-center justify-start mb-4 gap-2 md:gap-0 md:justify-evenly">
+					<div class="text-center text-xs md:text-sm font-semibold text-gray-400 w-64 md:w-72 flex-shrink-0">Round 1 (Week 15)</div>
+					<div class="text-center text-xs md:text-sm font-semibold text-gray-400 w-64 md:w-72 flex-shrink-0">Round 2 (Week 16)</div>
+					<div class="text-center text-xs md:text-sm font-semibold text-gray-400 w-64 md:w-72 flex-shrink-0">Championship (Week 17)</div>
+					<div class="text-center text-xs md:text-sm font-semibold text-gray-400 w-64 md:w-80 flex-shrink-0 opacity-0">Placeholder</div>
+				</div>
+				
+				<!-- Bracket Flow: 4 Columns (Round 1, Round 2, Round 3, Champion Card) -->
+				<div class="flex items-center justify-start md:justify-evenly min-h-[500px] md:min-h-[800px] gap-4 md:gap-0">
 				<!-- Round 1 (Week 15) - 4 matchups -->
-				<div class="flex flex-col justify-around flex-shrink-0 min-h-[800px] w-72">
+				<div class="flex flex-col justify-around flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 1) as matchup, i}
-							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 									<div class="flex items-center justify-between gap-2">
@@ -167,9 +160,9 @@
 				</div>
 
 				<!-- Round 2 (Week 16) - 2 matchups -->
-				<div class="flex flex-col justify-around flex-shrink-0 min-h-[800px] w-72">
+				<div class="flex flex-col justify-around flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 2) as matchup, i}
-							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
 								<!-- Team 1 -->
 								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 									<div class="flex items-center justify-between gap-2">
@@ -208,9 +201,9 @@
 				</div>
 
 				<!-- Round 3 (Week 17) - Championship -->
-				<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-72">
+				<div class="flex flex-col justify-center flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-72">
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
-							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+							<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
 								<!-- Team 1 -->
 								<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-success bg-success/5' : ''} border-b border-base-content/10">
 									<div class="flex items-center justify-between gap-2">
@@ -248,10 +241,10 @@
 					</div>
 					
 					<!-- Champion Card (4th Column) -->
-				<div class="flex flex-col justify-center flex-shrink-0 min-h-[800px] w-80">
+				<div class="flex flex-col justify-center flex-shrink-0 min-h-[500px] md:min-h-[800px] w-64 md:w-80">
 						{#each (winnersBracket ?? []).filter(m => m.round === 3) as matchup}
 							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-6 md:p-8 w-64 md:w-80 text-center">
 									<div class="text-6xl mb-4">🏆</div>
 									<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Champion</div>
 									<div class="flex items-center justify-center gap-3 mb-2">
@@ -267,8 +260,7 @@
 						{/each}
 					</div>
 				</div>
-			</div>
-
+			</div>		</div>
 			<!-- Consolation Bracket -->
 			{#if consolationBracket && consolationBracket.length > 0}
 			<div class="rounded-lg bg-base-200 p-6 overflow-x-auto">
@@ -396,23 +388,25 @@
 	{:else if isPlayoffs && showBrackets && showLosersBracket}
 		<!-- Display losers bracket (teams that didn't make playoffs) -->
 		<div class="space-y-12">
-			<div class="rounded-lg bg-base-200 p-6">
-				<h2 class="mb-6 text-center text-3xl font-bold">Losers Bracket</h2>
+			<div class="rounded-lg bg-base-200 p-3 md:p-6">
+				<h2 class="mb-4 md:mb-6 text-center text-2xl md:text-3xl font-bold">Losers Bracket</h2>
 				
-			<!-- Week Labels Row -->
-			<div class="flex items-center justify-center mb-4 overflow-x-auto gap-8">
-				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">Round 1 (Week 15)</div>
-				<div class="text-center text-sm font-semibold text-gray-400 w-72 flex-shrink-0">7th Place (Week 16)</div>
-				<div class="text-center text-sm font-semibold text-gray-400 w-80 flex-shrink-0 opacity-0">Placeholder</div>
-			</div>
-				
-				<!-- Bracket Flow: Left to Right -->
-				<div class="flex items-center justify-center gap-8">
+			<!-- Combined scrollable container for labels and bracket -->
+			<div class="overflow-x-auto">
+				<!-- Week Labels Row -->
+				<div class="flex items-center justify-start mb-4 gap-4 md:gap-8">
+					<div class="text-center text-xs md:text-sm font-semibold text-gray-400 w-64 md:w-72 flex-shrink-0">Round 1 (Week 15)</div>
+					<div class="text-center text-xs md:text-sm font-semibold text-gray-400 w-64 md:w-72 flex-shrink-0">7th Place (Week 16)</div>
+					<div class="text-center text-xs md:text-sm font-semibold text-gray-400 w-64 md:w-80 flex-shrink-0 opacity-0">Placeholder</div>
+				</div>
+					
+					<!-- Bracket Flow: Left to Right -->
+					<div class="flex items-center justify-start gap-4 md:gap-8">
 					<!-- Round 1 (Week 15) - 2 matchups -->
 					{#if (losersBracket ?? []).filter(m => m.round === 1).length > 0}
-						<div class="flex flex-col justify-center gap-8">
+						<div class="flex flex-col justify-center gap-4 md:gap-8">
 							{#each (losersBracket ?? []).filter(m => m.round === 1) as matchup}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
@@ -454,7 +448,7 @@
 					{#if (losersBracket ?? []).filter(m => m.round === 2).length > 0}
 						<div class="flex flex-col justify-center">
 							{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-72 overflow-hidden">
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 w-64 md:w-72 overflow-hidden">
 									<!-- Team 1 -->
 									<div class="p-3 {matchup.winnerName === matchup.team1Name ? 'border-l-4 border-error bg-error/5' : ''} border-b border-base-content/10">
 										<div class="flex items-center justify-between gap-2">
@@ -493,10 +487,10 @@
 					{/if}
 					
 					<!-- Toilet Bowl Champion Card -->
-					<div class="flex flex-col justify-center flex-shrink-0 w-80">
+					<div class="flex flex-col justify-center flex-shrink-0 w-64 md:w-80">
 						{#each (losersBracket ?? []).filter(m => m.round === 2).slice(0, 1) as matchup}
 							{#if matchup.winnerName && matchup.winnerName !== 'TBD'}
-								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-8 w-80 text-center">
+								<div class="rounded-lg bg-base-300 border-2 border-base-content/20 p-6 md:p-8 w-64 md:w-80 text-center">
 									<div class="text-6xl mb-4">💩</div>
 									<div class="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Toilet Bowl Champion</div>
 									<div class="flex items-center justify-center gap-3 mb-2">
@@ -512,8 +506,7 @@
 						{/each}
 					</div>
 				</div>
-			</div>
-
+			</div>		</div>
 			<!-- Consolation Bracket for Losers Bracket (9th place) -->
 			{#if (losersBracket ?? []).filter(m => m.round === 2).length > 1}
 				<div class="rounded-lg bg-base-200 p-6">
@@ -561,50 +554,61 @@
 						</div>
 					</div>
 				</div>
-			{/if}
-		</div>
+
+		{/if}
+	</div>
 	{:else if !matchups || matchups.length === 0}
 		<p>Loading...</p>
 	{:else}
-		<!-- Regular season matchups display (also used for playoff matchups toggle) -->
-		{#each Object.entries(groupedMatchups) as [matchupId, group], matchupIndex}
-			<section class="mt-8 mb-8">
-				<!-- Box wrapping the entire matchup group with a light gray background in light mode -->
-				<div class="border-base-content/10 bg-base-300 rounded-lg border p-6">
-					<h2 class="mb-4 text-center text-3xl font-bold">Matchup #{matchupIndex + 1}</h2>
-					<!-- Container that stacks vertically on mobile and becomes a 3-column grid on desktop, centered on larger screens -->
-					<div class="flex flex-col gap-4 md:grid md:grid-cols-3 md:items-center md:justify-center">
-						{#each group as matchup, i}
-							<div class="bg-base-100 rounded-xl p-6 shadow-xl">
-								<!-- TeamHeader displays team info -->
-								<TeamHeader
-									teamName={matchup.TeamName ?? 'Unknown Team'}
-									teamLogo={matchup.AvatarUrl ?? 'https://via.placeholder.com/150'}
-								/>
-								<!-- Sorted roster starters using RosterSorter.assignRoles -->
-								<ul class="mt-4 space-y-3">
-									{#each RosterSorter.assignRoles(Object.values(matchup.Starters ?? {})) as player}
-										<RosterSpot
-											position={player.role}
-											badgeClass={RosterSorter.getBadgeClass(player.role)}
-											playerName={player.first_name + ' ' + player.last_name}
-											playerTeam={player.team ?? ''}
-											playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
-											PlayerTeamLogo={player.playerTeamAvatarUrl ??
-												'https://via.placeholder.com/150'}
-										/>
-									{/each}
-								</ul>
-							</div>
-
-							{#if i < group.length - 1}
-								<!-- VS divider inserted between matchup cards -->
-								<div class="flex items-center justify-center text-3xl font-bold">VS</div>
-							{/if}
-						{/each}
-					</div>
+		<!-- Regular Season or Non-Bracket View -->
+		{#if isLoadingPlayers}
+			<div class="flex justify-center items-center min-h-[400px]">
+				<div class="text-center">
+					<span class="loading loading-spinner loading-lg"></span>
+					<p class="mt-4 text-lg">Loading player data...</p>
 				</div>
-			</section>
-		{/each}
+			</div>
+		{:else}
+			<!-- Regular season matchups display (also used for playoff matchups toggle) -->
+			{#each Object.entries(groupedMatchups) as [matchupId, group], matchupIndex}
+				<section class="mt-4 mb-4 md:mt-8 md:mb-8">
+					<!-- Box wrapping the entire matchup group with a light gray background in light mode -->
+					<div class="border-base-content/10 bg-base-300 rounded-none md:rounded-lg border-y md:border p-3 md:p-6">
+						<h2 class="mb-4 text-center text-2xl md:text-3xl font-bold">Matchup #{matchupIndex + 1}</h2>
+						<!-- Container that stacks vertically on mobile and becomes a 3-column grid on desktop, centered on larger screens -->
+						<div class="flex flex-col gap-4 md:grid md:grid-cols-3 md:items-center md:justify-center">
+							{#each group as matchup, i}
+								<div class="bg-base-100 rounded-xl p-4 md:p-6 shadow-xl">
+									<!-- TeamHeader displays team info -->
+									<TeamHeader
+										teamName={matchup.TeamName ?? 'Unknown Team'}
+										teamLogo={matchup.AvatarUrl ?? 'https://via.placeholder.com/150'}
+									/>
+									<!-- Sorted roster starters using RosterSorter.assignRoles -->
+									<ul class="mt-4 space-y-2 md:space-y-3">
+										{#each RosterSorter.assignRoles(Object.values(matchup.Starters ?? {})) as player}
+											<RosterSpot
+												position={player.role}
+												badgeClass={RosterSorter.getBadgeClass(player.role)}
+												playerName={player.first_name + ' ' + player.last_name}
+												playerTeam={player.team ?? ''}
+												playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
+												PlayerTeamLogo={player.playerTeamAvatarUrl ??
+													'https://via.placeholder.com/150'}
+											/>
+										{/each}
+									</ul>
+								</div>
+
+								{#if i < group.length - 1}
+									<!-- VS divider inserted between matchup cards -->
+									<div class="flex items-center justify-center text-2xl md:text-3xl font-bold">VS</div>
+								{/if}
+							{/each}
+						</div>
+					</div>
+				</section>
+			{/each}
+		{/if}
 	{/if}
 </main>

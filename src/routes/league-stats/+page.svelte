@@ -1,7 +1,19 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	export let data: PageData;
-	const stats = data.stats;
+	
+	let stats: any = null;
+	let users: any = null;
+	let isLoading = true;
+
+	// Handle streamed data
+	$: if (data.streamed?.leagueData) {
+		data.streamed.leagueData.then((result: any) => {
+			stats = result.stats;
+			users = result.users;
+			isLoading = false;
+		});
+	}
 </script>
 
 <style>
@@ -15,7 +27,14 @@
 	}
 </style>
 
-{#if stats}
+{#if isLoading}
+	<!-- Loading State -->
+	<div class="flex flex-col items-center justify-center py-20">
+		<span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+		<p class="text-lg font-semibold">Loading league stats...</p>
+		<p class="text-sm text-base-content/70 mt-2">This may take a few seconds</p>
+	</div>
+{:else if stats}
 	<div class="container mx-auto px-4 py-8">
 		<h1 class="text-4xl font-bold text-center mb-8">League Stats</h1>
 
@@ -59,8 +78,8 @@
 														<div class="avatar">
 															<div class="w-8 h-8 rounded-full">
 																<img
-																	src="https://sleepercdn.com/avatars/{data.users?.find(
-																		(u) => u.user_id === weekRecord.UserId
+																	src="https://sleepercdn.com/avatars/{users?.find(
+																		(u: any) => u.user_id === weekRecord.UserId
 																	)?.avatar ?? 'default'}"
 																	alt={weekRecord.DisplayName ?? 'Manager'}
 																/>
@@ -125,8 +144,8 @@
 														<div class="avatar">
 															<div class="w-8 h-8 rounded-full">
 																<img
-																	src="https://sleepercdn.com/avatars/{data.users?.find(
-																		(u) => u.user_id === weekRecord.UserId
+																	src="https://sleepercdn.com/avatars/{users?.find(
+																		(u: any) => u.user_id === weekRecord.UserId
 																	)?.avatar ?? 'default'}"
 																	alt={weekRecord.DisplayName ?? 'Manager'}
 																/>
@@ -198,8 +217,8 @@
 														<div class="avatar">
 															<div class="w-8 h-8 rounded-full">
 																<img
-																	src="https://sleepercdn.com/avatars/{data.users?.find(
-																		(u) => u.user_id === seasonRecord.UserId
+																	src="https://sleepercdn.com/avatars/{users?.find(
+																		(u: any) => u.user_id === seasonRecord.UserId
 																	)?.avatar ?? 'default'}"
 																	alt={seasonRecord.DisplayName ?? 'Manager'}
 																/>
@@ -260,8 +279,8 @@
 														<div class="avatar">
 															<div class="w-8 h-8 rounded-full">
 																<img
-																	src="https://sleepercdn.com/avatars/{data.users?.find(
-																		(u) => u.user_id === seasonRecord.UserId
+																	src="https://sleepercdn.com/avatars/{users?.find(
+																		(u: any) => u.user_id === seasonRecord.UserId
 																	)?.avatar ?? 'default'}"
 																	alt={seasonRecord.DisplayName ?? 'Manager'}
 																/>
@@ -329,8 +348,8 @@
 														<div class="avatar">
 															<div class="w-8 h-8 rounded-full">
 																<img
-																	src="https://sleepercdn.com/avatars/{data.users?.find(
-																		(u) => u.user_id === record.UserId
+																	src="https://sleepercdn.com/avatars/{users?.find(
+																		(u: any) => u.user_id === record.UserId
 																	)?.avatar ?? 'default'}"
 																	alt={record.DisplayName ?? 'Manager'}
 																/>
@@ -385,8 +404,8 @@
 														<div class="avatar">
 															<div class="w-8 h-8 rounded-full">
 																<img
-																	src="https://sleepercdn.com/avatars/{data.users?.find(
-																		(u) => u.user_id === record.UserId
+																	src="https://sleepercdn.com/avatars/{users?.find(
+																		(u: any) => u.user_id === record.UserId
 																	)?.avatar ?? 'default'}"
 																	alt={record.DisplayName ?? 'Manager'}
 																/>
@@ -451,8 +470,8 @@
 															<div class="avatar">
 																<div class="w-6 h-6 rounded-full">
 																	<img
-																		src="https://sleepercdn.com/avatars/{data.users?.find(
-																			(u) => u.user_id === game.WinnerUserId
+																		src="https://sleepercdn.com/avatars/{users?.find(
+																			(u: any) => u.user_id === game.WinnerUserId
 																		)?.avatar ?? 'default'}"
 																		alt={game.WinnerDisplayName ?? 'Winner'}
 																	/>
@@ -468,8 +487,8 @@
 															<div class="avatar">
 																<div class="w-6 h-6 rounded-full">
 																	<img
-																		src="https://sleepercdn.com/avatars/{data.users?.find(
-																			(u) => u.user_id === game.LoserUserId
+																		src="https://sleepercdn.com/avatars/{users?.find(
+																			(u: any) => u.user_id === game.LoserUserId
 																		)?.avatar ?? 'default'}"
 																		alt={game.LoserDisplayName ?? 'Loser'}
 																	/>
@@ -535,8 +554,8 @@
 															<div class="avatar">
 																<div class="w-6 h-6 rounded-full">
 																	<img
-																		src="https://sleepercdn.com/avatars/{data.users?.find(
-																			(u) => u.user_id === game.WinnerUserId
+																		src="https://sleepercdn.com/avatars/{users?.find(
+																			(u: any) => u.user_id === game.WinnerUserId
 																		)?.avatar ?? 'default'}"
 																		alt={game.WinnerDisplayName ?? 'Winner'}
 																	/>
@@ -552,8 +571,8 @@
 															<div class="avatar">
 																<div class="w-6 h-6 rounded-full">
 																	<img
-																		src="https://sleepercdn.com/avatars/{data.users?.find(
-																			(u) => u.user_id === game.LoserUserId
+																		src="https://sleepercdn.com/avatars/{users?.find(
+																			(u: any) => u.user_id === game.LoserUserId
 																		)?.avatar ?? 'default'}"
 																		alt={game.LoserDisplayName ?? 'Loser'}
 																	/>
@@ -584,3 +603,5 @@
 {:else}
 	<p>No league stats available.</p>
 {/if}
+
+
