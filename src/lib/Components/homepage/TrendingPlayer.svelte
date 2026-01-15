@@ -1,66 +1,55 @@
 <script lang="ts">
-	export let upOrDown: boolean; // 'up' is true or 'down'
+	export let upOrDown: boolean; // true for up, false for down
 	export let playerName: string = '';
 	export let playerPosition: string = '';
 	export let playerTeam: string = '';
-	export let playerAvatar: string = ''; // URL for the player's avatar
-	export let teamAvatar: string = ''; // URL for the team's avatar
-	export let numWaivers: number = 0; // Number of waivers for the player
+	export let playerAvatar: string = '';
+	export let teamAvatar: string = '';
+	export let numWaivers: number = 0;
 </script>
 
-<div class="trending-player bg-base-100 flex items-center gap-4 rounded-lg p-4 shadow">
-	<!-- Player Avatar -->
-	<div class="player-avatar h-16 w-16 overflow-hidden rounded-full bg-gray-200">
-		{#if playerAvatar}
-			<img src={playerAvatar} alt="{playerName} Avatar" class="h-full w-full object-cover" />
-		{:else}
-			<div class="flex h-full w-full items-center justify-center text-gray-500">No Avatar</div>
-		{/if}
-	</div>
+<div class="card bg-base-300 shadow-lg hover:shadow-xl transition-shadow duration-300">
+	<div class="card-body p-4">
+		<div class="flex items-center gap-4">
+			<!-- Player Avatar with Team Badge -->
+			<div class="relative shrink-0">
+				<div class="w-14 h-14 rounded-full overflow-hidden ring-2 {upOrDown ? 'ring-success' : 'ring-error'} ring-offset-2 ring-offset-base-300">
+					{#if playerAvatar}
+						<img src={playerAvatar} alt={playerName} class="w-full h-full object-cover" />
+					{:else}
+						<div class="w-full h-full flex items-center justify-center bg-base-100 text-base-content/50">
+							?
+						</div>
+					{/if}
+				</div>
+				<!-- Team Logo Badge -->
+				{#if teamAvatar}
+					<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full overflow-hidden bg-base-100 ring-2 ring-base-300">
+						<img src={teamAvatar} alt={playerTeam} class="w-full h-full object-cover" />
+					</div>
+				{/if}
+			</div>
 
-	<!-- Player Info -->
-	<div class="flex-1">
-		<h3 class="text-lg font-bold">{playerName}</h3>
-		<p class="text-sm text-gray-500">{playerPosition} - {playerTeam}</p>
-		<p class="text-sm font-medium">
-			<span class={upOrDown ? 'text-green-500' : 'text-red-500'}>
-				{upOrDown ? '+' : '-'}{numWaivers}
-			</span>
-		</p>
-	</div>
+			<!-- Player Info -->
+			<div class="flex-1 min-w-0">
+				<h3 class="font-bold text-base truncate">{playerName}</h3>
+				<div class="flex items-center gap-2 mt-1">
+					<span class="badge badge-sm {upOrDown ? 'badge-success' : 'badge-error'} badge-outline">
+						{playerPosition}
+					</span>
+					<span class="text-xs text-base-content/60">{playerTeam}</span>
+				</div>
+			</div>
 
-	<!-- Team Avatar -->
-	<div class="team-avatar h-12 w-12 overflow-hidden rounded-full bg-gray-200">
-		{#if playerTeam}
-			<img src={teamAvatar} alt="{playerTeam} Logo" class="h-full w-full object-cover" />
-		{:else}
-			<div class="flex h-full w-full items-center justify-center text-gray-500">FA</div>
-		{/if}
+			<!-- Trending Indicator -->
+			<div class="flex flex-col items-center shrink-0">
+				<div class="text-2xl {upOrDown ? 'text-success' : 'text-error'}">
+					{upOrDown ? '📈' : '📉'}
+				</div>
+				<div class="text-xs font-bold {upOrDown ? 'text-success' : 'text-error'}">
+					{upOrDown ? '+' : ''}{numWaivers}
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
-
-<style>
-	.trending-player {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		background-color: var(--color-base-100);
-		border-radius: 0.5rem;
-		padding: 1rem;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	}
-	.player-avatar,
-	.team-avatar {
-		width: 4rem;
-		height: 4rem;
-		border-radius: 50%;
-		overflow: hidden;
-		background-color: var(--color-gray-200);
-	}
-	.text-green-500 {
-		color: #22c55e; /* Tailwind green for positive numbers */
-	}
-	.text-red-500 {
-		color: #ef4444; /* Tailwind red for negative numbers */
-	}
-</style>

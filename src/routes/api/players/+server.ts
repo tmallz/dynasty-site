@@ -14,24 +14,31 @@ export async function GET() {
 		const fileStats = await fs.stat(DATA_FILE_PATH).catch(() => null);
 
 		if (fileStats) {
-			const fileData = await fs.readFile(DATA_FILE_PATH, 'utf-8');
-
-			if (fileData.trim() === '') {
-				// File is empty, fetch fresh data
-				console.warn('players.json is empty, fetching fresh data...');
+			// Check if file is older than 24 hours
+			const fileAgeInHours = (Date.now() - fileStats.mtimeMs) / (1000 * 60 * 60);
+			
+			if (fileAgeInHours > 24) {
+				console.log(`players.json is ${fileAgeInHours.toFixed(1)} hours old, fetching fresh data...`);
 			} else {
-				try {
-					const players = JSON.parse(fileData);
+				const fileData = await fs.readFile(DATA_FILE_PATH, 'utf-8');
 
-					// Check if the JSON is an empty object
-					if (Object.keys(players).length === 0) {
-						console.warn('players.json is an empty object, fetching fresh data...');
-					} else {
-						console.log('Returning players from JSON file...');
-						return json(players); // Return the players as JSON
+				if (fileData.trim() === '') {
+					// File is empty, fetch fresh data
+					console.warn('players.json is empty, fetching fresh data...');
+				} else {
+					try {
+						const players = JSON.parse(fileData);
+
+						// Check if the JSON is an empty object
+						if (Object.keys(players).length === 0) {
+							console.warn('players.json is an empty object, fetching fresh data...');
+						} else {
+							console.log(`Returning players from JSON file (${fileAgeInHours.toFixed(1)} hours old)...`);
+							return json(players); // Return the players as JSON
+						}
+					} catch (error) {
+						console.warn('Invalid JSON in players.json, fetching fresh data...');
 					}
-				} catch (error) {
-					console.warn('Invalid JSON in players.json, fetching fresh data...');
 				}
 			}
 		}
@@ -40,6 +47,7 @@ export async function GET() {
 		console.log('Fetching fresh data from Sleeper API...');
 		const players = await SleeperClient.GetAllPlayers();
 		await fs.writeFile(DATA_FILE_PATH, JSON.stringify(players, null, 2)); // Save to JSON file
+		console.log('Successfully updated players.json with fresh data');
 		return json(players); // Return the players as JSON
 	} catch (error) {
 		console.error('Failed to load players:', error);
