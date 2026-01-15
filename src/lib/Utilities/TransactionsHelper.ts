@@ -33,6 +33,198 @@ export class TransactionsHelper {
 	}
 
 	/**
+	 * Returns recent transactions across all leagues, limited to a specific count.
+	 * This is optimized for fast page loads by stopping once we have enough transactions.
+	 */
+	public static async GetRecentTransactions(limit: number = 50): Promise<TransactionsPageDto[]> {
+		const leagues: League[] = await LeagueHistoryHelper.GetLeagueChainFromCurrent();
+		if (!leagues.length) return [];
+
+		// Determine current season's max week
+		let currentMaxWeek = 18;
+		try {
+			const nflState = await SleeperClient.GetSportState();
+			if (nflState.season_type === 'regular') {
+				currentMaxWeek = nflState.display_week ?? 18;
+			} else if (nflState.season_type === 'post') {
+				currentMaxWeek = 18;
+			}
+		} catch (error) {
+			console.error('Failed to fetch sport state for transactions; defaulting weeks to 18', error);
+		}
+
+		// Preload players once for all mapping
+		let allPlayers: Record<string, Player> = {};
+		try {
+			allPlayers = await SleeperClient.GetAllPlayers();
+		} catch (error) {
+			console.error('Failed to fetch all players for transactions mapping', error);
+		}
+
+		const rostersByLeague = new Map<string, Roster[]>();
+		const usersByLeague = new Map<string, LeagueUser[]>();
+		const all: { transaction: Transaction; league: League }[] = [];
+
+		// Start from most recent league and work backwards
+		for (const league of leagues) {
+			// Fetch rosters and users once per league
+			try {
+				const [rosters, users] = await Promise.all([
+					SleeperClient.GetRosters(league.league_id),
+					SleeperClient.GetLeagueUsers(league.league_id)
+				]);
+				rostersByLeague.set(league.league_id, rosters);
+				usersByLeague.set(league.league_id, users);
+			} catch (error) {
+				console.error('Failed to fetch rosters/users for league', league.league_id, error);
+				continue;
+			}
+
+			// Use currentMaxWeek for the current league, 18 for older ones
+			const isCurrentLeague = league.league_id === (import.meta.env.VITE_LEAGUE_ID as string);
+			const maxWeek = isCurrentLeague ? currentMaxWeek : 18;
+
+			// Fetch weeks from most recent to oldest
+			for (let week = maxWeek; week > 0; week--) {
+				try {
+					const tx = await SleeperClient.GetTransactions(league.league_id, week);
+					for (const t of tx) {
+						if (t.status === TransactionStatus.Complete) {
+							all.push({ transaction: t, league });
+						}
+					}
+
+					// Sort and check if we have enough transactions
+					all.sort((a, b) => (b.transaction.created ?? 0) - (a.transaction.created ?? 0));
+					
+					// Stop early if we have enough transactions
+					if (all.length >= limit) {
+						break;
+					}
+				} catch (error) {
+					console.error(
+						'Failed to fetch transactions for league/week',
+						league.league_id,
+						week,
+						error
+					);
+				}
+			}
+
+			// If we have enough transactions, stop fetching from older leagues
+			if (all.length >= limit) {
+				break;
+			}
+		}
+
+		// Final sort and limit
+		all.sort((a, b) => (b.transaction.created ?? 0) - (a.transaction.created ?? 0));
+		const limitedTransactions = all.slice(0, limit);
+
+		// Map into TransactionsPageDto using preloaded players/rosters/users
+		return limitedTransactions.map(({ transaction, league }) => {
+			const users = usersByLeague.get(league.league_id) ?? [];
+			const rosters = rostersByLeague.get(league.league_id) ?? [];
+			const season = String((league as any).season ?? '');
+
+			const base: TransactionsPageDto = {
+				TransactionType: transaction.type as TransactionType,
+				TransactionDate: new Date(transaction.created).toLocaleDateString(),
+				Season: season
+			};
+
+			if (
+				transaction.type === TransactionType.Waiver ||
+				transaction.type === TransactionType.FreeAgent
+			) {
+				const initiator = users.find((u) => u.user_id === transaction.creator);
+				const addsIds = Object.keys(transaction.adds ?? {});
+				const dropsIds = Object.keys(transaction.drops ?? {});
+
+				const mapPlayers = (ids: string[]): TradedPlayerDto[] => {
+					return ids.map((playerId) => {
+						const p = allPlayers[playerId];
+						return {
+							PlayerId: playerId,
+							PlayerName: p
+								? `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || 'Unknown Player'
+								: 'Unknown Player',
+							PlayerPosition: p?.position ?? '',
+							PlayerTeam: p?.team ?? ''
+						};
+					});
+				};
+
+				base.WaiverFreeAgent = {
+					InitiatorAvatarUrl: initiator?.avatar ?? '',
+					UserName: initiator?.display_name ?? '',
+					Adds: mapPlayers(addsIds),
+					Drops: mapPlayers(dropsIds)
+				};
+			} else if (transaction.type === TransactionType.Trade) {
+				const initiator = users.find((u) => u.user_id === transaction.creator);
+				const initiatorRosterId = rosters.find((r) => r.owner_id === transaction.creator)?.roster_id;
+				const receiverRosterId = transaction.roster_ids.find(
+					(r) => r !== initiatorRosterId
+				);
+				const receiverRoster = rosters.find((r) => r.roster_id === receiverRosterId);
+				const receiver = users.find((u) => u.user_id === receiverRoster?.owner_id);
+
+				const playerIds = Object.keys(transaction.adds ?? {});
+
+				const mapTradePlayers = (forInitiator: boolean): TradedPlayerDto[] => {
+					return playerIds
+						.filter((playerId) => {
+							const toRosterId = (transaction.adds ?? {})[playerId];
+							if (!initiatorRosterId) return false;
+							return forInitiator
+								? toRosterId === initiatorRosterId
+								: toRosterId !== initiatorRosterId;
+						})
+						.map((playerId) => {
+							const p = allPlayers[playerId];
+							return {
+								PlayerId: playerId,
+								PlayerName: p
+									? `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || 'Unknown Player'
+									: 'Unknown Player',
+								PlayerPosition: p?.position ?? '',
+								PlayerTeam: p?.team ?? ''
+							};
+						});
+				};
+
+				const mapDraftPicks = (forInitiator: boolean): TradedPickDto[] => {
+					if (!initiatorRosterId) return [];
+					return (transaction.draft_picks ?? [])
+						.filter((pick) =>
+							forInitiator
+								? pick.previous_owner_id !== initiatorRosterId
+								: pick.previous_owner_id === initiatorRosterId
+						)
+						.map((pick) => ({
+							Year: new Date(pick.season).getFullYear() + 1,
+							Round: pick.round
+						}));
+				};
+
+				base.Trade = {
+					InitiatorName: initiator?.display_name ?? '',
+					RecieverName: receiver?.display_name ?? '',
+					InitiatorPlayersRecieved: mapTradePlayers(true),
+					RecieverPlayersRecieved: mapTradePlayers(false),
+					InitiatorDraftPicks: mapDraftPicks(true),
+					RecieverDraftPicks: mapDraftPicks(false),
+					InitiatorAvatarUrl: initiator?.avatar ?? '',
+					RecieverAvatarUrl: receiver?.avatar ?? ''
+				};
+			}
+
+			return base;
+		});
+	}
+
+	/**
 	 * Returns transactions across all leagues in the history chain,
 	 * ordered from most recent league/transaction to oldest.
 	 */

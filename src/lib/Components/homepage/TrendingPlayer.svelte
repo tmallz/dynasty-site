@@ -6,6 +6,27 @@
 	export let playerAvatar: string = '';
 	export let teamAvatar: string = '';
 	export let numWaivers: number = 0;
+
+	let avatarError = false;
+	let teamAvatarError = false;
+
+	function handleAvatarError() {
+		avatarError = true;
+	}
+
+	function handleTeamAvatarError() {
+		teamAvatarError = true;
+	}
+
+	// Get initials from player name for fallback
+	function getInitials(name: string): string {
+		if (!name) return '?';
+		const parts = name.split(' ');
+		if (parts.length >= 2) {
+			return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+		}
+		return name.substring(0, 2).toUpperCase();
+	}
 </script>
 
 <div class="card bg-base-300 shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -14,18 +35,32 @@
 			<!-- Player Avatar with Team Badge -->
 			<div class="relative shrink-0">
 				<div class="w-14 h-14 rounded-full overflow-hidden ring-2 {upOrDown ? 'ring-success' : 'ring-error'} ring-offset-2 ring-offset-base-300">
-					{#if playerAvatar}
-						<img src={playerAvatar} alt={playerName} class="w-full h-full object-cover" />
+					{#if playerAvatar && !avatarError}
+						<img 
+							src={playerAvatar} 
+							alt={playerName} 
+							class="w-full h-full object-cover bg-base-100"
+							on:error={handleAvatarError}
+						/>
 					{:else}
-						<div class="w-full h-full flex items-center justify-center bg-base-100 text-base-content/50">
-							?
+						<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-base-200 to-base-300 text-base-content/70 font-bold text-sm">
+							{getInitials(playerName)}
 						</div>
 					{/if}
 				</div>
 				<!-- Team Logo Badge -->
-				{#if teamAvatar}
+				{#if teamAvatar && !teamAvatarError}
 					<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full overflow-hidden bg-base-100 ring-2 ring-base-300">
-						<img src={teamAvatar} alt={playerTeam} class="w-full h-full object-cover" />
+						<img 
+							src={teamAvatar} 
+							alt={playerTeam} 
+							class="w-full h-full object-cover"
+							on:error={handleTeamAvatarError}
+						/>
+					</div>
+				{:else if playerTeam}
+					<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center bg-base-200 ring-2 ring-base-300 text-[8px] font-bold text-base-content/70">
+						{playerTeam.substring(0, 2).toUpperCase()}
 					</div>
 				{/if}
 			</div>
