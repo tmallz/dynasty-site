@@ -1,3 +1,4 @@
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -324,6 +325,37 @@ function toggleBench(matchupId: string, teamIdx: number) {
 		} else {
 			console.warn('Could not find matching detailed matchups');
 		}
+	}
+
+	// Returns the biggest miss for a team: the bench player who outscored a starter at the same position by the most points
+	function getBiggestMiss(matchup) {
+		if (!matchup || !matchup.Starters || !matchup.Bench || !matchup.PlayersPoints) return null;
+		let biggestMiss = null;
+		let maxDiff = 0;
+		// For each bench player, compare to each starter at the same position
+		for (const benchId in matchup.Bench) {
+			const benchPlayer = matchup.Bench[benchId];
+			const benchPoints = Number(matchup.PlayersPoints[benchId] ?? 0);
+			const pos = (benchPlayer.position || '').toUpperCase();
+			for (const starterId in matchup.Starters) {
+				const starter = matchup.Starters[starterId];
+				if ((starter.position || '').toUpperCase() !== pos) continue;
+				const starterPoints = Number(matchup.PlayersPoints[starterId] ?? 0);
+				const diff = benchPoints - starterPoints;
+				if (diff > maxDiff) {
+					maxDiff = diff;
+					biggestMiss = {
+						benchPlayer,
+						benchPoints,
+						starter,
+						starterPoints,
+						pos,
+						diff
+					};
+				}
+			}
+		}
+		return (biggestMiss && maxDiff > 0) ? biggestMiss : null;
 	}
 
 	// Load player data when viewing matchup details
@@ -1083,6 +1115,12 @@ function toggleBench(matchupId: string, teamIdx: number) {
 												<div class="stat-title text-xs">Manager Accuracy</div>
 												<div class="stat-value text-2xl">{(() => { const a = computeManagerAccuracy(team1); return a ? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%' : 'N/A'; })()}</div>
 												<div class="stat-desc">{team1?.TeamName} • Missed {(() => { const a = computeManagerAccuracy(team1); return a ? a.missedTotal.toFixed(2) : '0.00'; })()} pts</div>
+												{#if getBiggestMiss(team1)}
+													{@const miss = getBiggestMiss(team1)}
+													<div class="text-xs mt-2 stat-desc">
+														Biggest Miss: {miss.benchPlayer.first_name} {miss.benchPlayer.last_name} {miss.benchPoints.toFixed(2)} pts
+													</div>
+												{/if}
 											</div>
 										{/if}
 										{#if team2}
@@ -1090,6 +1128,12 @@ function toggleBench(matchupId: string, teamIdx: number) {
 												<div class="stat-title text-xs">Manager Accuracy</div>
 												<div class="stat-value text-2xl">{(() => { const a = computeManagerAccuracy(team2); return a ? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%' : 'N/A'; })()}</div>
 												<div class="stat-desc">{team2?.TeamName} • Missed {(() => { const a = computeManagerAccuracy(team2); return a ? a.missedTotal.toFixed(2) : '0.00'; })()} pts</div>
+												{#if getBiggestMiss(team2)}
+													{@const miss = getBiggestMiss(team2)}
+													<div class="text-xs mt-2 stat-desc">
+														Biggest Miss: {miss.benchPlayer.first_name} {miss.benchPlayer.last_name} ({miss.benchPoints.toFixed(2)})
+													</div>
+												{/if}
 											</div>
 										{/if}
 									</div>
