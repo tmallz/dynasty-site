@@ -80,19 +80,28 @@
 		}
 	}
 	
+
 	// State for collapsible matchup sections
 	let expandedRosters: Record<string, boolean> = {};
 	let expandedStats: Record<string, boolean> = {};
+	let expandedBench: Record<string, boolean> = {};
 	
-	function toggleRoster(matchupId: string) {
-		expandedRosters[matchupId] = !expandedRosters[matchupId];
-		expandedRosters = expandedRosters; // Trigger reactivity
-	}
-	
-	function toggleStats(matchupId: string) {
-		expandedStats[matchupId] = !expandedStats[matchupId];
-		expandedStats = expandedStats; // Trigger reactivity
-	}
+
+function toggleRoster(matchupId: string) {
+	expandedRosters[matchupId] = !expandedRosters[matchupId];
+	expandedRosters = expandedRosters; // Trigger reactivity
+}
+
+function toggleStats(matchupId: string) {
+	expandedStats[matchupId] = !expandedStats[matchupId];
+	expandedStats = expandedStats; // Trigger reactivity
+}
+
+function toggleBench(matchupId: string, teamIdx: number) {
+	const key = `${matchupId}_${teamIdx}`;
+	expandedBench[key] = !expandedBench[key];
+	expandedBench = expandedBench;
+}
 	
 	function getTopScorer(group: MatchupPageDto[]) {
 		let topPlayer: any = null;
@@ -221,9 +230,9 @@
 	const optimalTotal = optimalPlayers.reduce((sum, p) => sum + p.points, 0);
 
 	// Actual total: sum of points for actual starters
-	const actualStarters = Object.keys(matchup.Starters).map(id => ({
+	const actualStarters = Object.keys(matchup.Starters ?? {}).map(id => ({
 		id,
-		...matchup.Starters[id],
+		...(matchup.Starters?.[id] || {}),
 		points: Number(matchup.PlayersPoints?.[id] ?? 0)
 	}));
 	const actualTotal = actualStarters.reduce((sum, p) => sum + p.points, 0);
@@ -1026,8 +1035,34 @@
 													/>
 												{/each}
 											</ul>
+
+											<!-- Bench Section -->
+											<div class="mt-4">
+												<button class="btn btn-xs btn-outline" on:click={() => toggleBench(matchupId, i)}>
+													{expandedBench[`${matchupId}_${i}`] ? 'Hide Bench' : 'Show Bench'}
+													&nbsp;({getBenchPoints(matchup)} pts)
+												</button>
+												{#if expandedBench[`${matchupId}_${i}`]}
+													<div class="mt-3 p-3 rounded bg-base-200">
+														<div class="font-semibold mb-2">Bench</div>
+														<ul class="space-y-2">
+															{#each Object.values(matchup.Bench ?? {}) as player}
+																<RosterSpot
+																	position="BN"
+																	badgeClass={RosterSorter.getBadgeClass('Bench')}
+																	playerName={player.first_name + ' ' + player.last_name}
+																	playerTeam={player.team ?? ''}
+																	playerImage={player.playerAvatarUrl ?? 'https://via.placeholder.com/150'}
+																	PlayerTeamLogo={player.playerTeamAvatarUrl ?? 'https://via.placeholder.com/150'}
+																	playerPoints={matchup.PlayersPoints?.[player.player_id]}
+																/>
+															{/each}
+														</ul>
+													</div>
+												{/if}
+											</div>
 										</div>
-										
+                            
 										{#if i < group.length - 1}
 											<div class="flex items-center justify-center text-xl font-bold opacity-30">VS</div>
 										{/if}
@@ -1063,29 +1098,13 @@
 												{#if team1}
 													{@const acc1Local = computeManagerAccuracy(team1)}
 													{#if acc1Local}
-														{@const entries1 = Object.entries(acc1Local.perPosition || {}) as Array<[string, any]>}
-														<div class="text-sm p-3 bg-base-200 rounded">
-															<div class="font-semibold">{team1.TeamName} Breakdown</div>
-															<ul class="text-xs mt-2">
-																{#each entries1.filter(([, vals]) => (vals?.missed ?? 0) > 0) as [pos, vals]}
-																	<li>{pos}: Missed {vals.missed.toFixed(2)} pts (Optimal {vals.optimal.toFixed(2)}, Actual {vals.actual.toFixed(2)})</li>
-																{/each}
-															</ul>
-														</div>
+														<!-- Per-position breakdown removed: not available with new accuracy logic -->
 													{/if}
 												{/if}
 												{#if team2}
 													{@const acc2Local = computeManagerAccuracy(team2)}
 													{#if acc2Local}
-														{@const entries2 = Object.entries(acc2Local.perPosition || {}) as Array<[string, any]>}
-														<div class="text-sm p-3 bg-base-200 rounded">
-															<div class="font-semibold">{team2.TeamName} Breakdown</div>
-															<ul class="text-xs mt-2">
-																{#each entries2.filter(([, vals]) => (vals?.missed ?? 0) > 0) as [pos, vals]}
-																	<li>{pos}: Missed {vals.missed.toFixed(2)} pts (Optimal {vals.optimal.toFixed(2)}, Actual {vals.actual.toFixed(2)})</li>
-																{/each}
-															</ul>
-														</div>
+														<!-- Per-position breakdown removed: not available with new accuracy logic -->
 													{/if}
 												{/if}
 											</div>
