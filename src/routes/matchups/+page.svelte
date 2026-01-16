@@ -14,6 +14,8 @@
 	export let data: PageData;
 	
 	let currentWeek: number | undefined;
+	// Reactive display week for UI consistency
+	$: displayWeek = viewingRegularSeasonDuringPlayoffs ? 14 : currentWeek;
 	let isPlayoffs: boolean = false;
 	let matchups: MatchupPageDto[] = [];
 	let rosterPositions: string[] = [];
@@ -961,7 +963,7 @@ function toggleBench(matchupId: string, teamIdx: number) {
 						<!-- Header: Team Names and Week -->
 						<div class="text-center mb-6">
 							<h2 class="text-lg md:text-xl font-bold text-base-content/70">
-								{team1?.TeamName ?? 'Team 1'} vs {team2?.TeamName ?? 'Team 2'} - Week {currentWeek}
+								{team1?.TeamName ?? 'Team 1'} vs {team2?.TeamName ?? 'Team 2'} - Week {displayWeek}
 							</h2>
 						</div>
 						
