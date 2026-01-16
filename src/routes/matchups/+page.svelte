@@ -1121,79 +1121,136 @@ function toggleBench(matchupId: string, teamIdx: number) {
 						
 						<!-- Expanded More Stats -->
 						{#if expandedStats[matchupId]}
-							<div class="mt-6 pt-6 border-t border-base-content/10">
-								<div class="bg-base-100 rounded-lg p-4">
-									<h3 class="font-semibold text-lg mb-4">📈 Advanced Stats</h3>
-                                    
-									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-										{#if team1}
-											<div class="stat bg-base-200 rounded-lg p-4">
-												<div class="stat-title text-xs">Manager Accuracy</div>
-												<div class="stat-value text-2xl">{(() => { const a = computeManagerAccuracy(team1); return a ? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%' : 'N/A'; })()}</div>
-												<div class="stat-desc">{team1?.TeamName} • Missed {(() => { const a = computeManagerAccuracy(team1); return a ? a.missedTotal.toFixed(2) : '0.00'; })()} pts</div>
-												{#if getBiggestMiss(team1)}
-													{@const miss = getBiggestMiss(team1)}
-													<div class="text-xs mt-2 stat-desc">
-														Biggest Miss: {miss.benchPlayer.first_name} {miss.benchPlayer.last_name} {miss.benchPoints.toFixed(2)} pts
-													</div>
-												{/if}
-												{#if getTopHeavyStat(team1)}
-													{@const th = getTopHeavyStat(team1)}
-													<div class="text-xs stat-desc mt-1">
-														Top 3 players accounted for {th.pct.toFixed(0)}% of {team1.TeamName}'s points:
-														<ul class="ml-2 mt-1">
-															{#each th.top3Arr as p}
-																<li>- {p.name.trim()} {p.points.toFixed(2)} pts</li>
-															{/each}
-														</ul>
-													</div>
-												{/if}
-											</div>
-										{/if}
-										{#if team2}
-											<div class="stat bg-base-200 rounded-lg p-4">
-												<div class="stat-title text-xs">Manager Accuracy</div>
-												<div class="stat-value text-2xl">{(() => { const a = computeManagerAccuracy(team2); return a ? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%' : 'N/A'; })()}</div>
-												<div class="stat-desc">{team2?.TeamName} • Missed {(() => { const a = computeManagerAccuracy(team2); return a ? a.missedTotal.toFixed(2) : '0.00'; })()} pts</div>
-												{#if getBiggestMiss(team2)}
-													{@const miss = getBiggestMiss(team2)}
-													<div class="text-xs mt-2 stat-desc">
-														Biggest Miss: {miss.benchPlayer.first_name} {miss.benchPlayer.last_name} {miss.benchPoints.toFixed(2)} pts
-													</div>
-												{/if}
-												{#if getTopHeavyStat(team2)}
-													{@const th = getTopHeavyStat(team2)}
-													<div class="text-xs stat-desc mt-1">
-														Top 3 players accounted for {th.pct.toFixed(0)}% of {team2.TeamName}'s points:
-														<ul class="ml-2 mt-1">
-															{#each th.top3Arr as p}
-																<li>- {p.name.trim()} {p.points.toFixed(2)} pts</li>
-															{/each}
-														</ul>
-													</div>
-												{/if}
-											</div>
-										{/if}
-									</div>
-										{#if team1 || team2}
-											<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-												{#if team1}
-													{@const acc1Local = computeManagerAccuracy(team1)}
-													{#if acc1Local}
-														<!-- Per-position breakdown removed: not available with new accuracy logic -->
-													{/if}
-												{/if}
-												{#if team2}
-													{@const acc2Local = computeManagerAccuracy(team2)}
-													{#if acc2Local}
-														<!-- Per-position breakdown removed: not available with new accuracy logic -->
-													{/if}
-												{/if}
-											</div>
-										{/if}
-								</div>
+	<div class="mt-8 pt-6 border-t border-base-content/10">
+		<div class="bg-base-100 rounded-xl p-5 shadow-sm">
+			<h3 class="font-semibold text-lg mb-5 flex items-center gap-2">
+				<span>📈</span>
+				<span>Advanced Stats</span>
+			</h3>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				{#if team1}
+					<div class="bg-base-200 rounded-xl p-5 space-y-3 shadow-sm">
+						<div class="flex items-center justify-between">
+							<div class="text-xs uppercase tracking-wide opacity-70">
+								Manager Accuracy
+							</div>
+							<div class="badge badge-outline text-xs">
+								{team1.TeamName}
+							</div>
+						</div>
+
+						<div class="text-3xl font-bold">
+							{(() => {
+								const a = computeManagerAccuracy(team1);
+								return a
+									? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%'
+									: 'N/A';
+							})()}
+						</div>
+
+						<div class="text-sm opacity-70">
+							Missed{' '}
+							{(() => {
+								const a = computeManagerAccuracy(team1);
+								return a ? a.missedTotal.toFixed(2) : '0.00';
+							})()}{' '}
+							pts
+						</div>
+
+						{#if getBiggestMiss(team1)}
+							{@const miss = getBiggestMiss(team1)}
+							<div class="divider my-1"></div>
+							<div class="text-xs">
+								<span class="font-medium">Biggest Miss:</span>
+								<span class="opacity-70 ml-1">
+									{miss.benchPlayer.first_name} {miss.benchPlayer.last_name} • {miss.benchPoints.toFixed(2)} pts
+								</span>
 							</div>
 						{/if}
+
+						{#if getTopHeavyStat(team1)}
+							{@const th = getTopHeavyStat(team1)}
+							<div class="divider my-1"></div>
+							<div class="text-xs space-y-1">
+								<div class="font-medium">
+									Top 3 players: {th.pct.toFixed(0)}% of total points
+								</div>
+								<ul class="ml-3 list-disc opacity-80">
+									{#each th.top3Arr as p}
+										<li>
+											{p.name.trim()} — {p.points.toFixed(2)} pts
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+					</div>
+				{/if}
+
+				{#if team2}
+					<div class="bg-base-200 rounded-xl p-5 space-y-3 shadow-sm">
+						<div class="flex items-center justify-between">
+							<div class="text-xs uppercase tracking-wide opacity-70">
+								Manager Accuracy
+							</div>
+							<div class="badge badge-outline text-xs">
+								{team2.TeamName}
+							</div>
+						</div>
+
+						<div class="text-3xl font-bold">
+							{(() => {
+								const a = computeManagerAccuracy(team2);
+								return a
+									? (100 - (a.missedTotal / (a.optimalTotal || 1) * 100)).toFixed(1) + '%'
+									: 'N/A';
+							})()}
+						</div>
+
+						<div class="text-sm opacity-70">
+							Missed{' '}
+							{(() => {
+								const a = computeManagerAccuracy(team2);
+								return a ? a.missedTotal.toFixed(2) : '0.00';
+							})()}{' '}
+							pts
+						</div>
+
+						{#if getBiggestMiss(team2)}
+							{@const miss = getBiggestMiss(team2)}
+							<div class="divider my-1"></div>
+							<div class="text-xs">
+								<span class="font-medium">Biggest Miss:</span>
+								<span class="opacity-70 ml-1">
+									{miss.benchPlayer.first_name} {miss.benchPlayer.last_name} • {miss.benchPoints.toFixed(2)} pts
+								</span>
+							</div>
+						{/if}
+
+						{#if getTopHeavyStat(team2)}
+							{@const th = getTopHeavyStat(team2)}
+							<div class="divider my-1"></div>
+							<div class="text-xs space-y-1">
+								<div class="font-medium">
+									Top 3 players: {th.pct.toFixed(0)}% of total points
+								</div>
+								<ul class="ml-3 list-disc opacity-80">
+									{#each th.top3Arr as p}
+										<li>
+											{p.name.trim()} — {p.points.toFixed(2)} pts
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
+
 					</div>
 				</section>
 			{/each}
