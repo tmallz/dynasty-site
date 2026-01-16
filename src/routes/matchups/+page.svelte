@@ -1,4 +1,3 @@
-
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -356,6 +355,23 @@ function toggleBench(matchupId: string, teamIdx: number) {
 			}
 		}
 		return (biggestMiss && maxDiff > 0) ? biggestMiss : null;
+	}
+
+	// Returns the share of points from the top 3 scorers vs the rest for a team
+	function getTopHeavyStat(matchup) {
+		if (!matchup || !matchup.Starters || !matchup.PlayersPoints) return null;
+		const starters = Object.values(matchup.Starters ?? {});
+		const pointsArr = starters.map(player => ({
+			name: (player.first_name || '') + ' ' + (player.last_name || ''),
+			points: Number(matchup.PlayersPoints?.[player.player_id] ?? 0)
+		}));
+		if (pointsArr.length === 0) return null;
+		const sorted = pointsArr.slice().sort((a, b) => b.points - a.points);
+		const top3Arr = sorted.slice(0, 3);
+		const top3 = top3Arr.reduce((a, b) => a + b.points, 0);
+		const total = sorted.reduce((a, b) => a + b.points, 0);
+		const pct = total > 0 ? (top3 / total) * 100 : 0;
+		return { pct, top3, total, top3Arr };
 	}
 
 	// Load player data when viewing matchup details
@@ -1121,6 +1137,17 @@ function toggleBench(matchupId: string, teamIdx: number) {
 														Biggest Miss: {miss.benchPlayer.first_name} {miss.benchPlayer.last_name} {miss.benchPoints.toFixed(2)} pts
 													</div>
 												{/if}
+												{#if getTopHeavyStat(team1)}
+													{@const th = getTopHeavyStat(team1)}
+													<div class="text-xs stat-desc mt-1">
+														Top 3 players accounted for {th.pct.toFixed(0)}% of {team1.TeamName}'s points:
+														<ul class="ml-2 mt-1">
+															{#each th.top3Arr as p}
+																<li>- {p.name.trim()} {p.points.toFixed(2)} pts</li>
+															{/each}
+														</ul>
+													</div>
+												{/if}
 											</div>
 										{/if}
 										{#if team2}
@@ -1131,7 +1158,18 @@ function toggleBench(matchupId: string, teamIdx: number) {
 												{#if getBiggestMiss(team2)}
 													{@const miss = getBiggestMiss(team2)}
 													<div class="text-xs mt-2 stat-desc">
-														Biggest Miss: {miss.benchPlayer.first_name} {miss.benchPlayer.last_name} ({miss.benchPoints.toFixed(2)})
+														Biggest Miss: {miss.benchPlayer.first_name} {miss.benchPlayer.last_name} {miss.benchPoints.toFixed(2)} pts
+													</div>
+												{/if}
+												{#if getTopHeavyStat(team2)}
+													{@const th = getTopHeavyStat(team2)}
+													<div class="text-xs stat-desc mt-1">
+														Top 3 players accounted for {th.pct.toFixed(0)}% of {team2.TeamName}'s points:
+														<ul class="ml-2 mt-1">
+															{#each th.top3Arr as p}
+																<li>- {p.name.trim()} {p.points.toFixed(2)} pts</li>
+															{/each}
+														</ul>
 													</div>
 												{/if}
 											</div>
