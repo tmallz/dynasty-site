@@ -132,150 +132,116 @@
 	 * Returns totals and per-position missed points.
 	 */
 	function computeManagerAccuracy(matchup: MatchupPageDto) {
-		if (!matchup.Starters || !matchup.PlayersPoints) return null;
+	if (!matchup.Starters || !matchup.PlayersPoints) return null;
 
-		// Build list of all players (starters + bench)
-		const allMap: Record<string, any> = { ...(matchup.Starters || {}), ...(matchup.Bench || {}) };
-		const allPlayers = Object.keys(allMap).map(id => ({
-			id,
-			pos: (allMap[id]?.position || '').toUpperCase(),
-			points: Number(matchup.PlayersPoints?.[id] ?? 0),
-			player: allMap[id]
-		}));
+	// Build list of all players (starters + bench)
+	const allMap: Record<string, any> = { ...(matchup.Starters || {}), ...(matchup.Bench || {}) };
+	const allPlayers = Object.keys(allMap).map(id => ({
+		id,
+		points: Number(matchup.PlayersPoints?.[id] ?? 0),
+		player: allMap[id],
+		pos: (allMap[id]?.position || '').toUpperCase(),
+		first_name: allMap[id]?.first_name || '',
+		last_name: allMap[id]?.last_name || ''
+	}));
 
-		// Fallback: if no rosterPositions available, use legacy per-position top-sum logic
-		if (!rosterPositions || rosterPositions.length === 0) {
-			const starterCounts: Record<string, number> = {};
-			Object.keys(matchup.Starters).forEach(id => {
-				const pos = (matchup.Starters?.[id]?.position || '').toUpperCase();
-				starterCounts[pos] = (starterCounts[pos] || 0) + 1;
-			});
-
-			const positions = Object.keys(starterCounts);
-
-			function topSumByPos(pos: string, n: number) {
-				const candidates = allPlayers.filter(p => p.pos === pos).sort((a, b) => b.points - a.points);
-				return candidates.slice(0, n).reduce((s, p) => s + p.points, 0);
-			}
-
-			let actualTotal = 0;
-			let optimalTotal = 0;
-			const perPosition: Record<string, { actual: number; optimal: number; missed: number }> = {};
-
-			positions.forEach(pos => {
-				const count = starterCounts[pos] || 0;
-				const actual = Object.keys(matchup.Starters ?? {})
-					.filter(id => (matchup.Starters?.[id]?.position || '').toUpperCase() === pos)
-					.reduce((s, id) => s + Number(matchup.PlayersPoints?.[id] ?? 0), 0);
-				const optimal = topSumByPos(pos, count);
-				perPosition[pos] = { actual, optimal, missed: Math.max(0, optimal - actual) };
-				actualTotal += actual;
-				optimalTotal += optimal;
-			});
-
-			const missedTotal = Math.max(0, optimalTotal - actualTotal);
-			const accuracyPct = optimalTotal > 0 ? (actualTotal / optimalTotal) * 100 : 100;
-
-			return {
-				actualTotal,
-				optimalTotal,
-				missedTotal,
-				accuracyPct,
-				perPosition
-			};
+	// Parse roster positions
+	const basePositions = ['QB', 'RB', 'WR', 'TE'];
+	const flexEligible = new Set(['RB', 'WR', 'TE']);
+	const superFlexEligible = new Set(['QB', 'RB', 'WR', 'TE']);
+	const fixedCounts: Record<string, number> = {};
+	let flexCount = 0;
+	let superFlexCount = 0;
+	const validSlots = (rosterPositions || []).filter(pos => {
+		const p = String(pos).toUpperCase();
+		if (p === 'FLEX' || p === 'WR/RB/TE') {
+			flexCount++;
+			return true;
+		} else if (p === 'SUPER_FLEX' || p === 'SUPERFLEX' || p === 'QB/RB/WR/TE') {
+			superFlexCount++;
+			return true;
+		} else if (basePositions.includes(p)) {
+			fixedCounts[p] = (fixedCounts[p] || 0) + 1;
+			return true;
+		} else if (p === 'K' || p === 'DEF' || p === 'DST') {
+			return false;
 		}
-
-		// Strict mode: use league.roster_positions to define slots, ignoring K/DEF
-		const basePositions = ['QB', 'RB', 'WR', 'TE'];
-		const flexEligible = new Set(['RB', 'WR', 'TE']);
-		const superFlexEligible = new Set(['QB', 'RB', 'WR', 'TE']);
-
-		const fixedCounts: Record<string, number> = {};
-		let flexCount = 0;
-		let superFlexCount = 0;
-
-		for (const slot of rosterPositions) {
-			const pos = String(slot).toUpperCase();
-			if (pos === 'FLEX' || pos === 'WR/RB/TE') {
-				flexCount++;
-			} else if (pos === 'SUPER_FLEX' || pos === 'SUPERFLEX' || pos === 'QB/RB/WR/TE') {
-				superFlexCount++;
-			} else if (basePositions.includes(pos)) {
-				fixedCounts[pos] = (fixedCounts[pos] || 0) + 1;
-			} else if (pos === 'K' || pos === 'DEF' || pos === 'DST') {
-				// League does not use K/DEF; explicitly ignore these slots
-				continue;
-			}
-		}
-
-		const used = new Set<string>();
-		const selections: { id: string; pos: string; points: number }[] = [];
-
-		function pickBest(filter: (p: { id: string; pos: string; points: number }) => boolean, count: number) {
-			if (count <= 0) return;
-			const candidates = allPlayers
-				.filter(p => !used.has(p.id) && filter(p))
-				.sort((a, b) => b.points - a.points);
-			for (let i = 0; i < Math.min(count, candidates.length); i++) {
-				const p = candidates[i];
-				used.add(p.id);
-				selections.push({ id: p.id, pos: p.pos, points: p.points });
-			}
-		}
-
-		// Fill fixed position slots first
-		Object.entries(fixedCounts).forEach(([pos, count]) => {
-			pickBest(p => p.pos === pos, count as number);
-		});
-
-		// Then FLEX slots (RB/WR/TE)
-		pickBest(p => flexEligible.has(p.pos), flexCount);
-
-		// Then SUPER_FLEX slots (QB/RB/WR/TE)
-		pickBest(p => superFlexEligible.has(p.pos), superFlexCount);
-
-		// Compute actual totals and per-position actual from historical starters
-		let actualTotal = 0;
-		const perPosition: Record<string, { actual: number; optimal: number; missed: number }> = {};
-
-		Object.keys(matchup.Starters).forEach(id => {
-			const starter = matchup.Starters?.[id];
+		return false;
+	});
+	// Fallback if no rosterPositions
+	if (validSlots.length === 0) {
+		// Use current starters as fallback
+		Object.values(matchup.Starters || {}).forEach((starter: any) => {
 			const pos = (starter?.position || '').toUpperCase();
-			const pts = Number(matchup.PlayersPoints?.[id] ?? 0);
-			actualTotal += pts;
-			if (!perPosition[pos]) {
-				perPosition[pos] = { actual: 0, optimal: 0, missed: 0 };
+			if (basePositions.includes(pos)) fixedCounts[pos] = (fixedCounts[pos] || 0) + 1;
+		});
+	}
+
+	// Clone player pool for selection
+	let available = allPlayers.slice();
+	let optimalPlayers: any[] = [];
+
+	// 1. Fill fixed slots (QB, RB, WR, TE)
+	for (const pos of basePositions) {
+		const count = fixedCounts[pos] || 0;
+		for (let i = 0; i < count; i++) {
+			const candidates = available.filter(p => p.pos === pos);
+			if (candidates.length === 0) break;
+			candidates.sort((a, b) => b.points - a.points);
+			const pick = candidates[0];
+			if (pick) {
+				optimalPlayers.push(pick);
+				available = available.filter(p => p.id !== pick.id);
 			}
-			perPosition[pos].actual += pts;
-		});
+		}
+	}
+	// 2. Fill FLEX slots (RB/WR/TE)
+	for (let i = 0; i < flexCount; i++) {
+		const candidates = available.filter(p => flexEligible.has(p.pos));
+		if (candidates.length === 0) break;
+		candidates.sort((a, b) => b.points - a.points);
+		const pick = candidates[0];
+		if (pick) {
+			optimalPlayers.push(pick);
+			available = available.filter(p => p.id !== pick.id);
+		}
+	}
+	// 3. Fill SUPER_FLEX slots (QB/RB/WR/TE)
+	for (let i = 0; i < superFlexCount; i++) {
+		const candidates = available.filter(p => superFlexEligible.has(p.pos));
+		if (candidates.length === 0) break;
+		candidates.sort((a, b) => b.points - a.points);
+		const pick = candidates[0];
+		if (pick) {
+			optimalPlayers.push(pick);
+			available = available.filter(p => p.id !== pick.id);
+		}
+	}
 
-		// Apply optimal selections per position
-		let optimalTotal = 0;
-		selections.forEach(sel => {
-			optimalTotal += sel.points;
-			const pos = sel.pos;
-			if (!perPosition[pos]) {
-				perPosition[pos] = { actual: 0, optimal: 0, missed: 0 };
-			}
-			perPosition[pos].optimal += sel.points;
-		});
+	const optimalTotal = optimalPlayers.reduce((sum, p) => sum + p.points, 0);
 
-		// Compute missed per position
-		Object.keys(perPosition).forEach(pos => {
-			const vals = perPosition[pos];
-			vals.missed = Math.max(0, vals.optimal - vals.actual);
-		});
+	// Actual total: sum of points for actual starters
+	const actualStarters = Object.keys(matchup.Starters).map(id => ({
+		id,
+		...matchup.Starters[id],
+		points: Number(matchup.PlayersPoints?.[id] ?? 0)
+	}));
+	const actualTotal = actualStarters.reduce((sum, p) => sum + p.points, 0);
 
-		const missedTotal = Math.max(0, optimalTotal - actualTotal);
-		const accuracyPct = optimalTotal > 0 ? (actualTotal / optimalTotal) * 100 : 100;
+	// Logging for debugging
+	console.log('Team:', matchup.TeamName || matchup.RosterId);
+	console.log('Actual Starters:', actualStarters.map(p => ({ id: p.id, name: p.first_name + ' ' + p.last_name, pos: p.position, points: p.points })));
+	console.log('Optimal Lineup:', optimalPlayers.map(p => ({ id: p.id, name: p.first_name + ' ' + p.last_name, pos: p.pos, points: p.points })));
 
-		return {
-			actualTotal,
-			optimalTotal,
-			missedTotal,
-			accuracyPct,
-			perPosition
-		};
+	const missedTotal = Math.max(0, optimalTotal - actualTotal);
+	const accuracyPct = optimalTotal > 0 ? (actualTotal / optimalTotal) * 100 : 100;
+
+	return {
+		actualTotal,
+		optimalTotal,
+		missedTotal,
+		accuracyPct
+	};
 	}
 
 	// Group matchups by MatchupId for regular season - make reactive
