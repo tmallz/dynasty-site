@@ -21,12 +21,12 @@
   "LowestWeek": {
     "Season": "2025",
     "LeagueId": "1205917377322024960",
-    "RosterId": 4,
-    "UserId": "1051318216162811904",
-    "DisplayName": "omalleybd",
-    "Week": 18,
+    "RosterId": 10,
+    "UserId": "1121532813901242368",
+    "DisplayName": "jimpooman",
+    "Week": 17,
     "MatchupId": 0,
-    "Points": 44.96
+    "Points": 83.42
   },
   "HighestSeason": {
     "Season": "2025",
@@ -34,7 +34,7 @@
     "RosterId": 4,
     "UserId": "1051318216162811904",
     "DisplayName": "omalleybd",
-    "TotalPoints": 2877.12
+    "TotalPoints": 2832.16
   },
   "LowestSeason": {
     "Season": "2025",
@@ -42,7 +42,7 @@
     "RosterId": 2,
     "UserId": "737812063434465280",
     "DisplayName": "BradDodge33",
-    "TotalPoints": 2247.2799999999997
+    "TotalPoints": 2153.9399999999996
   },
   "TopSeasons": [
     {
@@ -51,7 +51,7 @@
       "RosterId": 4,
       "UserId": "1051318216162811904",
       "DisplayName": "omalleybd",
-      "TotalPoints": 2877.12
+      "TotalPoints": 2832.16
     },
     {
       "Season": "2025",
@@ -59,7 +59,7 @@
       "RosterId": 9,
       "UserId": "1206338369169141760",
       "DisplayName": "robleonard3",
-      "TotalPoints": 2868.16
+      "TotalPoints": 2766.02
     },
     {
       "Season": "2025",
@@ -67,7 +67,7 @@
       "RosterId": 5,
       "UserId": "1121890292220788736",
       "DisplayName": "jackleonard24",
-      "TotalPoints": 2722.6400000000003
+      "TotalPoints": 2631.1400000000003
     }
   ],
   "BottomSeasons": [
@@ -77,7 +77,7 @@
       "RosterId": 2,
       "UserId": "737812063434465280",
       "DisplayName": "BradDodge33",
-      "TotalPoints": 2247.2799999999997
+      "TotalPoints": 2153.9399999999996
     },
     {
       "Season": "2025",
@@ -85,7 +85,7 @@
       "RosterId": 10,
       "UserId": "1121532813901242368",
       "DisplayName": "jimpooman",
-      "TotalPoints": 2282.9400000000005
+      "TotalPoints": 2191.5200000000004
     },
     {
       "Season": "2025",
@@ -93,7 +93,7 @@
       "RosterId": 8,
       "UserId": "1206337549254012928",
       "DisplayName": "jacksondoetzel",
-      "TotalPoints": 2348.02
+      "TotalPoints": 2220.38
     }
   ],
   "HighestWinningPercentages": [
@@ -518,26 +518,6 @@
     {
       "Season": "2025",
       "LeagueId": "1205917377322024960",
-      "RosterId": 4,
-      "UserId": "1051318216162811904",
-      "DisplayName": "omalleybd",
-      "Week": 18,
-      "MatchupId": 0,
-      "Points": 44.96
-    },
-    {
-      "Season": "2025",
-      "LeagueId": "1205917377322024960",
-      "RosterId": 1,
-      "UserId": "656006678600331264",
-      "DisplayName": "tmallz",
-      "Week": 18,
-      "MatchupId": 0,
-      "Points": 80.48
-    },
-    {
-      "Season": "2025",
-      "LeagueId": "1205917377322024960",
       "RosterId": 10,
       "UserId": "1121532813901242368",
       "DisplayName": "jimpooman",
@@ -558,42 +538,12 @@
     {
       "Season": "2025",
       "LeagueId": "1205917377322024960",
-      "RosterId": 10,
-      "UserId": "1121532813901242368",
-      "DisplayName": "jimpooman",
-      "Week": 18,
-      "MatchupId": 0,
-      "Points": 91.42
-    },
-    {
-      "Season": "2025",
-      "LeagueId": "1205917377322024960",
-      "RosterId": 5,
-      "UserId": "1121890292220788736",
-      "DisplayName": "jackleonard24",
-      "Week": 18,
-      "MatchupId": 0,
-      "Points": 91.5
-    },
-    {
-      "Season": "2025",
-      "LeagueId": "1205917377322024960",
       "RosterId": 2,
       "UserId": "737812063434465280",
       "DisplayName": "BradDodge33",
       "Week": 11,
       "MatchupId": 1,
       "Points": 92.1
-    },
-    {
-      "Season": "2025",
-      "LeagueId": "1205917377322024960",
-      "RosterId": 2,
-      "UserId": "737812063434465280",
-      "DisplayName": "BradDodge33",
-      "Week": 18,
-      "MatchupId": 0,
-      "Points": 93.34
     },
     {
       "Season": "2025",
@@ -614,6 +564,56 @@
       "Week": 8,
       "MatchupId": 5,
       "Points": 93.34
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 1,
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "Week": 11,
+      "MatchupId": 3,
+      "Points": 96.28
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 1,
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "Week": 4,
+      "MatchupId": 5,
+      "Points": 97.78
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 8,
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "Week": 14,
+      "MatchupId": 1,
+      "Points": 99.1
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 8,
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "Week": 9,
+      "MatchupId": 1,
+      "Points": 100.5
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "Week": 17,
+      "MatchupId": 0,
+      "Points": 101.22
     }
   ]
 }

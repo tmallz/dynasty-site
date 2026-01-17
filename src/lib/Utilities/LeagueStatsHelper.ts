@@ -67,6 +67,7 @@ export class LeagueStatsHelper {
 		topWeeks: LeagueScoreRecordDto[];
 		bottomWeeks: LeagueScoreRecordDto[];
 		topSeasons: LeagueScoreRecordDto[];
+		bottomSeasons: LeagueScoreRecordDto[];
 		highestWinPcts: WinningPercentageRecordDto[];
 		lowestWinPcts: WinningPercentageRecordDto[];
 		largestBlowouts: MatchResultRecordDto[];
@@ -125,6 +126,9 @@ export class LeagueStatsHelper {
 
 			// Build per-week, per-matchup games to determine winners/losers
 			for (let week = 1; week <= LeagueStatsHelper.getMaxWeeks(); week++) {
+				if(week > 17) {
+					break;
+				}
 				let weekMatchups: Matchup[] = [];
 				try {
 					weekMatchups = await SleeperClient.GetMatchups(league.league_id, week);
