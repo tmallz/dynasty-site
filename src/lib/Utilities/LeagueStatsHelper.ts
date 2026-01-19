@@ -1,3 +1,4 @@
+
 import type { League } from '$lib/api/dtos/LeagueDtos/League';
 import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 import type { Matchup } from '$lib/api/dtos/LeagueDtos/Matchup';
@@ -9,7 +10,8 @@ import type {
 	LeagueStatsPageDto,
 	LeagueWinnerDto,
 	MatchResultRecordDto,
-	WinningPercentageRecordDto
+	WinningPercentageRecordDto,
+	PlayerSkankinessRecordDto
 } from '$lib/Utilities/Dtos/LeagueStatsPageDto';
 import { BracketHelper } from '$lib/Utilities/BracketHelper';
 
@@ -54,9 +56,6 @@ export class LeagueStatsHelper {
 
 		return winners;
 	}
-
- 	// --- Matchup-based stats ---
-
 	private static async getScoreAndGameStats(
 		leagues: League[]
 	): Promise<{
@@ -401,6 +400,8 @@ export class LeagueStatsHelper {
 			closestVictories
 		} = await LeagueStatsHelper.getScoreAndGameStats(leagues);
 
+		const biggestSkanks = await LeagueStatsHelper.getBiggestSkanks(leagues, 10);
+
 		return {
 			Winners: winners,
 			HighestWeek: highestWeek,
@@ -414,7 +415,8 @@ export class LeagueStatsHelper {
 			LargestBlowouts: largestBlowouts,
 			ClosestVictories: closestVictories,
 			TopScoringWeeks: topWeeks,
-			BottomScoringWeeks: bottomWeeks
+			BottomScoringWeeks: bottomWeeks,
+			BiggestSkanks: biggestSkanks
 		};
 	}
 
@@ -461,5 +463,61 @@ export class LeagueStatsHelper {
 		}
 		
 		return stats;
+	}
+		// --- Biggest Skanks (players on most teams) ---
+	private static async getBiggestSkanks(leagues: League[], topN: number = 10): Promise<PlayerSkankinessRecordDto[]> {
+		// player_id -> Set of roster_ids
+		const playerTeams = new Map<string, Set<number>>();
+		const playerNames = new Map<string, { first?: string; last?: string; display?: string }>();
+
+		for (const league of leagues) {
+			for (let week = 1; week <= 17; week++) {
+				let transactions = [];
+				try {
+					transactions = await SleeperClient.GetTransactions(league.league_id, week);
+				} catch (error) {
+					continue;
+				}
+				for (const tx of transactions) {
+					// Adds
+					if (tx.adds) {
+						for (const [playerId, rosterId] of Object.entries(tx.adds)) {
+							if (!playerTeams.has(playerId)) playerTeams.set(playerId, new Set());
+							playerTeams.get(playerId)?.add(rosterId);
+						}
+					}
+					// Drops
+					if (tx.drops) {
+						for (const [playerId, rosterId] of Object.entries(tx.drops)) {
+							if (!playerTeams.has(playerId)) playerTeams.set(playerId, new Set());
+							playerTeams.get(playerId)?.add(rosterId);
+						}
+					}
+				}
+			}
+		}
+
+		// Optionally, fetch player names for display (using SleeperClient.GetAllPlayers)
+		let allPlayers: Record<string, any> = {};
+		try {
+			allPlayers = await SleeperClient.GetAllPlayers();
+		} catch {}
+
+		// Build result array
+		const result: PlayerSkankinessRecordDto[] = [];
+		for (const [playerId, teams] of playerTeams.entries()) {
+			const player = allPlayers[playerId];
+			result.push({
+				PlayerId: playerId,
+				FirstName: player?.first_name,
+				LastName: player?.last_name,
+				DisplayName: player?.full_name || player?.search_full_name,
+				NumTeams: teams.size,
+				TeamIds: Array.from(teams)
+			});
+		}
+		// Sort descending by NumTeams
+		result.sort((a, b) => b.NumTeams - a.NumTeams);
+		return result.slice(0, topN);
 	}
 }

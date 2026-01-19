@@ -41,6 +41,16 @@ export interface MatchResultRecordDto {
 	Margin?: number;
 }
 
+
+export interface PlayerSkankinessRecordDto {
+	PlayerId: string;
+	FirstName?: string;
+	LastName?: string;
+	DisplayName?: string;
+	NumTeams: number;
+	TeamIds: number[];
+}
+
 export interface LeagueStatsPageDto {
 	Winners?: LeagueWinnerDto[];
 	HighestWeek?: LeagueScoreRecordDto | null;
@@ -55,4 +65,5 @@ export interface LeagueStatsPageDto {
 	ClosestVictories?: MatchResultRecordDto[];
 	TopScoringWeeks?: LeagueScoreRecordDto[];
 	BottomScoringWeeks?: LeagueScoreRecordDto[];
+	BiggestSkanks?: PlayerSkankinessRecordDto[];
 }

@@ -600,6 +600,66 @@
 			</div>
 		</div>
 	</div>
+
+
+
+	<!-- Row 5: Biggest Skanks Table (left half, aligned) -->
+	<div class="container mx-auto px-4">
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+			<!-- Biggest Skanks Table -->
+			<div>
+				{#if stats.BiggestSkanks && stats.BiggestSkanks.length}
+				<div class="card bg-base-200 shadow-xl">
+					<div class="card-body px-4 py-4">
+						<div class="overflow-x-auto">
+							<table class="table table-zebra table-sm w-full border-2 border-base-content/20">
+								<thead>
+									<tr>
+										<th colspan="5" class="text-center text-lg font-bold border-b-2 border-base-content/20">
+											<div class="flex items-center justify-center gap-2">
+												<span class="text-2xl">🦄</span>
+												Biggest Skanks (Most Teams Played For)
+											</div>
+										</th>
+									</tr>
+									<tr class="border-b border-base-content/20">
+										<th class="w-12">#</th>
+										<th class="w-10 hidden lg:table-cell"></th>
+										<th>Player</th>
+										<th class="w-40">Last Acquired</th>
+										<th class="w-20">Teams</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each stats.BiggestSkanks as skank, idx}
+									<tr class="border-b border-base-content/20">
+										<td class="font-semibold">{idx + 1}</td>
+										<td class="hidden lg:table-cell">
+											{#if idx < 3}
+												<span class="text-xl">🦄</span>
+											{/if}
+										</td>
+										<td>
+											<span class="font-medium truncate">{skank.DisplayName || skank.FirstName + ' ' + skank.LastName || skank.PlayerId}</span>
+										</td>
+										<td>
+											<span class="text-sm">{skank.LastAcquired ? new Date(skank.LastAcquired).toLocaleDateString() : '-'}</span>
+										</td>
+										<td class="font-bold text-lg">{skank.NumTeams}</td>
+									</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+				{/if}
+			</div>
+			<!-- Right half left empty for now, or add future content here -->
+			<div></div>
+		</div>
+	</div>
+
 {:else}
 	<p>No league stats available.</p>
 {/if}

@@ -615,5 +615,132 @@
       "MatchupId": 0,
       "Points": 101.22
     }
+  ],
+  "BiggestSkanks": [
+    {
+      "PlayerId": "6271",
+      "FirstName": "Olamide",
+      "LastName": "Zaccheaus",
+      "DisplayName": "Olamide Zaccheaus",
+      "NumTeams": 4,
+      "TeamIds": [
+        6,
+        4,
+        2,
+        3
+      ]
+    },
+    {
+      "PlayerId": "2505",
+      "FirstName": "Darren",
+      "LastName": "Waller",
+      "DisplayName": "Darren Waller",
+      "NumTeams": 4,
+      "TeamIds": [
+        3,
+        2,
+        5,
+        4
+      ]
+    },
+    {
+      "PlayerId": "1166",
+      "FirstName": "Kirk",
+      "LastName": "Cousins",
+      "DisplayName": "Kirk Cousins",
+      "NumTeams": 4,
+      "TeamIds": [
+        3,
+        2,
+        9,
+        5
+      ]
+    },
+    {
+      "PlayerId": "11562",
+      "FirstName": "Spencer",
+      "LastName": "Rattler",
+      "DisplayName": "Spencer Rattler",
+      "NumTeams": 4,
+      "TeamIds": [
+        6,
+        1,
+        8,
+        5
+      ]
+    },
+    {
+      "PlayerId": "6149",
+      "FirstName": "Darius",
+      "LastName": "Slayton",
+      "DisplayName": "Darius Slayton",
+      "NumTeams": 4,
+      "TeamIds": [
+        3,
+        10,
+        5,
+        2
+      ]
+    },
+    {
+      "PlayerId": "8180",
+      "FirstName": "Jalen",
+      "LastName": "Nailor",
+      "DisplayName": "Jalen Nailor",
+      "NumTeams": 3,
+      "TeamIds": [
+        2,
+        6,
+        10
+      ]
+    },
+    {
+      "PlayerId": "7002",
+      "FirstName": "Juwan",
+      "LastName": "Johnson",
+      "DisplayName": "Juwan Johnson",
+      "NumTeams": 3,
+      "TeamIds": [
+        2,
+        3,
+        6
+      ]
+    },
+    {
+      "PlayerId": "10219",
+      "FirstName": "Chris",
+      "LastName": "Rodriguez",
+      "DisplayName": "Chris Rodriguez",
+      "NumTeams": 3,
+      "TeamIds": [
+        6,
+        3,
+        2
+      ]
+    },
+    {
+      "PlayerId": "5955",
+      "FirstName": "Hunter",
+      "LastName": "Renfrow",
+      "DisplayName": "Hunter Renfrow",
+      "NumTeams": 3,
+      "TeamIds": [
+        7,
+        2,
+        3
+      ]
+    },
+    {
+      "PlayerId": "11435",
+      "FirstName": "Emanuel",
+      "LastName": "Wilson",
+      "DisplayName": "Emanuel Wilson",
+      "NumTeams": 3,
+      "TeamIds": [
+        6,
+        2,
+        7
+      ]
+    }
   ]
 }
