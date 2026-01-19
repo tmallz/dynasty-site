@@ -598,17 +598,9 @@
 					{/if}
 				</div>
 			</div>
-		</div>
-	</div>
-
-
-
-	<!-- Row 5: Biggest Skanks Table (left half, aligned) -->
-	<div class="container mx-auto px-4">
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-			<!-- Biggest Skanks Table -->
-			<div>
-				{#if stats.BiggestSkanks && stats.BiggestSkanks.length}
+			<div class="card bg-base-200 shadow-xl">
+				<div class="card-body px-4 py-4">
+					{#if stats.BiggestSkanks && stats.BiggestSkanks.length}
 				<div class="card bg-base-200 shadow-xl">
 					<div class="card-body px-4 py-4">
 						<div class="overflow-x-auto">
@@ -654,9 +646,8 @@
 					</div>
 				</div>
 				{/if}
+				</div>
 			</div>
-			<!-- Right half left empty for now, or add future content here -->
-			<div></div>
 		</div>
 	</div>
 
