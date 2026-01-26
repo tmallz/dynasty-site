@@ -11,7 +11,9 @@ import type {
 	LeagueWinnerDto,
 	MatchResultRecordDto,
 	WinningPercentageRecordDto,
-	PlayerSkankinessRecordDto
+	PlayerSkankinessRecordDto,
+	FantasyDefenseRecordDto,
+	TradeAddictRecordDto
 } from '$lib/Utilities/Dtos/LeagueStatsPageDto';
 import { BracketHelper } from '$lib/Utilities/BracketHelper';
 
@@ -71,6 +73,8 @@ export class LeagueStatsHelper {
 		lowestWinPcts: WinningPercentageRecordDto[];
 		largestBlowouts: MatchResultRecordDto[];
 		closestVictories: MatchResultRecordDto[];
+		bestFantasyDefense: FantasyDefenseRecordDto[];
+		worstFantasyDefense: FantasyDefenseRecordDto[];
 	}> {
 		let highestWeek: LeagueScoreRecordDto | null = null;
 		let lowestWeek: LeagueScoreRecordDto | null = null;
@@ -100,10 +104,22 @@ export class LeagueStatsHelper {
 		// Game records by matchup id for blowouts / close games
 		const games: MatchResultRecordDto[] = [];
 
+		// Points against tracking per roster per season
+		const pointsAgainst = new Map<
+			string,
+			{
+				league: League;
+				rosterId: number;
+				totalPointsAgainst: number;
+				gamesPlayed: number;
+				user?: LeagueUser;
+			}
+		>();
+
 		const TOP_WEEKS = 10; // top 10 highest scoring weeks
 		const TOP_GAMES = 10;
-		const TOP_SEASONS = 3;
-		const TOP_USERS = 3;
+		const TOP_SEASONS = 10;
+		const TOP_USERS = 10;
 
 		for (const league of leagues) {
 			let rosters: Roster[] = [];
@@ -272,6 +288,39 @@ export class LeagueStatsHelper {
 						record.losses += 1;
 						record.games += 1;
 					}
+
+					// Track points against for both teams
+					// Winner's points against = loser's points
+					const winnerPAKey = `${group.leagueId}:${winner.rosterId}`;
+					let winnerPA = pointsAgainst.get(winnerPAKey);
+					if (!winnerPA) {
+						winnerPA = {
+							league,
+							rosterId: winner.rosterId,
+							totalPointsAgainst: 0,
+							gamesPlayed: 0,
+							user: winner.user
+						};
+						pointsAgainst.set(winnerPAKey, winnerPA);
+					}
+					winnerPA.totalPointsAgainst += loser.points;
+					winnerPA.gamesPlayed += 1;
+
+					// Loser's points against = winner's points
+					const loserPAKey = `${group.leagueId}:${loser.rosterId}`;
+					let loserPA = pointsAgainst.get(loserPAKey);
+					if (!loserPA) {
+						loserPA = {
+							league,
+							rosterId: loser.rosterId,
+							totalPointsAgainst: 0,
+							gamesPlayed: 0,
+							user: loser.user
+						};
+						pointsAgainst.set(loserPAKey, loserPA);
+					}
+					loserPA.totalPointsAgainst += winner.points;
+					loserPA.gamesPlayed += 1;
 				}
 			}
 		}
@@ -362,6 +411,35 @@ export class LeagueStatsHelper {
 			.sort((a, b) => (a.Margin ?? 0) - (b.Margin ?? 0))
 			.slice(0, TOP_GAMES);
 
+		// Best fantasy defense (lowest points against per season)
+		const defenseRecords: FantasyDefenseRecordDto[] = [];
+		for (const entry of pointsAgainst.values()) {
+			if (entry.gamesPlayed === 0) continue;
+			const season = String((entry.league as any).season ?? '');
+			const avgPA = entry.totalPointsAgainst / entry.gamesPlayed;
+
+			defenseRecords.push({
+				Season: season,
+				LeagueId: entry.league.league_id,
+				RosterId: entry.rosterId,
+				UserId: entry.user?.user_id,
+				DisplayName: entry.user?.display_name,
+				TotalPointsAgainst: entry.totalPointsAgainst,
+				GamesPlayed: entry.gamesPlayed,
+				AvgPointsAgainst: avgPA
+			});
+		}
+
+		// Sort by lowest total points against (best defense)
+		const bestFantasyDefense = [...defenseRecords]
+			.sort((a, b) => a.TotalPointsAgainst - b.TotalPointsAgainst)
+			.slice(0, TOP_GAMES);
+
+		// Sort by highest total points against (worst defense)
+		const worstFantasyDefense = [...defenseRecords]
+			.sort((a, b) => b.TotalPointsAgainst - a.TotalPointsAgainst)
+			.slice(0, TOP_GAMES);
+
 		return {
 			highestWeek,
 			lowestWeek,
@@ -374,7 +452,9 @@ export class LeagueStatsHelper {
 			highestWinPcts,
 			lowestWinPcts,
 			largestBlowouts,
-			closestVictories
+			closestVictories,
+			bestFantasyDefense,
+			worstFantasyDefense
 		};
 	}
 
@@ -397,10 +477,13 @@ export class LeagueStatsHelper {
 			highestWinPcts,
 			lowestWinPcts,
 			largestBlowouts,
-			closestVictories
+			closestVictories,
+			bestFantasyDefense,
+			worstFantasyDefense
 		} = await LeagueStatsHelper.getScoreAndGameStats(leagues);
 
 		const biggestSkanks = await LeagueStatsHelper.getBiggestSkanks(leagues, 10);
+		const tradeAddicts = await LeagueStatsHelper.getTradeAddicts(leagues, 10);
 
 		return {
 			Winners: winners,
@@ -416,7 +499,10 @@ export class LeagueStatsHelper {
 			ClosestVictories: closestVictories,
 			TopScoringWeeks: topWeeks,
 			BottomScoringWeeks: bottomWeeks,
-			BiggestSkanks: biggestSkanks
+			BiggestSkanks: biggestSkanks,
+			BestFantasyDefense: bestFantasyDefense,
+			WorstFantasyDefense: worstFantasyDefense,
+			TradeAddicts: tradeAddicts
 		};
 	}
 
@@ -469,6 +555,8 @@ export class LeagueStatsHelper {
 		// player_id -> Set of roster_ids
 		const playerTeams = new Map<string, Set<number>>();
 		const playerNames = new Map<string, { first?: string; last?: string; display?: string }>();
+		// player_id -> most recent add timestamp
+		const playerLastAcquired = new Map<string, number>();
 
 		for (const league of leagues) {
 			for (let week = 1; week <= 17; week++) {
@@ -484,6 +572,14 @@ export class LeagueStatsHelper {
 						for (const [playerId, rosterId] of Object.entries(tx.adds)) {
 							if (!playerTeams.has(playerId)) playerTeams.set(playerId, new Set());
 							playerTeams.get(playerId)?.add(rosterId);
+							// Track most recent add timestamp
+							const txTime = tx.created ?? tx.status_updated;
+							if (txTime) {
+								const existing = playerLastAcquired.get(playerId);
+								if (!existing || txTime > existing) {
+									playerLastAcquired.set(playerId, txTime);
+								}
+							}
 						}
 					}
 					// Drops
@@ -513,11 +609,120 @@ export class LeagueStatsHelper {
 				LastName: player?.last_name,
 				DisplayName: player?.full_name || player?.search_full_name,
 				NumTeams: teams.size,
-				TeamIds: Array.from(teams)
+				TeamIds: Array.from(teams),
+				LastAcquired: playerLastAcquired.get(playerId)
 			});
 		}
 		// Sort descending by NumTeams
 		result.sort((a, b) => b.NumTeams - a.NumTeams);
+		return result.slice(0, topN);
+	}
+
+	// --- Trade Addicts (managers who made the most trades) ---
+	private static async getTradeAddicts(leagues: League[], topN: number = 10): Promise<TradeAddictRecordDto[]> {
+		// Map to track trade stats per user
+		const userTradeStats = new Map<string, {
+			totalTrades: number;
+			playersAcquired: number;
+			playersTraded: number;
+			displayName?: string;
+		}>();
+
+		// We need to map roster_id to user across leagues
+		for (const league of leagues) {
+			let rosters: Roster[] = [];
+			let users: LeagueUser[] = [];
+
+			try {
+				rosters = await SleeperClient.GetRosters(league.league_id);
+				users = await SleeperClient.GetLeagueUsers(league.league_id);
+			} catch (error) {
+				continue;
+			}
+
+			// Build roster_id -> user mapping for this league
+			const rosterToUser = new Map<number, { userId: string; displayName?: string }>();
+			for (const roster of rosters) {
+				if (roster.owner_id) {
+					const user = users.find((u) => u.user_id === roster.owner_id);
+					rosterToUser.set(roster.roster_id, {
+						userId: roster.owner_id,
+						displayName: user?.display_name
+					});
+				}
+			}
+
+			// Iterate through all weeks to find trades
+			for (let week = 1; week <= 17; week++) {
+				let transactions = [];
+				try {
+					transactions = await SleeperClient.GetTransactions(league.league_id, week);
+				} catch (error) {
+					continue;
+				}
+
+				for (const tx of transactions) {
+					// Only count completed trades
+					if (tx.type !== 'trade' || tx.status !== 'complete') continue;
+
+					// Get roster_ids involved in the trade
+					const rosterIds: number[] = tx.roster_ids ?? [];
+
+					for (const rosterId of rosterIds) {
+						const userInfo = rosterToUser.get(rosterId);
+						if (!userInfo) continue;
+
+						const userId = userInfo.userId;
+
+						// Initialize user stats if not exists
+						if (!userTradeStats.has(userId)) {
+							userTradeStats.set(userId, {
+								totalTrades: 0,
+								playersAcquired: 0,
+								playersTraded: 0,
+								displayName: userInfo.displayName
+							});
+						}
+
+						const stats = userTradeStats.get(userId)!;
+						stats.totalTrades += 1;
+
+						// Count players acquired (adds for this roster)
+						if (tx.adds) {
+							for (const [, addRosterId] of Object.entries(tx.adds)) {
+								if (addRosterId === rosterId) {
+									stats.playersAcquired += 1;
+								}
+							}
+						}
+
+						// Count players traded away (drops for this roster)
+						if (tx.drops) {
+							for (const [, dropRosterId] of Object.entries(tx.drops)) {
+								if (dropRosterId === rosterId) {
+									stats.playersTraded += 1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Build result array
+		const result: TradeAddictRecordDto[] = [];
+		for (const [userId, stats] of userTradeStats.entries()) {
+			result.push({
+				UserId: userId,
+				DisplayName: stats.displayName,
+				TotalTrades: stats.totalTrades,
+				PlayersAcquired: stats.playersAcquired,
+				PlayersTraded: stats.playersTraded
+			});
+		}
+
+		// Sort descending by total trades
+		result.sort((a, b) => b.TotalTrades - a.TotalTrades);
 		return result.slice(0, topN);
 	}
 }
