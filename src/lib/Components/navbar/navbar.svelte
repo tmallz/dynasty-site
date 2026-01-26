@@ -2,8 +2,15 @@
 	import { onMount } from 'svelte';
 	import { themeChange } from 'theme-change';
 
+	let checkbox;
+
 	onMount(() => {
-		themeChange(false); // Initialize theme-change functionality
+		themeChange(false);
+		// Sync checkbox state with actual theme from localStorage
+		const savedTheme = localStorage.getItem('theme');
+		if (checkbox) {
+			checkbox.checked = savedTheme === 'light';
+		}
 	});
 </script>
 
@@ -31,11 +38,11 @@
 	<div class="flex-none">
 		<label class="swap swap-rotate">
 			<!-- Hidden checkbox to toggle theme -->
-			<input type="checkbox" data-toggle-theme="dark,light" data-act-class="ACTIVECLASS" />
+			<input bind:this={checkbox} type="checkbox" data-toggle-theme="dark,light" data-act-class="ACTIVECLASS" />
 
-			<!-- Sun Icon -->
+			<!-- Sun Icon (show in dark mode - click to go light) -->
 			<svg
-				class="swap-on h-5 w-5 fill-current"
+				class="swap-off h-5 w-5 fill-current"
 				xmlns="http://www.w3.org/2000/svg"
 				viewBox="0 0 24 24"
 			>
@@ -44,9 +51,9 @@
 				/>
 			</svg>
 
-			<!-- Moon Icon -->
+			<!-- Moon Icon (show in light mode - click to go dark) -->
 			<svg
-				class="swap-off h-5 w-5 fill-current"
+				class="swap-on h-5 w-5 fill-current"
 				xmlns="http://www.w3.org/2000/svg"
 				viewBox="0 0 24 24"
 			>
