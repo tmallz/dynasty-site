@@ -49,6 +49,26 @@ export interface PlayerSkankinessRecordDto {
 	DisplayName?: string;
 	NumTeams: number;
 	TeamIds: number[];
+	LastAcquired?: number; // Unix timestamp (ms) of most recent add
+}
+
+export interface FantasyDefenseRecordDto {
+	Season?: string;
+	LeagueId?: string;
+	RosterId?: number;
+	UserId?: string;
+	DisplayName?: string;
+	TotalPointsAgainst: number;
+	GamesPlayed: number;
+	AvgPointsAgainst: number;
+}
+
+export interface TradeAddictRecordDto {
+	UserId?: string;
+	DisplayName?: string;
+	TotalTrades: number;
+	PlayersAcquired: number;
+	PlayersTraded: number;
 }
 
 export interface LeagueStatsPageDto {
@@ -66,4 +86,7 @@ export interface LeagueStatsPageDto {
 	TopScoringWeeks?: LeagueScoreRecordDto[];
 	BottomScoringWeeks?: LeagueScoreRecordDto[];
 	BiggestSkanks?: PlayerSkankinessRecordDto[];
+	BestFantasyDefense?: FantasyDefenseRecordDto[];
+	WorstFantasyDefense?: FantasyDefenseRecordDto[];
+	TradeAddicts?: TradeAddictRecordDto[];
 }

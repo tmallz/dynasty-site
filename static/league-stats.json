@@ -68,6 +68,62 @@
       "UserId": "1121890292220788736",
       "DisplayName": "jackleonard24",
       "TotalPoints": 2631.1400000000003
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "TotalPoints": 2582.9800000000005
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 7,
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "TotalPoints": 2414.019999999999
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 1,
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "TotalPoints": 2322.36
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 3,
+      "UserId": "870857254289707008",
+      "DisplayName": "n0imdirtydan",
+      "TotalPoints": 2311.7999999999997
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 8,
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "TotalPoints": 2220.38
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 10,
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "TotalPoints": 2191.5200000000004
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "TotalPoints": 2153.9399999999996
     }
   ],
   "BottomSeasons": [
@@ -94,6 +150,62 @@
       "UserId": "1206337549254012928",
       "DisplayName": "jacksondoetzel",
       "TotalPoints": 2220.38
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 3,
+      "UserId": "870857254289707008",
+      "DisplayName": "n0imdirtydan",
+      "TotalPoints": 2311.7999999999997
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 1,
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "TotalPoints": 2322.36
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 7,
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "TotalPoints": 2414.019999999999
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "TotalPoints": 2582.9800000000005
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 5,
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "TotalPoints": 2631.1400000000003
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 9,
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "TotalPoints": 2766.02
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "TotalPoints": 2832.16
     }
   ],
   "HighestWinningPercentages": [
@@ -120,6 +232,62 @@
       "Losses": 6,
       "Games": 17,
       "WinPercentage": 0.6470588235294118
+    },
+    {
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "Wins": 10,
+      "Losses": 6,
+      "Games": 16,
+      "WinPercentage": 0.625
+    },
+    {
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "Wins": 9,
+      "Losses": 7,
+      "Games": 16,
+      "WinPercentage": 0.5625
+    },
+    {
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "Wins": 8,
+      "Losses": 8,
+      "Games": 16,
+      "WinPercentage": 0.5
+    },
+    {
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "Wins": 7,
+      "Losses": 9,
+      "Games": 16,
+      "WinPercentage": 0.4375
+    },
+    {
+      "UserId": "870857254289707008",
+      "DisplayName": "n0imdirtydan",
+      "Wins": 6,
+      "Losses": 10,
+      "Games": 16,
+      "WinPercentage": 0.375
+    },
+    {
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "Wins": 5,
+      "Losses": 11,
+      "Games": 16,
+      "WinPercentage": 0.3125
+    },
+    {
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "Wins": 2,
+      "Losses": 14,
+      "Games": 16,
+      "WinPercentage": 0.125
     }
   ],
   "LowestWinningPercentages": [
@@ -146,6 +314,62 @@
       "Losses": 10,
       "Games": 16,
       "WinPercentage": 0.375
+    },
+    {
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "Wins": 7,
+      "Losses": 9,
+      "Games": 16,
+      "WinPercentage": 0.4375
+    },
+    {
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "Wins": 8,
+      "Losses": 8,
+      "Games": 16,
+      "WinPercentage": 0.5
+    },
+    {
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "Wins": 9,
+      "Losses": 7,
+      "Games": 16,
+      "WinPercentage": 0.5625
+    },
+    {
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "Wins": 10,
+      "Losses": 6,
+      "Games": 16,
+      "WinPercentage": 0.625
+    },
+    {
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "Wins": 11,
+      "Losses": 6,
+      "Games": 17,
+      "WinPercentage": 0.6470588235294118
+    },
+    {
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "Wins": 11,
+      "Losses": 5,
+      "Games": 16,
+      "WinPercentage": 0.6875
+    },
+    {
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "Wins": 12,
+      "Losses": 5,
+      "Games": 17,
+      "WinPercentage": 0.7058823529411765
     }
   ],
   "LargestBlowouts": [
@@ -628,7 +852,8 @@
         4,
         2,
         3
-      ]
+      ],
+      "LastAcquired": 1765213815606
     },
     {
       "PlayerId": "2505",
@@ -641,7 +866,8 @@
         2,
         5,
         4
-      ]
+      ],
+      "LastAcquired": 1759280483175
     },
     {
       "PlayerId": "1166",
@@ -654,7 +880,8 @@
         2,
         9,
         5
-      ]
+      ],
+      "LastAcquired": 1763520999110
     },
     {
       "PlayerId": "11562",
@@ -667,7 +894,8 @@
         1,
         8,
         5
-      ]
+      ],
+      "LastAcquired": 1762699468786
     },
     {
       "PlayerId": "6149",
@@ -680,7 +908,8 @@
         10,
         5,
         2
-      ]
+      ],
+      "LastAcquired": 1765370347816
     },
     {
       "PlayerId": "8180",
@@ -692,7 +921,8 @@
         2,
         6,
         10
-      ]
+      ],
+      "LastAcquired": 1758200102749
     },
     {
       "PlayerId": "7002",
@@ -704,7 +934,8 @@
         2,
         3,
         6
-      ]
+      ],
+      "LastAcquired": 1757451257495
     },
     {
       "PlayerId": "10219",
@@ -716,7 +947,8 @@
         6,
         3,
         2
-      ]
+      ],
+      "LastAcquired": 1763241748185
     },
     {
       "PlayerId": "5955",
@@ -728,7 +960,8 @@
         7,
         2,
         3
-      ]
+      ],
+      "LastAcquired": 1756569074888
     },
     {
       "PlayerId": "11435",
@@ -740,7 +973,277 @@
         6,
         2,
         7
-      ]
+      ],
+      "LastAcquired": 1764094557244
+    }
+  ],
+  "BestFantasyDefense": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "TotalPointsAgainst": 2176.2799999999997,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 136.01749999999998
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 1,
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "TotalPointsAgainst": 2245.62,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 140.35125
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 5,
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "TotalPointsAgainst": 2249.9199999999996,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 140.61999999999998
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 3,
+      "UserId": "870857254289707008",
+      "DisplayName": "n0imdirtydan",
+      "TotalPointsAgainst": 2323.92,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 145.245
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 7,
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "TotalPointsAgainst": 2332.1600000000003,
+      "GamesPlayed": 17,
+      "AvgPointsAgainst": 137.1858823529412
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 10,
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "TotalPointsAgainst": 2335.18,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 145.94875
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 8,
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "TotalPointsAgainst": 2376.82,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 148.55125
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "TotalPointsAgainst": 2437.26,
+      "GamesPlayed": 17,
+      "AvgPointsAgainst": 143.36823529411765
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "TotalPointsAgainst": 2443.3399999999997,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 152.70874999999998
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 9,
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "TotalPointsAgainst": 2444.44,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 152.7775
+    }
+  ],
+  "WorstFantasyDefense": [
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 9,
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "TotalPointsAgainst": 2444.44,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 152.7775
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 2,
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "TotalPointsAgainst": 2443.3399999999997,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 152.70874999999998
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 6,
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "TotalPointsAgainst": 2437.26,
+      "GamesPlayed": 17,
+      "AvgPointsAgainst": 143.36823529411765
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 8,
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "TotalPointsAgainst": 2376.82,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 148.55125
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 10,
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "TotalPointsAgainst": 2335.18,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 145.94875
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 7,
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "TotalPointsAgainst": 2332.1600000000003,
+      "GamesPlayed": 17,
+      "AvgPointsAgainst": 137.1858823529412
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 3,
+      "UserId": "870857254289707008",
+      "DisplayName": "n0imdirtydan",
+      "TotalPointsAgainst": 2323.92,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 145.245
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 5,
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "TotalPointsAgainst": 2249.9199999999996,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 140.61999999999998
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 1,
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "TotalPointsAgainst": 2245.62,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 140.35125
+    },
+    {
+      "Season": "2025",
+      "LeagueId": "1205917377322024960",
+      "RosterId": 4,
+      "UserId": "1051318216162811904",
+      "DisplayName": "omalleybd",
+      "TotalPointsAgainst": 2176.2799999999997,
+      "GamesPlayed": 16,
+      "AvgPointsAgainst": 136.01749999999998
+    }
+  ],
+  "TradeAddicts": [
+    {
+      "UserId": "737812063434465280",
+      "DisplayName": "BradDodge33",
+      "TotalTrades": 11,
+      "PlayersAcquired": 4,
+      "PlayersTraded": 14
+    },
+    {
+      "UserId": "869683924631248896",
+      "DisplayName": "rossbeck44",
+      "TotalTrades": 5,
+      "PlayersAcquired": 9,
+      "PlayersTraded": 4
+    },
+    {
+      "UserId": "1205976837939793920",
+      "DisplayName": "SkinnyPetyr",
+      "TotalTrades": 5,
+      "PlayersAcquired": 6,
+      "PlayersTraded": 4
+    },
+    {
+      "UserId": "656006678600331264",
+      "DisplayName": "tmallz",
+      "TotalTrades": 4,
+      "PlayersAcquired": 3,
+      "PlayersTraded": 4
+    },
+    {
+      "UserId": "1121532813901242368",
+      "DisplayName": "jimpooman",
+      "TotalTrades": 3,
+      "PlayersAcquired": 3,
+      "PlayersTraded": 2
+    },
+    {
+      "UserId": "870857254289707008",
+      "DisplayName": "n0imdirtydan",
+      "TotalTrades": 3,
+      "PlayersAcquired": 3,
+      "PlayersTraded": 2
+    },
+    {
+      "UserId": "1121890292220788736",
+      "DisplayName": "jackleonard24",
+      "TotalTrades": 1,
+      "PlayersAcquired": 1,
+      "PlayersTraded": 0
+    },
+    {
+      "UserId": "1206337549254012928",
+      "DisplayName": "jacksondoetzel",
+      "TotalTrades": 1,
+      "PlayersAcquired": 2,
+      "PlayersTraded": 1
+    },
+    {
+      "UserId": "1206338369169141760",
+      "DisplayName": "robleonard3",
+      "TotalTrades": 1,
+      "PlayersAcquired": 1,
+      "PlayersTraded": 1
     }
   ]
 }
