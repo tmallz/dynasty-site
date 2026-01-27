@@ -1,5 +1,10 @@
 <script lang="ts">
 	export let transaction;
+	export let animationDelay: number = 0;
+
+	let initiatorAvatarFailed = false;
+	let receiverAvatarFailed = false;
+	let playerAvatarsFailed: Record<string, boolean> = {};
 
 	// Helper function to format the round number with the appropriate suffix
 	function formatRound(round: number): string {
@@ -7,62 +12,101 @@
 		const value = round % 100;
 		return round + (suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0]);
 	}
+
+	function getInitials(name: string): string {
+		if (!name) return '?';
+		return name
+			.split(' ')
+			.map((n) => n[0])
+			.join('')
+			.toUpperCase()
+			.slice(0, 2);
+	}
 </script>
 
 <!-- Trade Card with improved design -->
-<div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-	<div class="card-body">
+<div
+	class="card bg-base-200 shadow-xl hover:-translate-y-0.5 hover:shadow-2xl transition-all duration-150 fade-in"
+	style="animation-delay: {animationDelay}ms;"
+>
+	<div class="card-body p-4 md:p-6">
 		<!-- Header with badges and date -->
-		<div class="flex items-center justify-between mb-4">
+		<div class="flex items-center justify-between mb-3 md:mb-4">
 			<div class="flex gap-2">
-				<div class="badge badge-primary badge-lg">🤝 Trade</div>
+				<div class="badge badge-primary badge-md md:badge-lg">Trade</div>
 				{#if transaction.Week}
-					<div class="badge badge-outline">Week {transaction.Week}</div>
+					<div class="badge badge-outline badge-sm md:badge-md">Week {transaction.Week}</div>
 				{/if}
 			</div>
-			<div class="text-sm text-base-content/70">{transaction.TransactionDate}</div>
+			<div class="text-xs md:text-sm text-base-content/70">{transaction.TransactionDate}</div>
 		</div>
 
 		<!-- Trade Participants -->
-		<div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+		<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8">
 			<!-- Initiator's Side -->
 			<div class="flex-1">
 				<!-- User Info -->
-				<div class="flex items-center gap-3 mb-4">
-					<img
-						src={`https://sleepercdn.com/avatars/${transaction.Trade?.InitiatorAvatarUrl}`}
-						alt={transaction.Trade?.InitiatorName}
-						class="w-10 h-10 rounded-full ring-2 ring-primary ring-offset-2 ring-offset-base-100"
-					/>
-					<span class="font-bold text-lg">{transaction.Trade?.InitiatorName}</span>
+				<div class="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+					{#if initiatorAvatarFailed || !transaction.Trade?.InitiatorAvatarUrl}
+						<div
+							class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary flex items-center justify-center text-primary-content font-bold text-xs md:text-sm ring-2 ring-primary ring-offset-2 ring-offset-base-100"
+						>
+							{getInitials(transaction.Trade?.InitiatorName ?? '')}
+						</div>
+					{:else}
+						<img
+							src={`https://sleepercdn.com/avatars/${transaction.Trade?.InitiatorAvatarUrl}`}
+							alt={transaction.Trade?.InitiatorName}
+							class="w-8 h-8 md:w-10 md:h-10 rounded-full ring-2 ring-primary ring-offset-2 ring-offset-base-100 bg-base-300"
+							on:error={() => (initiatorAvatarFailed = true)}
+						/>
+					{/if}
+					<span class="font-bold text-base md:text-lg">{transaction.Trade?.InitiatorName}</span>
 				</div>
 
 				<!-- Received Items -->
-				<div class="space-y-3">
+				<div class="space-y-2 md:space-y-3">
 					{#if transaction.Trade?.InitiatorPlayersRecieved}
 						{#each transaction.Trade?.InitiatorPlayersRecieved as player}
-							<div class="flex items-center gap-3 p-3 rounded-lg bg-base-300 hover:bg-base-100 transition-colors">
-								<img
-									src={`https://sleepercdn.com/content/nfl/players/${player.PlayerId}.jpg`}
-									alt={player.PlayerName}
-									class="w-12 h-12 rounded-full ring-2 ring-success ring-offset-2 ring-offset-base-300"
-								/>
-								<div class="flex-1">
-									<p class="font-semibold">{player.PlayerName}</p>
-									<p class="text-sm text-base-content/70">{player.PlayerPosition} · {player.PlayerTeam}</p>
+							<div
+								class="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-base-300 hover:bg-base-100 transition-colors"
+							>
+								{#if playerAvatarsFailed[player.PlayerId]}
+									<div
+										class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-success/20 flex items-center justify-center text-success font-bold text-xs ring-2 ring-success ring-offset-2 ring-offset-base-300"
+									>
+										{player.PlayerPosition}
+									</div>
+								{:else}
+									<img
+										src={`https://sleepercdn.com/content/nfl/players/${player.PlayerId}.jpg`}
+										alt={player.PlayerName}
+										class="w-10 h-10 md:w-12 md:h-12 rounded-full ring-2 ring-success ring-offset-2 ring-offset-base-300 bg-base-100"
+										on:error={() => (playerAvatarsFailed[player.PlayerId] = true)}
+									/>
+								{/if}
+								<div class="flex-1 min-w-0">
+									<p class="font-semibold text-sm md:text-base truncate">{player.PlayerName}</p>
+									<p class="text-xs md:text-sm text-base-content/70">
+										{player.PlayerPosition} · {player.PlayerTeam || 'FA'}
+									</p>
 								</div>
 							</div>
 						{/each}
 					{/if}
 					{#if transaction.Trade?.InitiatorDraftPicks}
 						{#each transaction.Trade?.InitiatorDraftPicks as pick}
-							<div class="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-success/20 to-accent/20 hover:from-success/30 hover:to-accent/30 transition-colors">
-								<div class="w-12 h-12 rounded-full bg-gradient-to-br from-success to-accent flex items-center justify-center text-white font-bold shadow-lg">
+							<div
+								class="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-gradient-to-r from-success/20 to-accent/20 hover:from-success/30 hover:to-accent/30 transition-colors"
+							>
+								<div
+									class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-success to-accent flex items-center justify-center text-white font-bold shadow-lg text-sm md:text-base"
+								>
 									{pick.Round}
 								</div>
 								<div class="flex-1">
-									<p class="font-semibold">{formatRound(pick.Round)} Round Pick</p>
-									<p class="text-sm text-base-content/70">{pick.Year} Draft</p>
+									<p class="font-semibold text-sm md:text-base">{formatRound(pick.Round)} Round Pick</p>
+									<p class="text-xs md:text-sm text-base-content/70">{pick.Year} Draft</p>
 								</div>
 							</div>
 						{/each}
@@ -71,48 +115,74 @@
 			</div>
 
 			<!-- Swap Icon -->
-			<div class="flex items-center justify-center px-4 md:px-4 py-4 md:py-0">
-				<div class="text-4xl opacity-50 rotate-90 md:rotate-0">⇄</div>
+			<div class="flex items-center justify-center px-2 md:px-4 py-2 md:py-0">
+				<div class="text-3xl md:text-4xl opacity-50 rotate-90 md:rotate-0">&#x21C4;</div>
 			</div>
 
 			<!-- Receiver's Side -->
 			<div class="flex-1">
 				<!-- User Info -->
-				<div class="flex items-center gap-3 mb-4">
-					<img
-						src={`https://sleepercdn.com/avatars/${transaction.Trade?.RecieverAvatarUrl}`}
-						alt={transaction.Trade?.RecieverName}
-						class="w-10 h-10 rounded-full ring-2 ring-secondary ring-offset-2 ring-offset-base-100"
-					/>
-					<span class="font-bold text-lg">{transaction.Trade?.RecieverName}</span>
+				<div class="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+					{#if receiverAvatarFailed || !transaction.Trade?.RecieverAvatarUrl}
+						<div
+							class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary flex items-center justify-center text-secondary-content font-bold text-xs md:text-sm ring-2 ring-secondary ring-offset-2 ring-offset-base-100"
+						>
+							{getInitials(transaction.Trade?.RecieverName ?? '')}
+						</div>
+					{:else}
+						<img
+							src={`https://sleepercdn.com/avatars/${transaction.Trade?.RecieverAvatarUrl}`}
+							alt={transaction.Trade?.RecieverName}
+							class="w-8 h-8 md:w-10 md:h-10 rounded-full ring-2 ring-secondary ring-offset-2 ring-offset-base-100 bg-base-300"
+							on:error={() => (receiverAvatarFailed = true)}
+						/>
+					{/if}
+					<span class="font-bold text-base md:text-lg">{transaction.Trade?.RecieverName}</span>
 				</div>
 
 				<!-- Received Items -->
-				<div class="space-y-3">
+				<div class="space-y-2 md:space-y-3">
 					{#if transaction.Trade?.RecieverPlayersRecieved}
 						{#each transaction.Trade?.RecieverPlayersRecieved as player}
-							<div class="flex items-center gap-3 p-3 rounded-lg bg-base-300 hover:bg-base-100 transition-colors">
-								<img
-									src={`https://sleepercdn.com/content/nfl/players/${player.PlayerId}.jpg`}
-									alt={player.PlayerName}
-									class="w-12 h-12 rounded-full ring-2 ring-success ring-offset-2 ring-offset-base-300"
-								/>
-								<div class="flex-1">
-									<p class="font-semibold">{player.PlayerName}</p>
-									<p class="text-sm text-base-content/70">{player.PlayerPosition} · {player.PlayerTeam}</p>
+							<div
+								class="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-base-300 hover:bg-base-100 transition-colors"
+							>
+								{#if playerAvatarsFailed[`receiver-${player.PlayerId}`]}
+									<div
+										class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-success/20 flex items-center justify-center text-success font-bold text-xs ring-2 ring-success ring-offset-2 ring-offset-base-300"
+									>
+										{player.PlayerPosition}
+									</div>
+								{:else}
+									<img
+										src={`https://sleepercdn.com/content/nfl/players/${player.PlayerId}.jpg`}
+										alt={player.PlayerName}
+										class="w-10 h-10 md:w-12 md:h-12 rounded-full ring-2 ring-success ring-offset-2 ring-offset-base-300 bg-base-100"
+										on:error={() => (playerAvatarsFailed[`receiver-${player.PlayerId}`] = true)}
+									/>
+								{/if}
+								<div class="flex-1 min-w-0">
+									<p class="font-semibold text-sm md:text-base truncate">{player.PlayerName}</p>
+									<p class="text-xs md:text-sm text-base-content/70">
+										{player.PlayerPosition} · {player.PlayerTeam || 'FA'}
+									</p>
 								</div>
 							</div>
 						{/each}
 					{/if}
 					{#if transaction.Trade?.RecieverDraftPicks}
 						{#each transaction.Trade?.RecieverDraftPicks as pick}
-							<div class="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-success/20 to-accent/20 hover:from-success/30 hover:to-accent/30 transition-colors">
-								<div class="w-12 h-12 rounded-full bg-gradient-to-br from-success to-accent flex items-center justify-center text-white font-bold shadow-lg">
+							<div
+								class="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-gradient-to-r from-success/20 to-accent/20 hover:from-success/30 hover:to-accent/30 transition-colors"
+							>
+								<div
+									class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-success to-accent flex items-center justify-center text-white font-bold shadow-lg text-sm md:text-base"
+								>
 									{pick.Round}
 								</div>
 								<div class="flex-1">
-									<p class="font-semibold">{formatRound(pick.Round)} Round Pick</p>
-									<p class="text-sm text-base-content/70">{pick.Year} Draft</p>
+									<p class="font-semibold text-sm md:text-base">{formatRound(pick.Round)} Round Pick</p>
+									<p class="text-xs md:text-sm text-base-content/70">{pick.Year} Draft</p>
 								</div>
 							</div>
 						{/each}
@@ -123,3 +193,20 @@
 	</div>
 </div>
 
+<style>
+	.fade-in {
+		animation: fade-in 0.4s ease-out forwards;
+		opacity: 0;
+	}
+
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>

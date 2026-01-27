@@ -130,7 +130,8 @@ export class TransactionsHelper {
 			const base: TransactionsPageDto = {
 				TransactionType: transaction.type as TransactionType,
 				TransactionDate: new Date(transaction.created).toLocaleDateString(),
-				Season: season
+				Season: season,
+				Week: transaction.leg
 			};
 
 			if (
@@ -306,7 +307,8 @@ export class TransactionsHelper {
 			const base: TransactionsPageDto = {
 				TransactionType: transaction.type as TransactionType,
 				TransactionDate: new Date(transaction.created).toLocaleDateString(),
-				Season: season
+				Season: season,
+				Week: transaction.leg
 			};
 
 			if (
@@ -420,6 +422,7 @@ export class TransactionsHelper {
 		const transaction: TransactionsPageDto = {
 			TransactionType: t.type,
 			TransactionDate: new Date(t.created).toLocaleDateString(),
+			Week: t.leg,
 			WaiverFreeAgent: {
 				InitiatorAvatarUrl: users.find((u) => u.user_id === t.creator)?.avatar ?? '',
 				UserName: users.find((u) => u.user_id === t.creator)?.display_name ?? '',
@@ -436,6 +439,7 @@ export class TransactionsHelper {
 		const transaction: TransactionsPageDto = {
 			TransactionType: t.type,
 			TransactionDate: new Date(t.created).toLocaleDateString(),
+			Week: t.leg,
 			Trade: {
 				InitiatorName: users.find((u) => u.user_id === t.creator)?.display_name ?? '',
 				RecieverName:
