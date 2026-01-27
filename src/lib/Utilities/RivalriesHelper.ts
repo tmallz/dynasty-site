@@ -13,6 +13,8 @@ export interface RivalryMatchup {
     team1Score: number;
     team2Score: number;
     winner: number; // roster_id of winner
+    isPlayoff: boolean; // true if in winners bracket (actual playoffs)
+    isConsolation: boolean; // true if in losers bracket (consolation)
 }
 
 export interface TradeDetail {
@@ -28,6 +30,21 @@ export interface RecentTradeDetail extends TradeDetail {
     team2Picks: Array<{ season: string; round: number; originalOwner?: number }>;
 }
 
+export interface StreakInfo {
+    currentStreak: number;
+    currentStreakOwner: number; // roster_id, 0 if no streak
+    longestStreak: number;
+    longestStreakOwner: number;
+}
+
+export interface TrendInfo {
+    recentWinner: number; // roster_id of who won more in last 5, 0 if tied
+    recentTeam1Wins: number;
+    recentTeam2Wins: number;
+    trend: 'team1_hot' | 'team2_hot' | 'even' | 'no_data';
+    trendText: string;
+}
+
 export interface RivalryStats {
     team1Wins: number;
     team2Wins: number;
@@ -40,6 +57,13 @@ export interface RivalryStats {
     totalTrades: number;
     tradeDetails: RecentTradeDetail[];
     mostRecentTrade: RecentTradeDetail | null;
+    // New stats
+    team1TotalPoints: number;
+    team2TotalPoints: number;
+    streakInfo: StreakInfo;
+    intensityScore: number; // 0-100, percentage of close games
+    mostRecentMatchup: RivalryMatchup | null;
+    trendInfo: TrendInfo;
 }
 
 export class RivalriesHelper {
@@ -62,7 +86,24 @@ export class RivalriesHelper {
             team2NarrowestVictory: null,
             totalTrades: 0,
             tradeDetails: [],
-            mostRecentTrade: null
+            mostRecentTrade: null,
+            team1TotalPoints: 0,
+            team2TotalPoints: 0,
+            streakInfo: {
+                currentStreak: 0,
+                currentStreakOwner: 0,
+                longestStreak: 0,
+                longestStreakOwner: 0
+            },
+            intensityScore: 0,
+            mostRecentMatchup: null,
+            trendInfo: {
+                recentWinner: 0,
+                recentTeam1Wins: 0,
+                recentTeam2Wins: 0,
+                trend: 'no_data',
+                trendText: ''
+            }
         };
 
         // Find head-to-head matchups
@@ -73,35 +114,50 @@ export class RivalriesHelper {
             brackets
         );
 
-        // Calculate win/loss record
+        // Sort games chronologically for streak calculation
+        const sortedGames = [...headToHeadGames].sort((a, b) => {
+            if (a.season !== b.season) return a.season.localeCompare(b.season);
+            return a.week - b.week;
+        });
+
+        let closeGames = 0; // games within 10 points
+
+        // Calculate win/loss record and total points
         headToHeadGames.forEach(game => {
             stats.totalGames++;
-            
+            stats.team1TotalPoints += game.team1Score;
+            stats.team2TotalPoints += game.team2Score;
+
+            // Track close games for intensity
+            if (game.margin <= 10) {
+                closeGames++;
+            }
+
             if (game.team1Score > game.team2Score) {
                 stats.team1Wins++;
-                
+
                 // Check for narrowest victory
-                if (!stats.team1NarrowestVictory || 
+                if (!stats.team1NarrowestVictory ||
                     game.margin < stats.team1NarrowestVictory.margin) {
                     stats.team1NarrowestVictory = game;
                 }
-                
+
                 // Check for biggest blowout
-                if (!stats.team1BiggestBlowout || 
+                if (!stats.team1BiggestBlowout ||
                     game.margin > stats.team1BiggestBlowout.margin) {
                     stats.team1BiggestBlowout = game;
                 }
             } else if (game.team2Score > game.team1Score) {
                 stats.team2Wins++;
-                
+
                 // Check for narrowest victory
-                if (!stats.team2NarrowestVictory || 
+                if (!stats.team2NarrowestVictory ||
                     game.margin < stats.team2NarrowestVictory.margin) {
                     stats.team2NarrowestVictory = game;
                 }
-                
+
                 // Check for biggest blowout
-                if (!stats.team2BiggestBlowout || 
+                if (!stats.team2BiggestBlowout ||
                     game.margin > stats.team2BiggestBlowout.margin) {
                     stats.team2BiggestBlowout = game;
                 }
@@ -109,6 +165,22 @@ export class RivalriesHelper {
                 stats.ties++;
             }
         });
+
+        // Calculate intensity score (percentage of close games, weighted)
+        if (stats.totalGames > 0) {
+            stats.intensityScore = Math.round((closeGames / stats.totalGames) * 100);
+        }
+
+        // Calculate streaks
+        stats.streakInfo = this.calculateStreaks(sortedGames, team1RosterId, team2RosterId);
+
+        // Get most recent matchup
+        if (sortedGames.length > 0) {
+            stats.mostRecentMatchup = sortedGames[sortedGames.length - 1];
+        }
+
+        // Calculate trend (last 5 games)
+        stats.trendInfo = this.calculateTrend(sortedGames, team1RosterId, team2RosterId);
 
         // Calculate trade statistics
         const tradeStats = this.findTradesBetweenTeams(
@@ -123,6 +195,101 @@ export class RivalriesHelper {
         return stats;
     }
 
+    private static calculateStreaks(
+        sortedGames: RivalryMatchup[],
+        team1RosterId: number,
+        team2RosterId: number
+    ): StreakInfo {
+        const info: StreakInfo = {
+            currentStreak: 0,
+            currentStreakOwner: 0,
+            longestStreak: 0,
+            longestStreakOwner: 0
+        };
+
+        if (sortedGames.length === 0) return info;
+
+        let currentStreak = 0;
+        let currentOwner = 0;
+        let longestStreak = 0;
+        let longestOwner = 0;
+
+        for (const game of sortedGames) {
+            const winner = game.team1Score > game.team2Score ? team1RosterId :
+                          game.team2Score > game.team1Score ? team2RosterId : 0;
+
+            if (winner === 0) {
+                // Tie breaks streak
+                currentStreak = 0;
+                currentOwner = 0;
+            } else if (winner === currentOwner) {
+                currentStreak++;
+            } else {
+                currentStreak = 1;
+                currentOwner = winner;
+            }
+
+            if (currentStreak > longestStreak) {
+                longestStreak = currentStreak;
+                longestOwner = currentOwner;
+            }
+        }
+
+        info.currentStreak = currentStreak;
+        info.currentStreakOwner = currentOwner;
+        info.longestStreak = longestStreak;
+        info.longestStreakOwner = longestOwner;
+
+        return info;
+    }
+
+    private static calculateTrend(
+        sortedGames: RivalryMatchup[],
+        team1RosterId: number,
+        team2RosterId: number
+    ): TrendInfo {
+        const info: TrendInfo = {
+            recentWinner: 0,
+            recentTeam1Wins: 0,
+            recentTeam2Wins: 0,
+            trend: 'no_data',
+            trendText: ''
+        };
+
+        if (sortedGames.length < 2) {
+            info.trendText = 'Not enough games';
+            return info;
+        }
+
+        // Get last 5 games (or all if less than 5)
+        const recentGames = sortedGames.slice(-5);
+
+        for (const game of recentGames) {
+            if (game.team1Score > game.team2Score) {
+                info.recentTeam1Wins++;
+            } else if (game.team2Score > game.team1Score) {
+                info.recentTeam2Wins++;
+            }
+        }
+
+        const winDiff = info.recentTeam1Wins - info.recentTeam2Wins;
+
+        if (winDiff >= 2) {
+            info.trend = 'team1_hot';
+            info.recentWinner = team1RosterId;
+            info.trendText = 'Dominating recently';
+        } else if (winDiff <= -2) {
+            info.trend = 'team2_hot';
+            info.recentWinner = team2RosterId;
+            info.trendText = 'Dominating recently';
+        } else {
+            info.trend = 'even';
+            info.trendText = 'Evenly matched lately';
+        }
+
+        return info;
+    }
+
     static findHeadToHeadMatchups(
         team1RosterId: number,
         team2RosterId: number,
@@ -133,7 +300,7 @@ export class RivalriesHelper {
 
         // Get current year to avoid processing future seasons
         const currentYear = new Date().getFullYear();
-        
+
         // Matchups are organized by season -> week
         for (const season in matchups) {
             // Skip future seasons (in case Sleeper returns data for seasons not yet played)
@@ -141,24 +308,24 @@ export class RivalriesHelper {
             if (seasonYear > currentYear) {
                 continue;
             }
-            
+
             const seasonMatchups = matchups[season];
             const seasonBrackets = brackets[season] || { winners: [], losers: [] };
-            
+
             for (const week in seasonMatchups) {
                 const weekNum = parseInt(week);
-                
+
                 // Skip week 18 (no lineups set)
                 if (weekNum === 18) {
                     continue;
                 }
-                
+
                 const weekMatchups = seasonMatchups[week];
-                
+
                 // Find if these two teams played each other this week
                 let team1Matchup = null;
                 let team2Matchup = null;
-                
+
                 for (const matchup of weekMatchups) {
                     if (matchup.roster_id === team1RosterId) {
                         team1Matchup = matchup;
@@ -167,77 +334,87 @@ export class RivalriesHelper {
                         team2Matchup = matchup;
                     }
                 }
-                
+
                 // If both teams played and have the same matchup_id, they played each other
-                if (team1Matchup && team2Matchup && 
+                if (team1Matchup && team2Matchup &&
                     team1Matchup.matchup_id === team2Matchup.matchup_id &&
                     team1Matchup.matchup_id !== null) {
                     const team1Score = team1Matchup.points || 0;
                     const team2Score = team2Matchup.points || 0;
-                    
-                    // Validate this is a real matchup by checking bracket data
-                    const isValidMatchup = this.isMatchupInBracket(
+
+                    // Check bracket status for playoff weeks
+                    const bracketStatus = this.getMatchupBracketStatus(
                         team1RosterId,
                         team2RosterId,
                         weekNum,
-                        season,
                         seasonBrackets
                     );
-                    
-                    if (!isValidMatchup) {
+
+                    if (!bracketStatus.isValid) {
                         continue;
                     }
-                    
+
                     // Skip matchups where both scores are 0 (no lineups set)
                     if (team1Score === 0 && team2Score === 0) {
                         continue;
                     }
-                    
+
                     const margin = Math.abs(team1Score - team2Score);
-                    
+
                     games.push({
                         week: weekNum,
                         season: season,
                         margin: margin,
                         team1Score: team1Score,
                         team2Score: team2Score,
-                        winner: team1Score > team2Score ? team1RosterId : 
-                                team2Score > team1Score ? team2RosterId : 0
+                        winner: team1Score > team2Score ? team1RosterId :
+                                team2Score > team1Score ? team2RosterId : 0,
+                        isPlayoff: bracketStatus.isPlayoff,
+                        isConsolation: bracketStatus.isConsolation
                     });
                 }
             }
         }
-        
+
         return games;
     }
 
-    private static isMatchupInBracket(
+    private static getMatchupBracketStatus(
         team1RosterId: number,
         team2RosterId: number,
         week: number,
-        season: string,
         brackets: { winners: any[]; losers: any[] }
-    ): boolean {
+    ): { isValid: boolean; isPlayoff: boolean; isConsolation: boolean } {
         // Regular season matchups are always valid (typically weeks 1-14)
         // Assuming playoffs start around week 15
         if (week <= 14) {
-            return true;
+            return { isValid: true, isPlayoff: false, isConsolation: false };
         }
-        
-        // For playoff weeks, check if this matchup exists in either bracket
-        const allBracketMatchups = [...brackets.winners, ...brackets.losers];
-        
-        for (const bracketMatchup of allBracketMatchups) {
-            // Check if both teams are in this bracket matchup
+
+        // Check winners bracket (actual playoffs)
+        for (const bracketMatchup of brackets.winners || []) {
             const t1 = typeof bracketMatchup.t1 === 'number' ? bracketMatchup.t1 : null;
             const t2 = typeof bracketMatchup.t2 === 'number' ? bracketMatchup.t2 : null;
-            
+
             if ((t1 === team1RosterId && t2 === team2RosterId) ||
                 (t1 === team2RosterId && t2 === team1RosterId)) {
-                return true;
+                return { isValid: true, isPlayoff: true, isConsolation: false };
             }
         }
-        return false;
+
+        // Check losers bracket (consolation)
+        for (const bracketMatchup of brackets.losers || []) {
+            const t1 = typeof bracketMatchup.t1 === 'number' ? bracketMatchup.t1 : null;
+            const t2 = typeof bracketMatchup.t2 === 'number' ? bracketMatchup.t2 : null;
+
+            if ((t1 === team1RosterId && t2 === team2RosterId) ||
+                (t1 === team2RosterId && t2 === team1RosterId)) {
+                return { isValid: true, isPlayoff: false, isConsolation: true };
+            }
+        }
+
+        // Not found in any bracket - invalid matchup for playoff week
+        return { isValid: false, isPlayoff: false, isConsolation: false };
     }
 
     private static findTradesBetweenTeams(

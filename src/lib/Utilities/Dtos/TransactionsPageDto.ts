@@ -4,6 +4,7 @@ export interface TransactionsPageDto {
 	TransactionType?: TransactionType;
 	TransactionDate?: string;
 	Season?: string;
+	Week?: number;
 	WaiverFreeAgent?: WaiverFreeAgentDto;
 	Trade?: tradeDto;
 }
