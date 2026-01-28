@@ -1,8 +1,22 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import { themeChange } from 'theme-change';
 
-	let checkbox;
+	let checkbox: HTMLInputElement;
+
+	let currentPath = $derived($page.url.pathname);
+
+	function isActive(path: string): boolean {
+		if (path === '/') {
+			return currentPath === '/';
+		}
+		return currentPath === path || currentPath.startsWith(path + '/');
+	}
+
+	function isDropdownActive(paths: string[]): boolean {
+		return paths.some((p) => isActive(p));
+	}
 
 	onMount(() => {
 		themeChange(false);
@@ -23,15 +37,118 @@
 	<!-- Desktop Menu -->
 	<div class="hidden flex-none lg:flex">
 		<ul class="menu menu-horizontal px-1">
-			<li><a href="/standings" class="hover:text-primary">Standings</a></li>
-			<li><a href="/rosters" class="hover:text-primary">Rosters</a></li>
-			<li><a href="/matchups" class="hover:text-primary">Matchups</a></li>
-			<li><a href="/transactions" class="hover:text-primary">Transactions</a></li>
-			<li><a href="/drafts" class="hover:text-primary">Drafts</a></li>
-			<li><a href="/league-stats" class="hover:text-primary">League Stats</a></li>
-			<li><a href="/rivalries" class="hover:text-primary">Rivalries</a></li>
-			<li><a href="/resources" class="hover:text-primary">Resources</a></li>
-			<li><a href="/constitution" class="hover:text-primary">Constitution</a></li>
+			<li>
+				<a
+					href="/standings"
+					class="hover:text-primary {isActive('/standings')
+						? 'text-primary font-semibold border-b-2 border-primary'
+						: ''}"
+				>
+					Standings
+				</a>
+			</li>
+			<li>
+				<a
+					href="/rosters"
+					class="hover:text-primary {isActive('/rosters')
+						? 'text-primary font-semibold border-b-2 border-primary'
+						: ''}"
+				>
+					Rosters
+				</a>
+			</li>
+			<li>
+				<a
+					href="/matchups"
+					class="hover:text-primary {isActive('/matchups')
+						? 'text-primary font-semibold border-b-2 border-primary'
+						: ''}"
+				>
+					Matchups
+				</a>
+			</li>
+			<li>
+				<a
+					href="/transactions"
+					class="hover:text-primary {isActive('/transactions')
+						? 'text-primary font-semibold border-b-2 border-primary'
+						: ''}"
+				>
+					Transactions
+				</a>
+			</li>
+			<li>
+				<a
+					href="/drafts"
+					class="hover:text-primary {isActive('/drafts')
+						? 'text-primary font-semibold border-b-2 border-primary'
+						: ''}"
+				>
+					Drafts
+				</a>
+			</li>
+
+			<!-- Stats Dropdown -->
+			<li>
+				<details>
+					<summary
+						class="hover:text-primary {isDropdownActive(['/league-stats', '/rivalries'])
+							? 'text-primary font-semibold'
+							: ''}"
+					>
+						Stats
+					</summary>
+					<ul class="bg-base-100 rounded-box z-50 w-40 p-2 shadow-lg">
+						<li>
+							<a
+								href="/league-stats"
+								class="hover:text-primary {isActive('/league-stats') ? 'text-primary font-semibold' : ''}"
+							>
+								League Stats
+							</a>
+						</li>
+						<li>
+							<a
+								href="/rivalries"
+								class="hover:text-primary {isActive('/rivalries') ? 'text-primary font-semibold' : ''}"
+							>
+								Rivalries
+							</a>
+						</li>
+					</ul>
+				</details>
+			</li>
+
+			<!-- More Dropdown -->
+			<li>
+				<details>
+					<summary
+						class="hover:text-primary {isDropdownActive(['/resources', '/constitution'])
+							? 'text-primary font-semibold'
+							: ''}"
+					>
+						More
+					</summary>
+					<ul class="bg-base-100 rounded-box z-50 w-40 p-2 shadow-lg">
+						<li>
+							<a
+								href="/resources"
+								class="hover:text-primary {isActive('/resources') ? 'text-primary font-semibold' : ''}"
+							>
+								Resources
+							</a>
+						</li>
+						<li>
+							<a
+								href="/constitution"
+								class="hover:text-primary {isActive('/constitution') ? 'text-primary font-semibold' : ''}"
+							>
+								Constitution
+							</a>
+						</li>
+					</ul>
+				</details>
+			</li>
 		</ul>
 	</div>
 
@@ -86,17 +203,91 @@
 		<ul
 			tabindex="0"
 			role="menu"
-			class="menu dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+			class="menu dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-56 p-2 shadow-lg"
 		>
-			<li><a href="/standings">Standings</a></li>
-			<li><a href="/rosters">Rosters</a></li>
-			<li><a href="/matchups">Matchups</a></li>
-			<li><a href="/transactions">Transactions</a></li>
-			<li><a href="/drafts">Drafts</a></li>
-			<li><a href="/league-stats">League Stats</a></li>
-			<li><a href="/rivalries">Rivalries</a></li>
-			<li><a href="/resources">Resources</a></li>
-			<li><a href="/constitution">Constitution</a></li>
+			<!-- Main Navigation -->
+			<li>
+				<a
+					href="/standings"
+					class="py-3 {isActive('/standings') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">🏆</span> Standings
+				</a>
+			</li>
+			<li>
+				<a
+					href="/rosters"
+					class="py-3 {isActive('/rosters') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">👥</span> Rosters
+				</a>
+			</li>
+			<li>
+				<a
+					href="/matchups"
+					class="py-3 {isActive('/matchups') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">⚔️</span> Matchups
+				</a>
+			</li>
+			<li>
+				<a
+					href="/transactions"
+					class="py-3 {isActive('/transactions') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">🔄</span> Transactions
+				</a>
+			</li>
+			<li>
+				<a
+					href="/drafts"
+					class="py-3 {isActive('/drafts') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">📋</span> Drafts
+				</a>
+			</li>
+
+			<li class="divider my-1"></li>
+
+			<!-- Stats Section -->
+			<li class="menu-title text-xs opacity-60 py-1">Stats</li>
+			<li>
+				<a
+					href="/league-stats"
+					class="py-3 {isActive('/league-stats') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">📊</span> League Stats
+				</a>
+			</li>
+			<li>
+				<a
+					href="/rivalries"
+					class="py-3 {isActive('/rivalries') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">🤝</span> Rivalries
+				</a>
+			</li>
+
+			<li class="divider my-1"></li>
+
+			<!-- More Section -->
+			<li class="menu-title text-xs opacity-60 py-1">More</li>
+			<li>
+				<a
+					href="/resources"
+					class="py-3 {isActive('/resources') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">🔗</span> Resources
+				</a>
+			</li>
+			<li>
+				<a
+					href="/constitution"
+					class="py-3 {isActive('/constitution') ? 'text-primary font-semibold bg-base-200' : ''}"
+				>
+					<span class="text-base">📜</span> Constitution
+				</a>
+			</li>
 		</ul>
 	</div>
 </nav>

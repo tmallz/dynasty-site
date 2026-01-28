@@ -2,6 +2,8 @@
 	import type { StandingTeam } from '$lib/Utilities/HomepageHelper';
 
 	export let standings: StandingTeam[] = [];
+	export let season: string = '';
+	export let isCurrentSeason: boolean = true;
 	export let animationDelay: number = 0;
 
 	let avatarErrors: Record<number, boolean> = {};
@@ -39,7 +41,12 @@
 >
 	<div class="card-body p-4 md:p-6">
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="card-title text-lg md:text-xl">League Standings</h2>
+			<div class="flex items-center gap-2">
+				<h2 class="card-title text-lg md:text-xl">League Standings</h2>
+				{#if !isCurrentSeason && season}
+					<span class="badge badge-sm badge-outline">{season} Final</span>
+				{/if}
+			</div>
 			<a href="/standings" class="link link-primary text-sm hover:link-hover">
 				View Full Standings
 			</a>

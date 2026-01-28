@@ -34,6 +34,8 @@
 
 	// New state for standings and matchups preview
 	let standings: StandingTeam[] = [];
+	let standingsSeason: string = '';
+	let isCurrentSeasonStandings: boolean = true;
 	let currentWeekMatchups: MatchupPreviewDto[] = [];
 	let currentWeek: number = 1;
 	let isOffseason: boolean = false;
@@ -109,7 +111,9 @@
 			}
 
 			// Set standings and matchups preview data
-			standings = standingsResult;
+			standings = standingsResult.standings;
+			standingsSeason = standingsResult.season;
+			isCurrentSeasonStandings = standingsResult.isCurrentSeason;
 			currentWeekMatchups = matchupsResult.matchups;
 			currentWeek = matchupsResult.week;
 			isOffseason = matchupsResult.isOffseason;
@@ -141,7 +145,12 @@
 			<!-- Main Column (2x width) -->
 			<div class="flex-[2] space-y-4 md:space-y-6">
 				<!-- Standings Preview -->
-				<StandingsPreview {standings} animationDelay={100} />
+				<StandingsPreview
+					{standings}
+					season={standingsSeason}
+					isCurrentSeason={isCurrentSeasonStandings}
+					animationDelay={100}
+				/>
 
 				<!-- Matchups Preview -->
 				<MatchupsPreview

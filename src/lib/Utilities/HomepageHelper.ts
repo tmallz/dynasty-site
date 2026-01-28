@@ -1,7 +1,9 @@
 import type { LeagueUser } from '$lib/api/dtos/LeagueDtos/LeagueUser';
 import type { Roster } from '$lib/api/dtos/LeagueDtos/Roster';
+import type { BracketMatchup } from '$lib/api/dtos/LeagueDtos/BracketMatchup';
 import { RostersStore, IsRostersLoaded, LoadRosters } from '$lib/Stores/RosterStore';
 import { UsersStore, IsUsersLoaded, LoadUsers } from '$lib/Stores/UserStores';
+import { SleeperClient } from '$lib/api/services/SleeperClient';
 import { get } from 'svelte/store';
 import { MatchupHelper } from './MatchupHelper';
 
@@ -13,6 +15,12 @@ export interface StandingTeam {
 	losses: number;
 	ties: number;
 	pointsFor: number;
+}
+
+export interface StandingsPreviewResult {
+	standings: StandingTeam[];
+	season: string;
+	isCurrentSeason: boolean;
 }
 
 export interface MatchupPreviewDto {
@@ -33,56 +41,161 @@ export interface MatchupsPreviewResult {
 
 export class HomepageHelper {
 	/**
-	 * Get league standings sorted by wins, ties, then points for
+	 * Get league standings sorted by playoff placement, then wins, ties, points for
+	 * Handles offseason by showing previous season standings
 	 * @param limit Number of teams to return (default 5)
-	 * @returns Array of StandingTeam objects
+	 * @returns StandingsPreviewResult with standings, season, and current season flag
 	 */
-	public static async GetStandings(limit: number = 5): Promise<StandingTeam[]> {
+	public static async GetStandings(limit: number = 5): Promise<StandingsPreviewResult> {
 		const leagueId = import.meta.env.VITE_LEAGUE_ID;
+		const nflState = await SleeperClient.GetSportState('nfl');
+		const currentLeague = await SleeperClient.GetLeague(leagueId);
 
-		// Ensure stores are loaded
-		if (!IsRostersLoaded()) {
-			await LoadRosters(leagueId);
-		}
-		if (!IsUsersLoaded()) {
-			await LoadUsers(leagueId);
-		}
+		const isOffseason = nflState.season_type === 'off' || nflState.season_type === 'pre';
+		const leagueSeason = currentLeague.season;
+		const nflSeason = nflState.season;
 
-		const rosters = get(RostersStore) ?? [];
-		const users = get(UsersStore) ?? [];
+		// Determine if we should use previous league data
+		let targetLeagueId = leagueId;
+		let season = leagueSeason ?? nflSeason ?? new Date().getFullYear().toString();
+		let isCurrentSeason = true;
 
-		// Sort rosters by wins DESC, ties DESC, pointsFor DESC
-		const sortedRosters = [...rosters].sort((a, b) => {
-			// First by wins
-			if (b.settings.wins !== a.settings.wins) {
-				return b.settings.wins - a.settings.wins;
+		// If offseason or league season doesn't match NFL season, use previous league
+		if (isOffseason || leagueSeason !== nflSeason) {
+			if (currentLeague.previous_league_id) {
+				targetLeagueId = currentLeague.previous_league_id;
+				const previousLeague = await SleeperClient.GetLeague(targetLeagueId);
+				season = previousLeague.season ?? season;
+				isCurrentSeason = false;
 			}
-			// Then by ties
-			if (b.settings.ties !== a.settings.ties) {
-				return b.settings.ties - a.settings.ties;
-			}
-			// Then by points for (combine fpts and fpts_decimal)
-			const aPoints = a.settings.fpts + (a.settings.fpts_decimal || 0) / 100;
-			const bPoints = b.settings.fpts + (b.settings.fpts_decimal || 0) / 100;
-			return bPoints - aPoints;
-		});
+		}
 
-		// Map to StandingTeam objects
-		return sortedRosters.slice(0, limit).map((roster, index) => {
+		let rosters: Roster[];
+		let users: LeagueUser[];
+		let winnersBracket: BracketMatchup[] = [];
+		let losersBracket: BracketMatchup[] = [];
+
+		// If using current league, use stores; otherwise fetch directly
+		if (isCurrentSeason) {
+			if (!IsRostersLoaded()) {
+				await LoadRosters(leagueId);
+			}
+			if (!IsUsersLoaded()) {
+				await LoadUsers(leagueId);
+			}
+			rosters = get(RostersStore) ?? [];
+			users = get(UsersStore) ?? [];
+
+			// Fetch brackets for current league
+			[winnersBracket, losersBracket] = await Promise.all([
+				SleeperClient.GetWinnersBracket(leagueId).catch(() => []),
+				SleeperClient.GetLosersBracket(leagueId).catch(() => [])
+			]);
+		} else {
+			// Fetch from previous league directly
+			[rosters, users, winnersBracket, losersBracket] = await Promise.all([
+				SleeperClient.GetRosters(targetLeagueId),
+				SleeperClient.GetLeagueUsers(targetLeagueId),
+				SleeperClient.GetWinnersBracket(targetLeagueId).catch(() => []),
+				SleeperClient.GetLosersBracket(targetLeagueId).catch(() => [])
+			]);
+		}
+
+		// Get playoff placements from brackets
+		const playoffPlacements = HomepageHelper.getPlayoffPlacements(winnersBracket, losersBracket);
+
+		// Build team data with playoff placements
+		const teams = rosters.map((roster) => {
 			const user = users.find((u) => u.user_id === roster.owner_id);
 			const avatarId = user?.avatar || '';
 			const pointsFor = roster.settings.fpts + (roster.settings.fpts_decimal || 0) / 100;
 
 			return {
-				rank: index + 1,
+				rosterId: roster.roster_id,
 				teamName: user?.display_name ?? `Team ${roster.roster_id}`,
 				avatarUrl: avatarId ? `https://sleepercdn.com/avatars/${avatarId}` : '',
 				wins: roster.settings.wins,
 				losses: roster.settings.losses,
 				ties: roster.settings.ties,
-				pointsFor: Math.round(pointsFor * 100) / 100
+				pointsFor: Math.round(pointsFor * 100) / 100,
+				playoffPlacement: playoffPlacements.get(roster.roster_id)
 			};
 		});
+
+		// Sort: teams with playoff placements first (by placement), then by regular season record
+		const sortedTeams = teams.sort((a, b) => {
+			// Both have playoff placements - sort by placement
+			if (a.playoffPlacement !== undefined && b.playoffPlacement !== undefined) {
+				return a.playoffPlacement - b.playoffPlacement;
+			}
+			// Only a has playoff placement - a comes first
+			if (a.playoffPlacement !== undefined) {
+				return -1;
+			}
+			// Only b has playoff placement - b comes first
+			if (b.playoffPlacement !== undefined) {
+				return 1;
+			}
+			// Neither has playoff placement - sort by regular season record
+			if (b.wins !== a.wins) {
+				return b.wins - a.wins;
+			}
+			if (b.ties !== a.ties) {
+				return b.ties - a.ties;
+			}
+			return b.pointsFor - a.pointsFor;
+		});
+
+		// Map to StandingTeam objects with final ranks
+		const standings = sortedTeams.slice(0, limit).map((team, index) => ({
+			rank: index + 1,
+			teamName: team.teamName,
+			avatarUrl: team.avatarUrl,
+			wins: team.wins,
+			losses: team.losses,
+			ties: team.ties,
+			pointsFor: team.pointsFor
+		}));
+
+		return {
+			standings,
+			season,
+			isCurrentSeason
+		};
+	}
+
+	/**
+	 * Extract final placements from playoff brackets
+	 * Returns a map of rosterId -> final placement (1st, 2nd, etc.)
+	 *
+	 * Only uses the winners bracket since that determines actual championship standings.
+	 * The losers/consolation bracket is typically for draft order and doesn't represent
+	 * true standings (teams compete to lose in "toilet bowl" formats).
+	 */
+	private static getPlayoffPlacements(
+		winnersBracket: BracketMatchup[],
+		_losersBracket: BracketMatchup[]
+	): Map<number, number> {
+		const placements = new Map<number, number>();
+
+		// Only process winners bracket - these determine actual standings
+		for (const match of winnersBracket) {
+			if (match.p !== undefined && match.w !== undefined && match.l !== undefined) {
+				const winnerRosterId = match.w;
+				const loserRosterId = match.l;
+
+				// For championship match (p=1), winner is 1st, loser is 2nd
+				// For 3rd place match (p=3), winner is 3rd, loser is 4th
+				if (!placements.has(winnerRosterId)) {
+					placements.set(winnerRosterId, match.p);
+				}
+				if (!placements.has(loserRosterId)) {
+					placements.set(loserRosterId, match.p + 1);
+				}
+			}
+		}
+
+		return placements;
 	}
 
 	/**
