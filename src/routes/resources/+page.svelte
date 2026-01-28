@@ -73,19 +73,50 @@
 </script>
 
 <div class="mx-auto max-w-4xl p-6">
-	<h1 class="mb-6 text-center text-2xl font-bold">Helpful Dynasty Resources</h1>
-	<div class="bg-base-200 rounded-lg p-4 shadow-lg">
-		{#each resources as resource, i}
-			<Link
-				href={resource.href}
-				text={resource.text}
-				icon={resource.icon}
-				paywall={resource.paywall}
-			/>
-			{#if i < resources.length - 1}
-				<hr class="my-2 border-gray-600" />
-			{/if}
-		{/each}
+	<h1 class="mb-6 text-center text-3xl font-bold animate-fade-in">Helpful Dynasty Resources</h1>
+	<div class="card bg-base-100 shadow-lg animate-fade-in-delay-1">
+		<div class="card-body">
+			{#each resources as resource, i}
+				<Link
+					href={resource.href}
+					text={resource.text}
+					icon={resource.icon}
+					paywall={resource.paywall}
+				/>
+				{#if i < resources.length - 1}
+					<hr class="my-1 border-base-300" />
+				{/if}
+			{/each}
+		</div>
 	</div>
-	<p class="mt-4 text-center text-sm">*Some or all content is behind a paywall</p>
+	<p class="mt-4 text-center text-sm text-base-content/70 animate-fade-in-delay-2">
+		*Some or all content is behind a paywall
+	</p>
 </div>
+
+<style>
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.animate-fade-in {
+		animation: fadeIn 0.5s ease-out forwards;
+	}
+
+	.animate-fade-in-delay-1 {
+		animation: fadeIn 0.5s ease-out 0.1s forwards;
+		opacity: 0;
+	}
+
+	.animate-fade-in-delay-2 {
+		animation: fadeIn 0.5s ease-out 0.2s forwards;
+		opacity: 0;
+	}
+</style>

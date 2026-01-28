@@ -18,6 +18,19 @@
 		return paths.some((p) => isActive(p));
 	}
 
+	function closeDropdown(event: MouseEvent) {
+		const target = event.currentTarget as HTMLElement;
+		const details = target.closest('details');
+		if (details) {
+			details.removeAttribute('open');
+		}
+	}
+
+	function closeMobileMenu() {
+		const activeElement = document.activeElement as HTMLElement;
+		activeElement?.blur();
+	}
+
 	onMount(() => {
 		themeChange(false);
 		// Sync checkbox state with actual theme from localStorage
@@ -102,6 +115,7 @@
 						<li>
 							<a
 								href="/league-stats"
+								onclick={closeDropdown}
 								class="hover:text-primary {isActive('/league-stats') ? 'text-primary font-semibold' : ''}"
 							>
 								League Stats
@@ -110,6 +124,7 @@
 						<li>
 							<a
 								href="/rivalries"
+								onclick={closeDropdown}
 								class="hover:text-primary {isActive('/rivalries') ? 'text-primary font-semibold' : ''}"
 							>
 								Rivalries
@@ -133,6 +148,7 @@
 						<li>
 							<a
 								href="/resources"
+								onclick={closeDropdown}
 								class="hover:text-primary {isActive('/resources') ? 'text-primary font-semibold' : ''}"
 							>
 								Resources
@@ -141,6 +157,7 @@
 						<li>
 							<a
 								href="/constitution"
+								onclick={closeDropdown}
 								class="hover:text-primary {isActive('/constitution') ? 'text-primary font-semibold' : ''}"
 							>
 								Constitution
@@ -209,6 +226,7 @@
 			<li>
 				<a
 					href="/standings"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/standings') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">🏆</span> Standings
@@ -217,6 +235,7 @@
 			<li>
 				<a
 					href="/rosters"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/rosters') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">👥</span> Rosters
@@ -225,6 +244,7 @@
 			<li>
 				<a
 					href="/matchups"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/matchups') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">⚔️</span> Matchups
@@ -233,6 +253,7 @@
 			<li>
 				<a
 					href="/transactions"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/transactions') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">🔄</span> Transactions
@@ -241,6 +262,7 @@
 			<li>
 				<a
 					href="/drafts"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/drafts') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">📋</span> Drafts
@@ -254,6 +276,7 @@
 			<li>
 				<a
 					href="/league-stats"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/league-stats') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">📊</span> League Stats
@@ -262,6 +285,7 @@
 			<li>
 				<a
 					href="/rivalries"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/rivalries') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">🤝</span> Rivalries
@@ -275,6 +299,7 @@
 			<li>
 				<a
 					href="/resources"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/resources') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">🔗</span> Resources
@@ -283,6 +308,7 @@
 			<li>
 				<a
 					href="/constitution"
+					onclick={closeMobileMenu}
 					class="py-3 {isActive('/constitution') ? 'text-primary font-semibold bg-base-200' : ''}"
 				>
 					<span class="text-base">📜</span> Constitution
