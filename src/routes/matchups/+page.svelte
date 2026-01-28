@@ -57,6 +57,7 @@
 	let playersLoaded = false;
 	let selectedBracketMatchup: any = null;
 	let viewingRegularSeasonDuringPlayoffs = false;
+	let showPlayoffStats = false;
 
 	// Track failed avatars
 	let failedAvatars = new Set<string>();
@@ -68,6 +69,133 @@
 			.join('')
 			.toUpperCase()
 			.slice(0, 2);
+	}
+
+	// Stat functions for playoff matchup details
+	function getStarDependency(matchup: MatchupPageDto) {
+		if (!matchup || !matchup.Starters || !matchup.PlayersPoints) return null;
+		const starters = Object.values(matchup.Starters ?? {});
+		const pointsArr = starters.map((player: any) => ({
+			name: (player.first_name || '') + ' ' + (player.last_name || ''),
+			points: Number(matchup.PlayersPoints?.[player.player_id] ?? 0)
+		}));
+		if (pointsArr.length === 0) return null;
+		const sorted = pointsArr.slice().sort((a, b) => b.points - a.points);
+		const topScorer = sorted[0];
+		const total = sorted.reduce((a, b) => a + b.points, 0);
+		const pct = total > 0 ? (topScorer.points / total) * 100 : 0;
+		return { name: topScorer.name, points: topScorer.points, pct, total };
+	}
+
+	function getPositionalBreakdown(t1: MatchupPageDto, t2: MatchupPageDto) {
+		if (!t1?.Starters || !t2?.Starters || !t1?.PlayersPoints || !t2?.PlayersPoints) return null;
+
+		const positions = ['QB', 'RB', 'WR', 'TE'];
+		const breakdown: Array<{ pos: string; team1Points: number; team2Points: number; winner: 1 | 2 | 0 }> = [];
+
+		for (const pos of positions) {
+			let team1Points = 0;
+			let team2Points = 0;
+
+			Object.values(t1.Starters).forEach((player: any) => {
+				if ((player.position || '').toUpperCase() === pos) {
+					team1Points += Number(t1.PlayersPoints?.[player.player_id] ?? 0);
+				}
+			});
+
+			Object.values(t2.Starters).forEach((player: any) => {
+				if ((player.position || '').toUpperCase() === pos) {
+					team2Points += Number(t2.PlayersPoints?.[player.player_id] ?? 0);
+				}
+			});
+
+			breakdown.push({
+				pos,
+				team1Points,
+				team2Points,
+				winner: team1Points > team2Points ? 1 : team2Points > team1Points ? 2 : 0
+			});
+		}
+
+		const team1Wins = breakdown.filter((b) => b.winner === 1).length;
+		const team2Wins = breakdown.filter((b) => b.winner === 2).length;
+
+		return { breakdown, team1Wins, team2Wins };
+	}
+
+	function computeOptimalLineup(matchup: MatchupPageDto) {
+		if (!matchup.Starters || !matchup.PlayersPoints) return null;
+
+		const allMap: Record<string, any> = { ...(matchup.Starters || {}), ...(matchup.Bench || {}) };
+		const allPlayers = Object.keys(allMap).map((id) => ({
+			id,
+			points: Number(matchup.PlayersPoints?.[id] ?? 0),
+			pos: (allMap[id]?.position || '').toUpperCase()
+		}));
+
+		const basePositions = ['QB', 'RB', 'WR', 'TE'];
+		const flexEligible = new Set(['RB', 'WR', 'TE']);
+		const superFlexEligible = new Set(['QB', 'RB', 'WR', 'TE']);
+		const fixedCounts: Record<string, number> = {};
+		let flexCount = 0;
+		let superFlexCount = 0;
+
+		(rosterPositions || []).forEach((pos) => {
+			const p = String(pos).toUpperCase();
+			if (p === 'FLEX' || p === 'WR/RB/TE') flexCount++;
+			else if (p === 'SUPER_FLEX' || p === 'SUPERFLEX' || p === 'QB/RB/WR/TE') superFlexCount++;
+			else if (basePositions.includes(p)) fixedCounts[p] = (fixedCounts[p] || 0) + 1;
+		});
+
+		let available = allPlayers.slice();
+		let optimalPlayers: any[] = [];
+
+		for (const pos of basePositions) {
+			const count = fixedCounts[pos] || 0;
+			for (let i = 0; i < count; i++) {
+				const candidates = available.filter((p) => p.pos === pos).sort((a, b) => b.points - a.points);
+				if (candidates.length > 0) {
+					optimalPlayers.push(candidates[0]);
+					available = available.filter((p) => p.id !== candidates[0].id);
+				}
+			}
+		}
+
+		for (let i = 0; i < flexCount; i++) {
+			const candidates = available.filter((p) => flexEligible.has(p.pos)).sort((a, b) => b.points - a.points);
+			if (candidates.length > 0) {
+				optimalPlayers.push(candidates[0]);
+				available = available.filter((p) => p.id !== candidates[0].id);
+			}
+		}
+
+		for (let i = 0; i < superFlexCount; i++) {
+			const candidates = available.filter((p) => superFlexEligible.has(p.pos)).sort((a, b) => b.points - a.points);
+			if (candidates.length > 0) {
+				optimalPlayers.push(candidates[0]);
+				available = available.filter((p) => p.id !== candidates[0].id);
+			}
+		}
+
+		const optimalTotal = optimalPlayers.reduce((sum, p) => sum + p.points, 0);
+		const actualTotal = Object.keys(matchup.Starters ?? {}).reduce(
+			(sum, id) => sum + Number(matchup.PlayersPoints?.[id] ?? 0),
+			0
+		);
+
+		return { optimalTotal, actualTotal, missed: Math.max(0, optimalTotal - actualTotal) };
+	}
+
+	function getOptimalOutcome(t1: MatchupPageDto, t2: MatchupPageDto) {
+		const opt1 = computeOptimalLineup(t1);
+		const opt2 = computeOptimalLineup(t2);
+		if (!opt1 || !opt2) return null;
+
+		const actualWinner = (t1.Score ?? 0) > (t2.Score ?? 0) ? 1 : (t2.Score ?? 0) > (t1.Score ?? 0) ? 2 : 0;
+		const optimalWinner = opt1.optimalTotal > opt2.optimalTotal ? 1 : opt2.optimalTotal > opt1.optimalTotal ? 2 : 0;
+		const wouldChange = actualWinner !== optimalWinner && actualWinner !== 0 && optimalWinner !== 0;
+
+		return { team1Optimal: opt1.optimalTotal, team2Optimal: opt2.optimalTotal, actualWinner, optimalWinner, wouldChange };
 	}
 
 	// Handle week change
@@ -655,6 +783,145 @@
 						</ul>
 					</div>
 				</div>
+
+				<!-- Stats Toggle Button -->
+				<div class="flex justify-center mt-4 md:mt-6">
+					<button
+						class="btn btn-sm md:btn-md btn-outline gap-2"
+						on:click={() => (showPlayoffStats = !showPlayoffStats)}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+						</svg>
+						{showPlayoffStats ? 'Hide Stats' : 'Show Stats'}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-4 w-4 transition-transform duration-200 {showPlayoffStats ? 'rotate-180' : ''}"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+						</svg>
+					</button>
+				</div>
+
+				<!-- Advanced Stats Section -->
+				{#if showPlayoffStats}
+					{@const team1 = selectedBracketMatchup.team1}
+					{@const team2 = selectedBracketMatchup.team2}
+					{@const optimalOutcome = getOptimalOutcome(team1, team2)}
+					{@const positionalBreakdown = getPositionalBreakdown(team1, team2)}
+					{@const team1StarDep = getStarDependency(team1)}
+					{@const team2StarDep = getStarDependency(team2)}
+					<div class="mt-4 md:mt-6 space-y-4" transition:slide={{ duration: 300 }}>
+						<!-- Optimal Lineup Outcome -->
+						{#if optimalOutcome}
+							<div class="bg-base-100 rounded-lg p-4">
+								<div class="flex items-center gap-2 mb-3">
+									<span class="text-lg">&#x1F4CA;</span>
+									<span class="font-semibold text-sm md:text-base">Optimal Lineup Outcome</span>
+								</div>
+								<div class="grid grid-cols-2 gap-4 text-sm">
+									<div class="text-center">
+										<p class="text-base-content/70 text-xs">{team1.TeamName}</p>
+										<p class="font-bold text-lg">{optimalOutcome.team1Optimal.toFixed(2)}</p>
+									</div>
+									<div class="text-center">
+										<p class="text-base-content/70 text-xs">{team2.TeamName}</p>
+										<p class="font-bold text-lg">{optimalOutcome.team2Optimal.toFixed(2)}</p>
+									</div>
+								</div>
+								{#if optimalOutcome.wouldChange}
+									<div class="mt-3 text-center">
+										<span class="badge badge-warning gap-1">
+											<span>&#x26A0;</span> Outcome would flip with optimal lineups!
+										</span>
+									</div>
+								{/if}
+							</div>
+						{/if}
+
+						<!-- Positional Breakdown -->
+						{#if positionalBreakdown}
+							<div class="bg-base-100 rounded-lg p-4">
+								<div class="flex items-center gap-2 mb-3">
+									<span class="text-lg">&#x1F3C8;</span>
+									<span class="font-semibold text-sm md:text-base">Positional Breakdown</span>
+								</div>
+								<div class="space-y-2">
+									{#each positionalBreakdown.breakdown as pos}
+									{@const total = pos.team1Points + pos.team2Points}
+									{@const t1Pct = total > 0 ? (pos.team1Points / total) * 100 : 50}
+										<div class="flex items-center justify-between text-sm">
+											<span class="badge badge-outline w-10">{pos.pos}</span>
+											<div class="flex-1 mx-3">
+												<div class="flex justify-between text-xs mb-1">
+													<span class={pos.winner === 1 ? 'text-success font-bold' : ''}>{pos.team1Points.toFixed(1)}</span>
+													<span class={pos.winner === 2 ? 'text-success font-bold' : ''}>{pos.team2Points.toFixed(1)}</span>
+												</div>
+												<div class="relative h-2 bg-base-300 rounded-full overflow-hidden">
+													<div
+														class="absolute left-0 top-0 h-full {pos.winner === 1 ? 'bg-success' : 'bg-primary/50'}"
+														style="width: {t1Pct}%"
+													></div>
+													<div
+														class="absolute right-0 top-0 h-full {pos.winner === 2 ? 'bg-success' : 'bg-secondary/50'}"
+														style="width: {100 - t1Pct}%"
+													></div>
+												</div>
+											</div>
+											<span class="w-6 text-center {pos.winner === 1 ? 'text-success' : pos.winner === 2 ? 'text-error' : ''}">
+												{pos.winner === 1 ? 'W' : pos.winner === 2 ? 'L' : '-'}
+											</span>
+										</div>
+									{/each}
+								</div>
+								<div class="mt-3 flex justify-center gap-4 text-sm">
+									<span class="text-base-content/70">{team1.TeamName}: <span class="font-bold text-success">{positionalBreakdown.team1Wins}</span></span>
+									<span class="text-base-content/50">|</span>
+									<span class="text-base-content/70">{team2.TeamName}: <span class="font-bold text-success">{positionalBreakdown.team2Wins}</span></span>
+								</div>
+							</div>
+						{/if}
+
+						<!-- Star Dependency -->
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+							{#if team1StarDep}
+								<div class="bg-base-100 rounded-lg p-4">
+									<div class="flex items-center gap-2 mb-2">
+										<span class="text-lg">&#x2B50;</span>
+										<span class="font-semibold text-sm">{team1.TeamName} Star</span>
+									</div>
+									<p class="text-sm truncate">{team1StarDep.name}</p>
+									<div class="flex items-center gap-2 mt-1">
+										<span class="font-bold">{team1StarDep.points.toFixed(1)} pts</span>
+										<span class="text-base-content/70 text-xs">({team1StarDep.pct.toFixed(1)}% of total)</span>
+									</div>
+									<div class="mt-2 h-2 bg-base-300 rounded-full overflow-hidden">
+										<div class="h-full bg-warning" style="width: {team1StarDep.pct}%"></div>
+									</div>
+								</div>
+							{/if}
+							{#if team2StarDep}
+								<div class="bg-base-100 rounded-lg p-4">
+									<div class="flex items-center gap-2 mb-2">
+										<span class="text-lg">&#x2B50;</span>
+										<span class="font-semibold text-sm">{team2.TeamName} Star</span>
+									</div>
+									<p class="text-sm truncate">{team2StarDep.name}</p>
+									<div class="flex items-center gap-2 mt-1">
+										<span class="font-bold">{team2StarDep.points.toFixed(1)} pts</span>
+										<span class="text-base-content/70 text-xs">({team2StarDep.pct.toFixed(1)}% of total)</span>
+									</div>
+									<div class="mt-2 h-2 bg-base-300 rounded-full overflow-hidden">
+										<div class="h-full bg-warning" style="width: {team2StarDep.pct}%"></div>
+									</div>
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}

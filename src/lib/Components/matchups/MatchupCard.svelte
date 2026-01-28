@@ -17,6 +17,10 @@
 	let expandedStats = false;
 	let expandedBench: Record<number, boolean> = {};
 
+	// Season rank data (lazy loaded)
+	let seasonRankData: { team1Rank: number; team2Rank: number; totalWeeks: number } | null = null;
+	let loadingSeasonRank = false;
+
 	// Track failed avatar loads
 	let failedAvatars = new Set<string>();
 
@@ -219,6 +223,160 @@
 		const total = sorted.reduce((a, b) => a + b.points, 0);
 		const pct = total > 0 ? (top3 / total) * 100 : 0;
 		return { pct, top3, total, top3Arr };
+	}
+
+	// NEW STAT: Star Dependency - % of points from top scorer
+	function getStarDependency(matchup: MatchupPageDto) {
+		if (!matchup || !matchup.Starters || !matchup.PlayersPoints) return null;
+		const starters = Object.values(matchup.Starters ?? {});
+		const pointsArr = starters.map((player: any) => ({
+			name: (player.first_name || '') + ' ' + (player.last_name || ''),
+			points: Number(matchup.PlayersPoints?.[player.player_id] ?? 0)
+		}));
+		if (pointsArr.length === 0) return null;
+		const sorted = pointsArr.slice().sort((a, b) => b.points - a.points);
+		const topScorer = sorted[0];
+		const total = sorted.reduce((a, b) => a + b.points, 0);
+		const pct = total > 0 ? (topScorer.points / total) * 100 : 0;
+		return { name: topScorer.name, points: topScorer.points, pct, total };
+	}
+
+	// NEW STAT: Positional Breakdown - Who won at each position
+	function getPositionalBreakdown(t1: MatchupPageDto, t2: MatchupPageDto) {
+		if (!t1?.Starters || !t2?.Starters || !t1?.PlayersPoints || !t2?.PlayersPoints) return null;
+
+		const positions = ['QB', 'RB', 'WR', 'TE'];
+		const breakdown: Array<{
+			pos: string;
+			team1Points: number;
+			team2Points: number;
+			winner: 1 | 2 | 0;
+		}> = [];
+
+		for (const pos of positions) {
+			let team1Points = 0;
+			let team2Points = 0;
+
+			Object.values(t1.Starters).forEach((player: any) => {
+				if ((player.position || '').toUpperCase() === pos) {
+					team1Points += Number(t1.PlayersPoints?.[player.player_id] ?? 0);
+				}
+			});
+
+			Object.values(t2.Starters).forEach((player: any) => {
+				if ((player.position || '').toUpperCase() === pos) {
+					team2Points += Number(t2.PlayersPoints?.[player.player_id] ?? 0);
+				}
+			});
+
+			breakdown.push({
+				pos,
+				team1Points,
+				team2Points,
+				winner: team1Points > team2Points ? 1 : team2Points > team1Points ? 2 : 0
+			});
+		}
+
+		const team1Wins = breakdown.filter((b) => b.winner === 1).length;
+		const team2Wins = breakdown.filter((b) => b.winner === 2).length;
+
+		return { breakdown, team1Wins, team2Wins };
+	}
+
+	// NEW STAT: Optimal Lineup Outcome - Would optimal lineups change the result?
+	function getOptimalOutcome(t1: MatchupPageDto, t2: MatchupPageDto) {
+		const accuracy1 = computeManagerAccuracy(t1);
+		const accuracy2 = computeManagerAccuracy(t2);
+
+		if (!accuracy1 || !accuracy2) return null;
+
+		const actualWinner = (t1.Score ?? 0) > (t2.Score ?? 0) ? 1 : (t2.Score ?? 0) > (t1.Score ?? 0) ? 2 : 0;
+		const optimalWinner =
+			accuracy1.optimalTotal > accuracy2.optimalTotal
+				? 1
+				: accuracy2.optimalTotal > accuracy1.optimalTotal
+					? 2
+					: 0;
+
+		const wouldChange = actualWinner !== optimalWinner && actualWinner !== 0 && optimalWinner !== 0;
+
+		return {
+			team1Optimal: accuracy1.optimalTotal,
+			team2Optimal: accuracy2.optimalTotal,
+			actualWinner,
+			optimalWinner,
+			wouldChange
+		};
+	}
+
+	// NEW STAT: Season Rank - Load historical data to determine rank
+	async function loadSeasonRank() {
+		if (seasonRankData || loadingSeasonRank || !displayWeek) return;
+
+		loadingSeasonRank = true;
+		try {
+			const allScores: { rosterId: number; week: number; score: number }[] = [];
+
+			// Fetch all weeks up to current week
+			const weekPromises = [];
+			for (let week = 1; week <= displayWeek; week++) {
+				weekPromises.push(
+					fetch(`/api/matchups?week=${week}`)
+						.then((r) => r.json())
+						.then((data) => ({ week, data }))
+						.catch(() => ({ week, data: [] }))
+				);
+			}
+
+			const weekResults = await Promise.all(weekPromises);
+
+			for (const { week, data } of weekResults) {
+				if (Array.isArray(data)) {
+					for (const matchup of data) {
+						if (matchup.RosterId && matchup.Score !== undefined) {
+							allScores.push({
+								rosterId: matchup.RosterId,
+								week,
+								score: matchup.Score
+							});
+						}
+					}
+				}
+			}
+
+			// Get all scores for each team sorted descending
+			const team1Scores = allScores
+				.filter((s) => s.rosterId === team1?.RosterId)
+				.map((s) => s.score)
+				.sort((a, b) => b - a);
+
+			const team2Scores = allScores
+				.filter((s) => s.rosterId === team2?.RosterId)
+				.map((s) => s.score)
+				.sort((a, b) => b - a);
+
+			// Find rank (1-indexed)
+			const team1CurrentScore = team1?.Score ?? 0;
+			const team2CurrentScore = team2?.Score ?? 0;
+
+			const team1Rank = team1Scores.findIndex((s) => s === team1CurrentScore) + 1 || team1Scores.length;
+			const team2Rank = team2Scores.findIndex((s) => s === team2CurrentScore) + 1 || team2Scores.length;
+
+			seasonRankData = {
+				team1Rank,
+				team2Rank,
+				totalWeeks: displayWeek
+			};
+		} catch (error) {
+			console.error('Failed to load season rank:', error);
+		} finally {
+			loadingSeasonRank = false;
+		}
+	}
+
+	// Load season rank when stats are expanded
+	$: if (expandedStats && !seasonRankData && !loadingSeasonRank) {
+		loadSeasonRank();
 	}
 
 	$: isWinner1 = team1 && team2 && (team1.Score ?? 0) > (team2.Score ?? 0);
@@ -442,32 +600,163 @@
 				class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-base-content/10"
 				transition:slide={{ duration: 300 }}
 			>
-				<div class="bg-base-100 rounded-xl p-4 md:p-5 shadow-sm">
-					<h3 class="font-semibold text-base md:text-lg mb-4 md:mb-5 flex items-center gap-2">
+				<div class="bg-base-100 rounded-xl p-4 md:p-5 shadow-sm space-y-4 md:space-y-6">
+					<h3 class="font-semibold text-base md:text-lg flex items-center gap-2">
 						<span>&#x1F4C8;</span>
 						<span>Advanced Stats</span>
 					</h3>
 
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+					<!-- Optimal Lineup Outcome -->
+					{#if getOptimalOutcome(team1, team2)}
+						{@const optimal = getOptimalOutcome(team1, team2)}
+						<div class="bg-base-200 rounded-xl p-4 shadow-sm">
+							<div class="flex items-center gap-2 mb-3">
+								<span>&#x1F3AF;</span>
+								<span class="font-medium text-sm">Optimal Lineup Outcome</span>
+							</div>
+							<div class="flex items-center justify-between gap-4 text-sm">
+								<div class="text-center flex-1">
+									<div class="text-xs opacity-70 mb-1">{team1?.TeamName}</div>
+									<div class="font-bold">{optimal.team1Optimal.toFixed(2)}</div>
+								</div>
+								<div class="text-center">
+									{#if optimal.wouldChange}
+										<div class="badge badge-warning badge-sm">Result Would Change!</div>
+									{:else}
+										<div class="badge badge-success badge-sm">Same Result</div>
+									{/if}
+								</div>
+								<div class="text-center flex-1">
+									<div class="text-xs opacity-70 mb-1">{team2?.TeamName}</div>
+									<div class="font-bold">{optimal.team2Optimal.toFixed(2)}</div>
+								</div>
+							</div>
+							{#if optimal.wouldChange}
+								<div class="text-xs text-center mt-2 text-warning">
+									{optimal.optimalWinner === 1 ? team1?.TeamName : team2?.TeamName} would have won with optimal lineup
+								</div>
+							{/if}
+						</div>
+					{/if}
+
+					<!-- Season Rank -->
+					<div class="bg-base-200 rounded-xl p-4 shadow-sm">
+						<div class="flex items-center gap-2 mb-3">
+							<span>&#x1F4C5;</span>
+							<span class="font-medium text-sm">Season Rank</span>
+							{#if loadingSeasonRank}
+								<span class="loading loading-spinner loading-xs"></span>
+							{/if}
+						</div>
+						{#if seasonRankData}
+							<div class="flex items-center justify-between gap-4 text-sm">
+								<div class="text-center flex-1">
+									<div class="text-xs opacity-70 mb-1">{team1?.TeamName}</div>
+									<div class="font-bold text-lg">
+										#{seasonRankData.team1Rank}
+										<span class="text-xs opacity-70 font-normal">/ {seasonRankData.totalWeeks}</span>
+									</div>
+									<div class="text-xs opacity-70">
+										{seasonRankData.team1Rank === 1 ? 'Season High!' : seasonRankData.team1Rank <= 3 ? 'Top 3 Week' : ''}
+									</div>
+								</div>
+								<div class="text-center flex-1">
+									<div class="text-xs opacity-70 mb-1">{team2?.TeamName}</div>
+									<div class="font-bold text-lg">
+										#{seasonRankData.team2Rank}
+										<span class="text-xs opacity-70 font-normal">/ {seasonRankData.totalWeeks}</span>
+									</div>
+									<div class="text-xs opacity-70">
+										{seasonRankData.team2Rank === 1 ? 'Season High!' : seasonRankData.team2Rank <= 3 ? 'Top 3 Week' : ''}
+									</div>
+								</div>
+							</div>
+						{:else if !loadingSeasonRank}
+							<div class="text-xs opacity-70 text-center">Loading season data...</div>
+						{/if}
+					</div>
+
+					<!-- Positional Breakdown -->
+					{#if getPositionalBreakdown(team1, team2)}
+						{@const posBreakdown = getPositionalBreakdown(team1, team2)}
+						<div class="bg-base-200 rounded-xl p-4 shadow-sm">
+							<div class="flex items-center justify-between mb-3">
+								<div class="flex items-center gap-2">
+									<span>&#x1F3C8;</span>
+									<span class="font-medium text-sm">Position Battle</span>
+								</div>
+								<div class="text-xs">
+									<span class="text-success font-bold">{posBreakdown.team1Wins}</span>
+									<span class="opacity-50 mx-1">-</span>
+									<span class="text-error font-bold">{posBreakdown.team2Wins}</span>
+								</div>
+							</div>
+							<div class="space-y-2">
+								{#each posBreakdown.breakdown as pos}
+									{@const total = pos.team1Points + pos.team2Points}
+									{@const t1Pct = total > 0 ? (pos.team1Points / total) * 100 : 50}
+									<div class="flex items-center gap-2 text-xs">
+										<div class="w-8 font-bold opacity-70">{pos.pos}</div>
+										<div class="flex-1">
+											<div class="relative h-4 bg-base-300 rounded-full overflow-hidden">
+												<div
+													class="absolute left-0 top-0 h-full {pos.winner === 1 ? 'bg-success' : 'bg-primary/50'}"
+													style="width: {t1Pct}%"
+												></div>
+												<div
+													class="absolute right-0 top-0 h-full {pos.winner === 2 ? 'bg-success' : 'bg-secondary/50'}"
+													style="width: {100 - t1Pct}%"
+												></div>
+											</div>
+										</div>
+										<div class="w-20 flex justify-between text-xs">
+											<span class="{pos.winner === 1 ? 'text-success font-bold' : ''}">{pos.team1Points.toFixed(1)}</span>
+											<span class="{pos.winner === 2 ? 'text-success font-bold' : ''}">{pos.team2Points.toFixed(1)}</span>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					<!-- Star Dependency + Manager Accuracy Grid -->
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{#if team1}
-							<div class="bg-base-200 rounded-xl p-4 md:p-5 space-y-2 md:space-y-3 shadow-sm">
+							<div class="bg-base-200 rounded-xl p-4 space-y-2 shadow-sm">
 								<div class="flex items-center justify-between">
-									<div class="text-xs uppercase tracking-wide opacity-70">Manager Accuracy</div>
+									<div class="text-xs uppercase tracking-wide opacity-70">Team Stats</div>
 									<div class="badge badge-outline text-xs">
 										{team1.TeamName}
 									</div>
 								</div>
 
-								<div class="text-2xl md:text-3xl font-bold">
-									{(() => {
-										const a = computeManagerAccuracy(team1);
-										return a
-											? (100 - (a.missedTotal / (a.optimalTotal || 1)) * 100).toFixed(1) + '%'
-											: 'N/A';
-									})()}
-								</div>
+								<!-- Star Dependency -->
+								{#if getStarDependency(team1)}
+									{@const star = getStarDependency(team1)}
+									<div class="flex items-center justify-between">
+										<span class="text-xs opacity-70">Star Dependency:</span>
+										<span class="text-sm font-bold {star.pct > 30 ? 'text-warning' : 'text-success'}">
+											{star.pct.toFixed(0)}%
+										</span>
+									</div>
+									<div class="text-xs opacity-60">
+										{star.name.trim()} - {star.points.toFixed(2)} pts
+									</div>
+								{/if}
 
-								<div class="text-xs md:text-sm opacity-70">
+								<div class="divider my-1"></div>
+
+								<!-- Manager Accuracy -->
+								<div class="flex items-center justify-between">
+									<span class="text-xs opacity-70">Manager Accuracy:</span>
+									<span class="text-sm font-bold">
+										{(() => {
+											const a = computeManagerAccuracy(team1);
+											return a ? (100 - (a.missedTotal / (a.optimalTotal || 1)) * 100).toFixed(1) + '%' : 'N/A';
+										})()}
+									</span>
+								</div>
+								<div class="text-xs opacity-60">
 									Missed {(() => {
 										const a = computeManagerAccuracy(team1);
 										return a ? a.missedTotal.toFixed(2) : '0.00';
@@ -480,50 +769,49 @@
 									<div class="text-xs">
 										<span class="font-medium">Biggest Miss:</span>
 										<span class="opacity-70 ml-1">
-											{miss.benchPlayer.first_name}
-											{miss.benchPlayer.last_name} - {miss.benchPoints.toFixed(2)} pts
+											{miss.benchPlayer.first_name} {miss.benchPlayer.last_name} ({miss.benchPoints.toFixed(2)} pts on bench)
 										</span>
-									</div>
-								{/if}
-
-								{#if getTopHeavyStat(team1)}
-									{@const th = getTopHeavyStat(team1)}
-									<div class="divider my-1"></div>
-									<div class="text-xs space-y-1">
-										<div class="font-medium">
-											Top 3 players: {th.pct.toFixed(0)}% of total points
-										</div>
-										<ul class="ml-3 list-disc opacity-80">
-											{#each th.top3Arr as p}
-												<li>
-													{p.name.trim()} - {p.points.toFixed(2)} pts
-												</li>
-											{/each}
-										</ul>
 									</div>
 								{/if}
 							</div>
 						{/if}
 
 						{#if team2}
-							<div class="bg-base-200 rounded-xl p-4 md:p-5 space-y-2 md:space-y-3 shadow-sm">
+							<div class="bg-base-200 rounded-xl p-4 space-y-2 shadow-sm">
 								<div class="flex items-center justify-between">
-									<div class="text-xs uppercase tracking-wide opacity-70">Manager Accuracy</div>
+									<div class="text-xs uppercase tracking-wide opacity-70">Team Stats</div>
 									<div class="badge badge-outline text-xs">
 										{team2.TeamName}
 									</div>
 								</div>
 
-								<div class="text-2xl md:text-3xl font-bold">
-									{(() => {
-										const a = computeManagerAccuracy(team2);
-										return a
-											? (100 - (a.missedTotal / (a.optimalTotal || 1)) * 100).toFixed(1) + '%'
-											: 'N/A';
-									})()}
-								</div>
+								<!-- Star Dependency -->
+								{#if getStarDependency(team2)}
+									{@const star = getStarDependency(team2)}
+									<div class="flex items-center justify-between">
+										<span class="text-xs opacity-70">Star Dependency:</span>
+										<span class="text-sm font-bold {star.pct > 30 ? 'text-warning' : 'text-success'}">
+											{star.pct.toFixed(0)}%
+										</span>
+									</div>
+									<div class="text-xs opacity-60">
+										{star.name.trim()} - {star.points.toFixed(2)} pts
+									</div>
+								{/if}
 
-								<div class="text-xs md:text-sm opacity-70">
+								<div class="divider my-1"></div>
+
+								<!-- Manager Accuracy -->
+								<div class="flex items-center justify-between">
+									<span class="text-xs opacity-70">Manager Accuracy:</span>
+									<span class="text-sm font-bold">
+										{(() => {
+											const a = computeManagerAccuracy(team2);
+											return a ? (100 - (a.missedTotal / (a.optimalTotal || 1)) * 100).toFixed(1) + '%' : 'N/A';
+										})()}
+									</span>
+								</div>
+								<div class="text-xs opacity-60">
 									Missed {(() => {
 										const a = computeManagerAccuracy(team2);
 										return a ? a.missedTotal.toFixed(2) : '0.00';
@@ -536,26 +824,8 @@
 									<div class="text-xs">
 										<span class="font-medium">Biggest Miss:</span>
 										<span class="opacity-70 ml-1">
-											{miss.benchPlayer.first_name}
-											{miss.benchPlayer.last_name} - {miss.benchPoints.toFixed(2)} pts
+											{miss.benchPlayer.first_name} {miss.benchPlayer.last_name} ({miss.benchPoints.toFixed(2)} pts on bench)
 										</span>
-									</div>
-								{/if}
-
-								{#if getTopHeavyStat(team2)}
-									{@const th = getTopHeavyStat(team2)}
-									<div class="divider my-1"></div>
-									<div class="text-xs space-y-1">
-										<div class="font-medium">
-											Top 3 players: {th.pct.toFixed(0)}% of total points
-										</div>
-										<ul class="ml-3 list-disc opacity-80">
-											{#each th.top3Arr as p}
-												<li>
-													{p.name.trim()} - {p.points.toFixed(2)} pts
-												</li>
-											{/each}
-										</ul>
 									</div>
 								{/if}
 							</div>

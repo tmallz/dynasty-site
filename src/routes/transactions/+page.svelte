@@ -6,15 +6,23 @@
 	import WaiverTransaction from '$lib/Components/transactions/WaiverTransaction.svelte';
 	import TransactionsSkeleton from '$lib/Components/transactions/TransactionsSkeleton.svelte';
 	import TransactionSummaryStats from '$lib/Components/transactions/TransactionSummaryStats.svelte';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
 	let offset = 50;
 	let loading = false;
 	let hasMore = true;
-	let filterType: 'all' | 'trades' | 'waivers' = 'all';
 	let additionalTransactions: TransactionsPageDto[] = [];
 	let baseTransactions: TransactionsPageDto[] = [];
 	let isLoading = true;
+
+	// Initialize filter from URL query param
+	function getInitialFilter(): 'all' | 'trades' | 'waivers' {
+		const param = $page.url.searchParams.get('filter');
+		if (param === 'trades' || param === 'waivers') return param;
+		return 'all';
+	}
+	let filterType: 'all' | 'trades' | 'waivers' = getInitialFilter();
 
 	// Handle streamed data
 	$: if (data.streamed?.transactions) {
