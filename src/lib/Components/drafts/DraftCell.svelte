@@ -102,7 +102,7 @@
 	</div>
 
 	<!-- Traded indicator badge -->
-	{#if isTraded && preDraft}
+	{#if isTraded}
 		<div
 			class="absolute -top-2 -right-2 z-10 flex items-center gap-1 rounded-md bg-warning px-2 py-1 text-xs font-semibold text-warning-content shadow-sm"
 		>
