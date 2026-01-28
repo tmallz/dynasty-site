@@ -40,7 +40,7 @@
 	<div class="card-body p-4 md:p-6">
 		<div class="flex items-center justify-between mb-4">
 			<h2 class="card-title text-lg md:text-xl">League Standings</h2>
-			<a href="/league-stats" class="link link-primary text-sm hover:link-hover">
+			<a href="/standings" class="link link-primary text-sm hover:link-hover">
 				View Full Standings
 			</a>
 		</div>

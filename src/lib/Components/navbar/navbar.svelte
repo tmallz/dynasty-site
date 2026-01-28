@@ -23,6 +23,7 @@
 	<!-- Desktop Menu -->
 	<div class="hidden flex-none lg:flex">
 		<ul class="menu menu-horizontal px-1">
+			<li><a href="/standings" class="hover:text-primary">Standings</a></li>
 			<li><a href="/rosters" class="hover:text-primary">Rosters</a></li>
 			<li><a href="/matchups" class="hover:text-primary">Matchups</a></li>
 			<li><a href="/transactions" class="hover:text-primary">Transactions</a></li>
@@ -87,6 +88,7 @@
 			role="menu"
 			class="menu dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
 		>
+			<li><a href="/standings">Standings</a></li>
 			<li><a href="/rosters">Rosters</a></li>
 			<li><a href="/matchups">Matchups</a></li>
 			<li><a href="/transactions">Transactions</a></li>
