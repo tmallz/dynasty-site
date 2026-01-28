@@ -22,18 +22,10 @@
 
 {#if championName}
 	<div
-		class="card bg-base-200 shadow-lg overflow-hidden fade-in champion-card"
+		class="card bg-base-200 shadow-lg fade-in border-2 border-yellow-500/30"
 		style="animation-delay: {animationDelay}ms"
 	>
-		<!-- Golden shimmer border -->
-		<div class="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-400 opacity-30 shimmer"></div>
-
-		<div class="card-body p-6 text-center relative">
-			<!-- Decorative stars -->
-			<div class="absolute top-2 left-4 text-yellow-500 opacity-50 text-sm">★</div>
-			<div class="absolute top-4 right-6 text-yellow-500 opacity-40 text-xs">★</div>
-			<div class="absolute bottom-8 left-6 text-yellow-500 opacity-30 text-xs">★</div>
-
+		<div class="card-body p-6 text-center">
 			<!-- Season label -->
 			<div class="text-sm font-semibold text-yellow-600 dark:text-yellow-400 uppercase tracking-widest mb-3">
 				{season ? `${season} Champion` : 'League Champion'}
@@ -43,8 +35,8 @@
 			<div class="text-2xl mb-2">👑</div>
 
 			<!-- Champion avatar with golden ring -->
-			<div class="mx-auto mb-4 relative">
-				<div class="w-20 h-20 rounded-full overflow-hidden ring-4 ring-yellow-400 ring-offset-4 ring-offset-base-200 shadow-lg champion-glow">
+			<div class="mx-auto mb-4">
+				<div class="w-20 h-20 rounded-full overflow-hidden ring-4 ring-yellow-500/50 ring-offset-4 ring-offset-base-200 champion-glow">
 					{#if championAvatar && !avatarError}
 						<img
 							src={championAvatar}
@@ -65,7 +57,7 @@
 				{championName}
 			</h3>
 
-			<!-- Trophy with glow effect -->
+			<!-- Trophy -->
 			<div class="text-5xl trophy-glow">
 				🏆
 			</div>
@@ -105,30 +97,6 @@
 	.fade-in {
 		animation: fade-in 0.4s ease-out forwards;
 		opacity: 0;
-	}
-
-	@keyframes shimmer {
-		0% {
-			transform: translateX(-100%);
-		}
-		100% {
-			transform: translateX(100%);
-		}
-	}
-
-	.shimmer {
-		animation: shimmer 3s ease-in-out infinite;
-	}
-
-	.champion-card {
-		position: relative;
-		border: 2px solid rgba(250, 204, 21, 0.3);
-		background: linear-gradient(
-			135deg,
-			rgba(250, 204, 21, 0.05) 0%,
-			transparent 50%,
-			rgba(250, 204, 21, 0.05) 100%
-		);
 	}
 
 	.champion-glow {
