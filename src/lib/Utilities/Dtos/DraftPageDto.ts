@@ -25,6 +25,7 @@ export interface DraftPagePicks {
 	pickNumber?: number;
 	rosterId?: string;
 	isOriginalOwner?: boolean; // Indicates if the pick is from the original owner
+	originalOwner?: string; // The original owner's display name (before any trades)
 }
 
 export interface DraftPageTradedPicks {

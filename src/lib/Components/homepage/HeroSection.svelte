@@ -48,12 +48,12 @@
 		{#if seasonYear || seasonType}
 			<div class="flex items-center justify-center gap-2 flex-wrap">
 				{#if seasonYear}
-					<span class="badge badge-lg badge-outline">
+					<span class="badge badge-outline py-3 px-4 text-sm">
 						{seasonYear} NFL
 					</span>
 				{/if}
 				{#if seasonType}
-					<span class="badge badge-lg {getSeasonBadgeClass(seasonType)}">
+					<span class="badge py-3 px-4 text-sm {getSeasonBadgeClass(seasonType)}">
 						{getSeasonTypeText(seasonType)}
 					</span>
 				{/if}

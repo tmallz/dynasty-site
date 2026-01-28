@@ -40,14 +40,14 @@
 	style="animation-delay: {animationDelay}ms"
 >
 	<div class="card-body p-4 md:p-6">
-		<div class="flex items-center justify-between mb-4">
-			<div class="flex items-center gap-2">
+		<div class="flex items-start justify-between gap-4 mb-4">
+			<div class="flex items-center gap-2 flex-wrap">
 				<h2 class="card-title text-lg md:text-xl">League Standings</h2>
 				{#if !isCurrentSeason && season}
-					<span class="badge badge-sm badge-outline">{season} Final</span>
+					<span class="text-xs text-base-content/60">({season} Final)</span>
 				{/if}
 			</div>
-			<a href="/standings" class="link link-primary text-sm hover:link-hover">
+			<a href="/standings" class="link link-primary text-sm hover:link-hover whitespace-nowrap">
 				View Full Standings
 			</a>
 		</div>

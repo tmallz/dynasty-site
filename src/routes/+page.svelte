@@ -172,8 +172,8 @@
 					/>
 				</div>
 
-				<!-- Trending Players Section -->
-				<div class="card bg-base-200 shadow-lg fade-in" style="animation-delay: 300ms">
+				<!-- Trending Players Section - Desktop Only -->
+				<div class="hidden lg:block card bg-base-200 shadow-lg fade-in" style="animation-delay: 300ms">
 					<div class="card-body p-4 md:p-6">
 						<h2 class="card-title text-lg md:text-xl mb-4">
 							Trending Players
@@ -267,6 +267,49 @@
 						{/if}
 					</div>
 				</div>
+			</div>
+		</div>
+
+		<!-- Trending Players Section - Mobile Only -->
+		<div class="lg:hidden mt-4 card bg-base-200 shadow-lg fade-in" style="animation-delay: 300ms">
+			<div class="card-body p-4">
+				<h2 class="card-title text-lg mb-4">
+					Trending Players
+					<span class="badge badge-sm badge-ghost">Powered by Sleeper</span>
+				</h2>
+				<div class="space-y-3">
+					{#each trendingUpPlayers as player}
+						<TrendingPlayer
+							playerName={player.playerName}
+							playerPosition={player.playerPosition}
+							playerTeam={player.playerTeam}
+							playerAvatar={AvatarHelper.GetPlayerAvatarUrl(player.playerId ?? '')}
+							teamAvatar={AvatarHelper.GetPlayerTeamAvatarUrl(
+								player.playerTeam?.toLowerCase() ?? ''
+							)}
+							numWaivers={player.timesWaived}
+							upOrDown={true}
+						/>
+					{/each}
+				</div>
+				{#if trendingDownPlayers.length > 0}
+					<div class="divider my-4"></div>
+					<div class="space-y-3">
+						{#each trendingDownPlayers as player}
+							<TrendingPlayer
+								playerName={player.playerName}
+								playerPosition={player.playerPosition}
+								playerTeam={player.playerTeam}
+								playerAvatar={AvatarHelper.GetPlayerAvatarUrl(player.playerId ?? '')}
+								teamAvatar={AvatarHelper.GetPlayerTeamAvatarUrl(
+									player.playerTeam?.toLowerCase() ?? ''
+								)}
+								numWaivers={player.timesWaived}
+								upOrDown={false}
+							/>
+						{/each}
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}

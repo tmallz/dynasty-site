@@ -96,6 +96,15 @@ export class DraftsHelper {
 					currentround = pick.round;
 					pickNumber = 1; // Reset pick number for the new round
 				}
+				// Get the original owner's roster ID from the slot map
+				let originalRosterId = PageDraft.SlotToRosterMap?.[pick.draft_slot.toString()];
+				let originalOwnerName =
+					users.find(
+						(user) =>
+							rosters.find((roster) => roster.roster_id === originalRosterId)?.owner_id ===
+							user.user_id
+					)?.display_name ?? 'Unknown';
+
 				let pickDto: DraftPagePicks = {
 					round: pick.round,
 					draft_slot: draftPicks[i].draft_slot,
@@ -106,7 +115,8 @@ export class DraftsHelper {
 					PlayerTeam: pick.metadata.team,
 					playerId: pick.player_id,
 					pickNumber: pickNumber,
-					rosterId: pick.roster_id
+					rosterId: pick.roster_id,
+					originalOwner: originalOwnerName
 				};
 
 				pickDto.isOriginalOwner = DraftsHelper.IsOriginalOwner(
