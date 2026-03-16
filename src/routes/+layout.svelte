@@ -6,7 +6,10 @@
 	import { RostersStore } from '$lib/Stores/RosterStore';
 	import { TransactionsStore } from '$lib/Stores/TransactionStore';
 	import type { LayoutData } from './$types';
+	import { dev } from '$app/environment';
+	import { injectAnalytics } from '@vercel/analytics/sveltekit';
 
+	injectAnalytics({ mode: dev ? 'development' : 'production' });
 	const { children, data } = $props<{ children: any; data: LayoutData }>();
 
 	$effect(() => {
