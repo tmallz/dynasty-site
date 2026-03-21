@@ -49,13 +49,10 @@ export async function LoadDrafts(): Promise<void> {
 		for (const league of previousLeagues) {
 			let leagueId = league?.league_id ?? '0';
 			let drafts = await SleeperClient.GetLeagueDrafts(leagueId);
-			drafts.forEach(async (draft) => {
-				let draftDetail = await SleeperClient.GetDraft(draft.draft_id ?? '');
-				draftInfo.push({
-					draft: draft,
-					detail: draftDetail
-				});
-			});
+			const details = await Promise.all(
+				drafts.map((draft) => SleeperClient.GetDraft(draft.draft_id ?? ''))
+			);
+			drafts.forEach((draft, i) => draftInfo.push({ draft, detail: details[i] }));
 		}
 		DraftsStore.set(draftInfo);
 		isLoaded = true; // Mark as loaded after fetching drafts
