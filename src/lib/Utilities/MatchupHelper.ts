@@ -161,9 +161,9 @@ export class MatchupHelper {
 				usePreviousLeague: !isCurrentSeason
 			};
 		} else {
-			// Offseason (preseason) - search backwards for last completed week
-			// Start with the league that matches the most recent completed season
-			const searchLeagueId = isCurrentSeason ? leagueId : currentLeague.previous_league_id;
+			// Offseason (preseason) - show the last completed season's final week.
+			// Always search the previous league since the current league has no matchup data yet.
+			const searchLeagueId = currentLeague.previous_league_id;
 
 			if (!searchLeagueId) {
 				// No previous league, default to week 1
@@ -174,27 +174,25 @@ export class MatchupHelper {
 				};
 			}
 
-			// Search from week 18 down to 1 to find the last week with data
+			// Search from week 17 down to 1 to find the last week with data
 			// Note: Fantasy season is weeks 1-17 (regular season 1-14, playoffs 15-17)
 			for (let week = 17; week >= 1; week--) {
 				try {
 					const matchups = await SleeperClient.GetMatchups(searchLeagueId, week);
 					if (matchups && matchups.length > 0) {
-						// Found data! Determine if this was playoffs (weeks 15-17)
 						const isPlayoffs = week >= 15;
 						return {
 							week,
 							isPlayoffs,
-							usePreviousLeague: searchLeagueId !== leagueId
+							usePreviousLeague: true
 						};
 					}
 				} catch (error) {
-					// No data for this week, continue searching
 					continue;
 				}
 			}
 
-			// No data found, default to week 1 regular season
+			// No data found in previous league, default to week 1
 			return {
 				week: 1,
 				isPlayoffs: false,

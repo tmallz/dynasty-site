@@ -204,7 +204,7 @@ export class TransactionsHelper {
 								: pick.previous_owner_id === initiatorRosterId
 						)
 						.map((pick) => ({
-							Year: new Date(pick.season).getFullYear() + 1,
+							Year: Number(pick.season),
 							Round: pick.round
 						}));
 				};
@@ -381,7 +381,7 @@ export class TransactionsHelper {
 								: pick.previous_owner_id === initiatorRosterId
 						)
 						.map((pick) => ({
-							Year: new Date(pick.season).getFullYear() + 1,
+							Year: Number(pick.season),
 							Round: pick.round
 						}));
 				};
@@ -567,7 +567,7 @@ export class TransactionsHelper {
 
 		filteredDraftPicks.forEach((pick) => {
 			let tradedPick: TradedPickDto = {} as TradedPickDto;
-			tradedPick.Year = new Date(pick.season).getFullYear() + 1;
+			tradedPick.Year = Number(pick.season);
 			tradedPick.Round = pick.round;
 			tradedPicks.push(tradedPick);
 		});
